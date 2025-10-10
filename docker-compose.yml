@@ -1,18 +1,149 @@
-# docker-compose.yml
-version: '3.8'
+version: "3.9"
+
 services:
-  frontend:
-    build: ./frontend
+  # ===================================
+  # 🐍 FastAPI backend
+  # ===================================
+  fastapi:
+    build: .
+    container_name: fastapi_app
+    restart: always
+    env_file: .env
     ports:
-      - "3000:80"  # React build ra static files, serve với nginx
-  backend:
-    build: ./backend
-    ports:
-      - "8000:8000"  # FastAPI chạy trên port 8000
+      - "8000:8000"
     depends_on:
-      - database
+      - postgres
       - redis
-  database:
-    image: postgres:13
+      - minio
+      - mongo
+    volumes:
+      - ./app:/app
+    command: >
+      sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+  # ===================================
+  # 🧱 PostgreSQL Database
+  # ===================================
+  postgres:
+    image: postgres:16
+    container_name: postgres_db
+    restart: always
+    env_file: .env
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # ===================================
+  # 📊 pgAdmin
+  # ===================================
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin
+    restart: always
+    env_file: .env
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  # ===================================
+  # ☁️ MinIO (object storage)
+  # ===================================
+  minio:
+    image: minio/minio
+    container_name: minio_storage
+    command: server /data --console-address ":9001"
+    restart: always
+    env_file: .env
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  # ===================================
+  # ⚡ Redis
+  # ===================================
   redis:
-    image: redis:alpine
+    image: redis:7
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # ===================================
+  # 🧩 MongoDB
+  # ===================================
+  mongo:
+    image: mongo:7
+    container_name: mongo_ai_logs
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # ===================================
+  # 🧭 Portainer (quản lý Docker)
+  # ===================================
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    ports:
+      - "9002:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+  # ===================================
+  # 🪶 MySQL (cho WordPress hoặc thử nghiệm)
+  # ===================================
+  mysql:
+    image: mysql:8
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wp_user
+      MYSQL_PASSWORD: wp_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+
+  # ===================================
+  # 🌐 WordPress site
+  # ===================================
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress_site
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: wp_pass
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  minio_data:
+  redis_data:
+  mongo_data:
+  portainer_data:
+  mysql_data:
+  wordpress_data:

@@ -1,42 +1,45 @@
-# main.py
 from fastapi import FastAPI
-from typing import Optional
+from fastapi.middleware.cors import CORSMiddleware
+from app.core.config import settings
+from app.core.database import create_tables
+from app.api.routes import auth, users, violations, analytics
 
-# Khởi tạo ứng dụng FastAPI
+# Create tables
+create_tables()
+
 app = FastAPI(
-    title="My FastAPI Project",
-    description="A simple FastAPI example",
-    version="1.0.0"
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    debug=settings.DEBUG
 )
 
-# Route căn bản
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Include routers
+app.include_router(auth.router)
+app.include_router(users.router)
+app.include_router(violations.router)
+app.include_router(analytics.router)
+
 @app.get("/")
-async def root():
-    return {"message": "Hello World", "status": "success"}
+def read_root():
+    return {
+        "message": "Welcome to Traffic Violation System API",
+        "version": settings.VERSION,
+        "docs": "/docs"
+    }
 
-# Route với tham số đường dẫn
-@app.get("/items/{item_id}")
-async def read_item(item_id: int, q: Optional[str] = None):
-    return {"item_id": item_id, "q": q}
+@app.get("/health")
+def health_check():
+    return {"status": "healthy"}
 
-# Route POST với request body
-from pydantic import BaseModel
-
-class Item(BaseModel):
-    name: str
-    description: Optional[str] = None
-    price: float
-    tax: Optional[float] = None
-
-@app.post("/items/")
-async def create_item(item: Item):
-    item_dict = item.dict()
-    if item.tax:
-        price_with_tax = item.price + item.tax
-        item_dict.update({"price_with_tax": price_with_tax})
-    return item_dict
-
-# Route với query parameters
-@app.get("/users/")
-async def read_users(skip: int = 0, limit: int = 10):
-    return {"skip": skip, "limit": limit}
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)

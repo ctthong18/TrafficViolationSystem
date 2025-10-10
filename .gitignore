@@ -1,0 +1,21 @@
+# File cấu hình nhạy cảm
+.env
+.env.*
+*.local
+
+# Cache và metadata của Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Thư mục build, dist
+dist/
+build/
+*.egg-info/
+
+# Docker
+# Loại trừ các file bạn không muốn theo dõi,
+# nhưng thường thì docker-compose.yml và Dockerfile cần được theo dõi.
+
+# Log files
+*.log

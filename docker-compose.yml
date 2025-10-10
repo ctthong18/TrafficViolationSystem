@@ -1,0 +1,18 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:80"  # React build ra static files, serve với nginx
+  backend:
+    build: ./backend
+    ports:
+      - "8000:8000"  # FastAPI chạy trên port 8000
+    depends_on:
+      - database
+      - redis
+  database:
+    image: postgres:13
+  redis:
+    image: redis:alpine

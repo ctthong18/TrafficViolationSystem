@@ -1,5 +1,6 @@
 from sqlalchemy import Column, String, Integer, DateTime, Text, ForeignKey, JSON
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from .base import Base
 
 class ComplaintActivity(Base):
@@ -11,11 +12,11 @@ class ComplaintActivity(Base):
     # Thông tin hoạt động
     activity_type = Column(String(100), nullable=False)  # created, assigned, updated, resolved, etc.
     description = Column(Text, nullable=False)
-    metadata = Column(JSON)  # Additional data about the activity
+    activity_metadata = Column(JSON)  # Additional data about the activity
     
     # Người thực hiện
     performed_by = Column(Integer, ForeignKey("users.id"))
-    performed_at = Column(DateTime, default=DateTime.utcnow, nullable=False)
+    performed_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationships
     complaint = relationship("Complaint", back_populates="activities")

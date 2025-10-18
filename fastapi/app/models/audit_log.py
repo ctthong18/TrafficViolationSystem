@@ -1,6 +1,7 @@
 from sqlalchemy import Column, String, Integer, DateTime, Text, JSON, ForeignKey
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
+from datetime import datetime
 from .base import Base
 
 class AuditLog(Base):
@@ -22,7 +23,7 @@ class AuditLog(Base):
     ip_address = Column(String(45))
     user_agent = Column(Text)
     
-    timestamp = Column(DateTime, default=DateTime.utcnow, nullable=False)
+    timestamp = Column(DateTime, default=datetime.utcnow, nullable=False)
     
     # Relationships
     user = relationship("User")

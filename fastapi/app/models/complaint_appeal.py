@@ -21,14 +21,14 @@ class ComplaintAppeal(Base, TimestampMixin):
     new_evidence_urls = Column(JSON)
     
     # Xử lý kháng cáo
-    status = Column(ENUM(AppealStatus), default=AppealStatus.PENDING)
+    status = Column(Enum(AppealStatus), default=AppealStatus.PENDING)
     reviewed_by = Column(Integer, ForeignKey("users.id"))
     reviewed_at = Column(DateTime)
     review_notes = Column(Text)
     
     # Relationships
     complaint = relationship("Complaint", back_populates="appeals")
-    reviewing_officer = relationship("User", foreign_keys=[reviewed_by])
+    reviewing_officer = relationship("User", foreign_keys=[reviewed_by], overlaps="appeal_reviews")
     
     def __repr__(self):
         return f"<ComplaintAppeal {self.appeal_code} for {self.complaint.complaint_code}>"

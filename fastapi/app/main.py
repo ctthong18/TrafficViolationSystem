@@ -1,8 +1,14 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.core.database import create_tables
-from app.api.routes import auth, users, violations, analytics
+from app.api.router import api_router
+
+# Middleware imports
+from app.api.middleware.cors_middleware import setup_cors_middleware
+from app.api.middleware.logging_middleware import LoggingMiddleware
+from app.api.middleware.rate_limiting import RateLimitingMiddleware
+from app.api.middleware.error_handler import ErrorHandlerMiddleware
+from app.api.middleware.security_middleware import SecurityMiddleware
 
 # Create tables
 create_tables()
@@ -13,20 +19,17 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Add middleware (order matters!)
+app.add_middleware(ErrorHandlerMiddleware)  # First - catch all errors
+app.add_middleware(SecurityMiddleware)      # Security checks
+app.add_middleware(LoggingMiddleware)       # Request logging
+app.add_middleware(RateLimitingMiddleware)  # Rate limiting
 
-# Include routers
-app.include_router(auth.router)
-app.include_router(users.router)
-app.include_router(violations.router)
-app.include_router(analytics.router)
+# CORS setup
+setup_cors_middleware(app)
+
+# Include main router
+app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 def read_root():

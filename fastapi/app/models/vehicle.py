@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Integer, DateTime, Text, DECIMAL, Date
+from sqlalchemy import Column, String, Integer, DateTime, Text, DECIMAL, Date, ForeignKey
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
@@ -14,6 +14,7 @@ class Vehicle(Base, TimestampMixin):
     year_of_manufacture = Column(Integer)
     
     # Owner information
+    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
     owner_name = Column(String(255))
     owner_identification = Column(String(50))
     owner_address = Column(Text)
@@ -33,6 +34,7 @@ class Vehicle(Base, TimestampMixin):
     status = Column(String(50), default="active")
     
     # Relationships
+    owner = relationship("User", back_populates="vehicles")
     violations = relationship("Violation", foreign_keys="Violation.license_plate", 
                             primaryjoin="Vehicle.license_plate==Violation.license_plate",
                             viewonly=True)

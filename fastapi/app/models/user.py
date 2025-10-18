@@ -1,7 +1,8 @@
-from sqlalchemy import Column, String, Integer, DateTime, Boolean, JSON
+from sqlalchemy import Column, String, Integer, DateTime, Boolean, JSON, ForeignKey, DECIMAL
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
+import enum
 
 class Role(enum.Enum):
     ADMIN = "admin"
@@ -18,13 +19,24 @@ class User(Base, TimestampMixin):
     full_name = Column(String(255), nullable=False)
     
     # Role-based access control
-    role = Column(String(50), nullable=False)  # admin, officer, viewer, citizen
+    role = Column(String(50), nullable=False)
     permissions = Column(JSONB)
     
     # Contact info
     phone_number = Column(String(20))
     department = Column(String(100))
     badge_number = Column(String(50))
+    
+    # Citizen-specific fields
+    identification_number = Column(String(50))
+    date_of_birth = Column(DateTime)
+    address = Column(String(500))
+    
+    # Wallet info (chỉ cho citizen)
+    wallet_balance = Column(DECIMAL(15, 2), default=0)
+    total_deposited = Column(DECIMAL(15, 2), default=0)
+    total_paid_fines = Column(DECIMAL(15, 2), default=0)
+    pending_fines = Column(DECIMAL(15, 2), default=0)
     
     # Status
     is_active = Column(Boolean, default=True)
@@ -38,5 +50,12 @@ class User(Base, TimestampMixin):
     assigned_complaints = relationship("Complaint", foreign_keys="Complaint.assigned_officer_id")
     appeal_reviews = relationship("ComplaintAppeal", foreign_keys="ComplaintAppeal.reviewed_by")
     audit_logs = relationship("AuditLog", back_populates="user")
+    driving_licenses = relationship("DrivingLicense", back_populates="user")
+    vehicles = relationship("Vehicle", back_populates="owner")
+    payments = relationship("Payment", back_populates="user")  # Tất cả giao dịch
+    # ĐÃ XÓA wallet_transactions relationship
+    
     def __repr__(self):
         return f"<User {self.username} - {self.role}>"
+
+from app.models.driving_license import DrivingLicense

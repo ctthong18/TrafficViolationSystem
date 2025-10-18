@@ -68,7 +68,7 @@ class Complaint(Base, TimestampMixin):
     # Relationships
     violation = relationship("Violation", back_populates="complaints")
     vehicle = relationship("Vehicle")
-    assigned_officer = relationship("User", foreign_keys=[assigned_officer_id])
+    assigned_officer = relationship("User", foreign_keys=[assigned_officer_id], overlaps="assigned_complaints")
     appeals = relationship("ComplaintAppeal", back_populates="complaint")
     activities = relationship("ComplaintActivity", back_populates="complaint")
     

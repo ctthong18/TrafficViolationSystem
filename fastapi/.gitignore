@@ -1,5 +1,4 @@
 # File cấu hình nhạy cảm
-.env
 .env.*
 *.local
 

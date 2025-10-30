@@ -1,17 +1,14 @@
 from fastapi import FastAPI
-from app.core.config import settings
-from app.core.database import create_tables
-from app.api.router import api_router
+from core.config import settings  # Đổi: từ app.core
+from core.database import create_tables  # Đổi: từ app.core
+from api.router import api_router  # Đổi: từ app.api
 
-# Middleware imports
-from app.api.middleware.cors_middleware import setup_cors_middleware
-from app.api.middleware.logging_middleware import LoggingMiddleware
-from app.api.middleware.rate_limiting import RateLimitingMiddleware
-from app.api.middleware.error_handler import ErrorHandlerMiddleware
-from app.api.middleware.security_middleware import SecurityMiddleware
-
-# Create tables
-create_tables()
+# Middleware imports: Đổi prefix
+from api.middleware.cors_middleware import setup_cors_middleware
+from api.middleware.logging_middleware import LoggingMiddleware
+from api.middleware.rate_limiting import RateLimitingMiddleware
+from api.middleware.error_handler import ErrorHandlerMiddleware
+from api.middleware.security_middleware import SecurityMiddleware
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
@@ -19,16 +16,16 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
-# Add middleware (order matters!)
-app.add_middleware(ErrorHandlerMiddleware)  # First - catch all errors
-app.add_middleware(SecurityMiddleware)      # Security checks
-app.add_middleware(LoggingMiddleware)       # Request logging
-app.add_middleware(RateLimitingMiddleware)  # Rate limiting
+# Add middleware (giữ nguyên)
+app.add_middleware(ErrorHandlerMiddleware)
+app.add_middleware(SecurityMiddleware)
+app.add_middleware(LoggingMiddleware)
+app.add_middleware(RateLimitingMiddleware)
 
 # CORS setup
 setup_cors_middleware(app)
 
-# Include main router
+# Include router
 app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
@@ -43,6 +40,11 @@ def read_root():
 def health_check():
     return {"status": "healthy"}
 
+# Startup: Tạo tables khi start (tránh chạy sớm)
+@app.on_event("startup")
+async def startup_event():
+    create_tables()
+
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run("app.main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)  # Đổi tương ứng

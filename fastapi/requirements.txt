@@ -1,3 +1,6 @@
+fastapi
+uvicorn
+numpy>=1.24.4,<2.0
 annotated-types==0.7.0
 bcrypt==4.0.1
 certifi==2025.10.5
@@ -21,3 +24,7 @@ SQLAlchemy-Utils==0.42.0
 typing-inspection==0.4.2
 typing_extensions==4.15.0
 urllib3==2.5.0
+pydantic[email]
+opencv-python-headless
+redis==5.0.8
+

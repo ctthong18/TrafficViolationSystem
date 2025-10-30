@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
-from app.core.database import Base, engine, SessionLocal
-from app.models import *
-from app.models.user import User, UserRole
+from core.database import Base, engine, SessionLocal
+from models import *
+from models.user import User, UserRole
 from passlib.hash import bcrypt
 
 def init_db():

@@ -1,5 +1,6 @@
-from .config import settings 
-from .database import Base, engine, get_db
-from .security import create_access_token
+"""
+Core package for Traffic Violation System.
+Handles configuration, database, and security.
+"""
 
-__all__ = ["settings", "Base", "engine", "get_db", "create_access_token"]
+__all__ = []

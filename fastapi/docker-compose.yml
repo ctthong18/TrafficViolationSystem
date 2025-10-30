@@ -1,8 +1,6 @@
-version: "3.9"
-
 services:
   # ===================================
-  # 🐍 FastAPI backend
+  # FastAPI backend
   # ===================================
   fastapi:
     build: .
@@ -16,16 +14,19 @@ services:
       - redis
       - minio
       - mongo
-    volumes:
-      - ./app:/app
+    working_dir: /fastapi/app
     command: >
-      sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+      sh -c "python -c 'import time; time.sleep(5)' && uvicorn main:app --host 0.0.0.0 --port 8000"
 
   # ===================================
   # 🧱 PostgreSQL Database
   # ===================================
   postgres:
     image: postgres:16
+    environment:
+      - POSTGRES_USER=traffic_user
+      - POSTGRES_PASSWORD=trafficviolation
+      - POSTGRES_DB=traffic_violation
     container_name: postgres_db
     restart: always
     env_file: .env
@@ -35,10 +36,13 @@ services:
       - postgres_data:/var/lib/postgresql/data
 
   # ===================================
-  # 📊 pgAdmin
+  # pgAdmin
   # ===================================
   pgadmin:
     image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@local.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
     container_name: pgadmin
     restart: always
     env_file: .env
@@ -50,10 +54,13 @@ services:
       - pgadmin_data:/var/lib/pgadmin
 
   # ===================================
-  # ☁️ MinIO (object storage)
+  # MinIO (object storage)
   # ===================================
   minio:
     image: minio/minio
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio123
     container_name: minio_storage
     command: server /data --console-address ":9001"
     restart: always
@@ -102,7 +109,7 @@ services:
       - portainer_data:/data
 
   # ===================================
-  # 🪶 MySQL (cho WordPress hoặc thử nghiệm)
+  # MySQL (cho WordPress hoặc thử nghiệm)
   # ===================================
   mysql:
     image: mysql:8
@@ -120,7 +127,7 @@ services:
 
 
   # ===================================
-  # 🌐 WordPress site
+  # WordPress site
   # ===================================
   wordpress:
     image: wordpress:latest

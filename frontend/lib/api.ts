@@ -1,8 +1,3 @@
-/**
- * API Service Layer - Centralized API management
- * Tất cả các API calls sẽ được quản lý tại đây để dễ dàng maintain và update
- */
-
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 // Types
@@ -184,6 +179,20 @@ export const authApi = {
       localStorage.setItem('user', JSON.stringify(response.user))
     }
     
+    return response
+  },
+
+  register: async (data: {
+    username: string
+    email: string
+    password: string
+    full_name: string
+    phone_number?: string
+  }): Promise<{ message: string; user_id: number }> => {
+    const response = await apiClient.post<{ message: string; user_id: number }>(
+      'api/auth/register',
+      data
+    )
     return response
   },
 

@@ -21,11 +21,12 @@ export function RegisterForm() {
     email: "",
     full_name: "",
     phone_number: "",
+    identification_number: "",
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.username || !formData.password || !formData.confirmPassword) return
+    if (!formData.username || !formData.password || !formData.confirmPassword || !formData.email || !formData.full_name) return
     if (formData.password !== formData.confirmPassword) {
       alert("Mật khẩu xác nhận không khớp.")
       return
@@ -38,7 +39,8 @@ export function RegisterForm() {
         password: formData.password,
         email: formData.email,
         full_name: formData.full_name,
-        phone_number: formData.phone_number
+        phone_number: formData.phone_number,
+        identification_number: formData.identification_number
       })
 
       alert("Đăng ký thành công! Vui lòng đăng nhập.")
@@ -67,6 +69,57 @@ export function RegisterForm() {
               placeholder="Nhập tên đăng nhập"
               value={formData.username}
               onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
+              required
+            />
+          </div>
+
+          {/* Email */}
+          <div className="space-y-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="you@example.com"
+              value={formData.email}
+              onChange={(e) => setFormData((prev) => ({ ...prev, email: e.target.value }))}
+              required
+            />
+          </div>
+
+          {/* Full name */}
+          <div className="space-y-2">
+            <Label htmlFor="full_name">Họ và tên</Label>
+            <Input
+              id="full_name"
+              type="text"
+              placeholder="Nguyễn Văn A"
+              value={formData.full_name}
+              onChange={(e) => setFormData((prev) => ({ ...prev, full_name: e.target.value }))}
+              required
+            />
+          </div>
+
+          {/* Phone number (optional) */}
+          <div className="space-y-2">
+            <Label htmlFor="phone_number">Số điện thoại (tuỳ chọn)</Label>
+            <Input
+              id="phone_number"
+              type="tel"
+              placeholder="0901234567"
+              value={formData.phone_number}
+              onChange={(e) => setFormData((prev) => ({ ...prev, phone_number: e.target.value }))}
+            />
+          </div>
+
+          {/* Identification number */}
+          <div className="space-y-2">
+            <Label htmlFor="identification_number">Số căn cước công dân</Label>
+            <Input
+              id="identification_number"
+              type="text"
+              placeholder="050203512689"
+              value={formData.identification_number}
+              onChange={(e) => setFormData((prev) => ({ ...prev, identification_number: e.target.value }))}
               required
             />
           </div>

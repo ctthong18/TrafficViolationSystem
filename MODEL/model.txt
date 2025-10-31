@@ -1,0 +1,75 @@
+├── fastapi/
+│   ├── app/
+│   │   ├── __pycache__/
+│   │   ├── analysis/
+│   │   ├── ai/
+│   │   ├── api/
+│   │   │   ├── endpoints/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── admin.py
+│   │   │   │   ├── auth.py
+│   │   │   │   ├── calendar_analytics.py
+│   │   │   │   ├── citizen.py
+│   │   │   │   ├── officer.py
+│   │   │   │   └── violations.py
+│   │   │   ├── middleware/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── auth_middleware.py
+│   │   │   │   ├── cors_middleware.py
+│   │   │   │   ├── error_handler.py
+│   │   │   │   ├── logging_middleware.py
+│   │   │   │   ├── rate_limiting.py
+│   │   │   │   └── security_middleware.py
+│   │   │   ├── Dependencies.py
+│   │   │   └── router.py
+|   |    |   ├─── __init__.py
+│   │   ├── core/
+│   │   │   ├── database.py
+│   │   │   ├── config.py
+│   │   │   ├── security.py
+│   |    │   ├── __init__.py
+│   │   ├── models/
+│   │   │   ├── __init__.py
+│   │   │   ├── action_recommendations.py
+│   │   │   ├── audit_log.py
+│   │   │   ├── base.py
+│   │   │   ├── camera.py
+│   │   │   ├── complaint_activity.py
+│   │   │   ├── complaint_appeal.py
+│   │   │   ├── complaint.py
+│   │   │   ├── confidence_analytics.py
+│   │   │   ├── daily_stats.py
+│   │   │   ├── denunciation_activity.py
+│   │   │   ├── denunciation.py
+│   │   │   ├── evidence.py
+│   │   │   ├── location_hotspots.py
+│   │   │   ├── model_performance.py
+│   │   │   ├── notification_template.py
+│   │   │   ├── notification.py
+│   │   │   ├── payment.py
+│   │   │   ├── time_series_trends.py
+│   │   │   ├── user.py
+│   │   │   ├── vehicle.py
+│   │   │   ├── violation_forecasts.py
+│   │   │   └── violation.py
+│   │   ├── schemas/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth_schema.py
+│   │   │   ├── complaint.py
+│   │   │   ├── user_schema.py
+│   │   │   └── violation.py
+│   │   ├── services/
+│   │   │   ├── __init__.py
+│   │   │   ├── auth_service.py
+│   │   │   ├── payment_service.py
+│   │   │   ├── user_service.py
+│   │   │   ├── vehicle_service.py
+│   │   │   └── violation_service.py
+│   │   ├── utils/
+│   │   │   ├── __init__.py
+|   |   |   ├── password.py
+|   |   |   ├── validators.py
+│   │   ├── database.py
+│   │   ├── __init__.py
+│   │   ├── init_db.py
+│   │   └── main.py

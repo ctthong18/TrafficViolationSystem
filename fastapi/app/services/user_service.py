@@ -56,6 +56,13 @@ class UserService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Email đã được sử dụng"
             )
+            
+        if self.db.query(User).filter(User.identification_number == user_data.identification_number).first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Email đã được sử dụng"
+            )
+
 
         user = User(
             **user_data.dict(exclude={'password'}),

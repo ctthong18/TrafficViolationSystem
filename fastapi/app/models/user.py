@@ -28,7 +28,7 @@ class User(Base, TimestampMixin):
     badge_number = Column(String(50))
     
     # Citizen-specific fields
-    identification_number = Column(String(50))
+    identification_number = Column(String(100), unique=True, nullable=False)
     date_of_birth = Column(DateTime)
     address = Column(String(500))
     

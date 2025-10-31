@@ -6,6 +6,7 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
     full_name: str
+    identification_number: str
     phone_number: Optional[str] = None
     department: Optional[str] = None
     badge_number: Optional[str] = None

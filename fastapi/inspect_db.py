@@ -4,7 +4,7 @@ from app.core.config import settings
 engine = create_engine(settings.DATABASE_URL)
 inspector = inspect(engine)
 
-print("📊 DATABASE SCHEMA INFORMATION")
+print("DATABASE SCHEMA INFORMATION")
 print("=" * 50)
 
 for table_name in inspector.get_table_names():

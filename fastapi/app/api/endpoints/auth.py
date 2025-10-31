@@ -40,4 +40,13 @@ def change_password(
 
 @router.get("/me")
 def get_current_user_info(current_user: User = Depends(get_current_user)):
-    return current_user
+    return {
+        "id": current_user.id,
+        "username": current_user.username,
+        "email": current_user.email,
+        "full_name": current_user.full_name,
+        "role": current_user.role,
+        "phone_number": current_user.phone_number,
+        "identification_number": current_user.identification_number,
+        "is_active": current_user.is_active,
+    }

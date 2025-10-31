@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -8,24 +8,37 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Camera, MapPin, Wifi, WifiOff, Settings, Search } from "lucide-react"
 
+export interface CameraData {
+  id: string
+  location: string
+  status: "online" | "offline" | "maintenance"
+  violations: number
+  lastUpdate: string
+}
+
 export function CameraSystem() {
+  const [cameras, setCameras] = useState<CameraData[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
 
-  const cameras = [
-    {
-      id: "CAM-001",
-      location: "Ngã tư Láng Hạ - Thái Hà",
-      status: "online",
-      violations: 12,
-      lastUpdate: "2 phút trước",
-    },
-    { id: "CAM-002", location: "Cầu Nhật Tân", status: "online", violations: 8, lastUpdate: "1 phút trước" },
-    { id: "CAM-003", location: "Đại lộ Thăng Long", status: "offline", violations: 0, lastUpdate: "15 phút trước" },
-    { id: "CAM-004", location: "Phố Huế - Bà Triệu", status: "online", violations: 15, lastUpdate: "30 giây trước" },
-    { id: "CAM-005", location: "Ngã tư Sở", status: "maintenance", violations: 0, lastUpdate: "1 giờ trước" },
-    { id: "CAM-006", location: "Cầu Long Biên", status: "online", violations: 6, lastUpdate: "3 phút trước" },
-  ]
+  useEffect(() => {
+    const fetchCameras = async () => {
+      try {
+        setLoading(true)
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/cameras`)
+        if (!res.ok) throw new Error("Không thể tải dữ liệu camera")
+        const data: CameraData[] = await res.json()
+        setCameras(data)
+      } catch (err: any) {
+        setError(err.message)
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchCameras()
+  }, [])
 
   const filteredCameras = cameras.filter((camera) => {
     const matchesSearch =
@@ -37,29 +50,24 @@ export function CameraSystem() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "online":
-        return "bg-success"
-      case "offline":
-        return "bg-destructive"
-      case "maintenance":
-        return "bg-warning"
-      default:
-        return "bg-muted"
+      case "online": return "bg-success"
+      case "offline": return "bg-destructive"
+      case "maintenance": return "bg-warning"
+      default: return "bg-muted"
     }
   }
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case "online":
-        return "Hoạt động"
-      case "offline":
-        return "Ngoại tuyến"
-      case "maintenance":
-        return "Bảo trì"
-      default:
-        return "Không xác định"
+      case "online": return "Hoạt động"
+      case "offline": return "Ngoại tuyến"
+      case "maintenance": return "Bảo trì"
+      default: return "Không xác định"
     }
   }
+
+  if (loading) return <p>Đang tải dữ liệu camera...</p>
+  if (error) return <p className="text-destructive">{error}</p>
 
   return (
     <div className="space-y-6">

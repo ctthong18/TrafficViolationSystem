@@ -1,43 +1,53 @@
 "use client"
 
 import type React from "react"
-
+import Link from "next/link"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Eye, EyeOff, LogIn } from "lucide-react"
+import { Eye, EyeOff, LogIn, ArrowLeft } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { authApi } from "@/lib/api"
 
-type UserRole = "authority" | "officer" | "citizen"
 
-export function LoginForm() {
+interface LoginFormProps {
+  role: "authority" | "officer" | "citizen"
+  onBack?: () => void
+}
+
+export function LoginForm({ role, onBack }: LoginFormProps) {
   const [showPassword, setShowPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
-    username: "",
+    usernameOrEmail: "",
     password: "",
-    role: "" as UserRole | "",
+    identification_number: "",
   })
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.username || !formData.password || !formData.role) return
+    if (!formData.usernameOrEmail || !formData.password) return
 
     setIsLoading(true)
     try {
-      const res = await authApi.login({
-        username: formData.username,
+      const payload: any = {
+        username_or_email: formData.usernameOrEmail,
         password: formData.password,
-        role: formData.role,
-      })
+        role,
+      }
 
-      const role = res?.user?.role || formData.role
-      switch (role) {
+      if (role === "citizen") {
+        payload.identification_number = formData.identification_number
+      }
+
+      await authApi.login(payload)
+
+      const me = authApi.getCurrentUser()
+      const userRole = me?.role
+      switch (userRole) {
         case "authority":
           router.push("/authority")
           break
@@ -64,18 +74,39 @@ export function LoginForm() {
       </CardHeader>
       <CardContent>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Username hoặc Email */}
           <div className="space-y-2">
-            <Label htmlFor="username">Tên đăng nhập</Label>
+            <Label htmlFor="usernameOrEmail">Tên đăng nhập hoặc Email</Label>
             <Input
-              id="username"
+              id="usernameOrEmail"
               type="text"
-              placeholder="Nhập tên đăng nhập"
-              value={formData.username}
-              onChange={(e) => setFormData((prev) => ({ ...prev, username: e.target.value }))}
+              placeholder="Nhập tên đăng nhập hoặc email"
+              value={formData.usernameOrEmail}
+              onChange={(e) =>
+                setFormData((prev) => ({ ...prev, usernameOrEmail: e.target.value }))
+              }
               required
             />
           </div>
 
+          {/* CCCD — chỉ hiển thị khi role là citizen */}
+          {role === "citizen" && (
+            <div className="space-y-2">
+              <Label htmlFor="identification_number">Số căn cước công dân</Label>
+              <Input
+                id="identification_number"
+                type="text"
+                placeholder="050203512689"
+                value={formData.identification_number}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, identification_number: e.target.value }))
+                }
+                required
+              />
+            </div>
+          )}
+
+          {/* Password */}
           <div className="space-y-2">
             <Label htmlFor="password">Mật khẩu</Label>
             <div className="relative">
@@ -84,7 +115,9 @@ export function LoginForm() {
                 type={showPassword ? "text" : "password"}
                 placeholder="Nhập mật khẩu"
                 value={formData.password}
-                onChange={(e) => setFormData((prev) => ({ ...prev, password: e.target.value }))}
+                onChange={(e) =>
+                  setFormData((prev) => ({ ...prev, password: e.target.value }))
+                }
                 required
               />
               <Button
@@ -94,15 +127,30 @@ export function LoginForm() {
                 className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                 onClick={() => setShowPassword(!showPassword)}
               >
-                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
               </Button>
             </div>
           </div>
 
+          {/* Register Link */}
+          {role === "citizen" && (
+            <p className="text-center text-sm text-muted-foreground">
+              Chưa có tài khoản?{" "}
+              <Link href="/register" className="text-primary hover:underline">
+                Đăng ký ngay
+              </Link>
+            </p>
+          )}
+
+          {/* Submit */}
           <Button
             type="submit"
             className="w-full"
-            disabled={isLoading || !formData.username || !formData.password || !formData.role}
+            disabled={isLoading || !formData.usernameOrEmail || !formData.password}
           >
             {isLoading ? (
               <div className="flex items-center gap-2">
@@ -115,6 +163,17 @@ export function LoginForm() {
                 Đăng nhập
               </div>
             )}
+          </Button>
+
+          {/* Nút quay lại trang chính */}
+          <Button
+            type="button"
+            variant="outline"
+            className="w-full mt-2"
+            onClick={onBack}
+          >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Quay lại chọn vai trò
           </Button>
         </form>
       </CardContent>

@@ -1,6 +1,10 @@
+// lib/api.ts
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
+console.log('[API] Using base URL:', API_BASE_URL)
 
-// Types
+// ----------------------------
+// 🔹 Types
+// ----------------------------
 export interface ApiResponse<T> {
   success: boolean
   data?: T
@@ -9,20 +13,14 @@ export interface ApiResponse<T> {
 }
 
 export interface LoginRequest {
-  username: string
+  username_or_email: string
   password: string
-  role?: string
+  identification_number?: string // required only for citizen
 }
 
 export interface LoginResponse {
   access_token: string
   token_type: string
-  user: {
-    id: number
-    username: string
-    role: string
-    email?: string
-  }
 }
 
 export interface Violation {
@@ -48,7 +46,9 @@ export interface ViolationReport {
   evidence?: File
 }
 
-// API Error Handler
+// ----------------------------
+// 🔹 Error class
+// ----------------------------
 class ApiError extends Error {
   constructor(
     public status: number,
@@ -60,13 +60,14 @@ class ApiError extends Error {
   }
 }
 
-// Helper function to get auth token
+// ----------------------------
+// 🔹 Helper functions
+// ----------------------------
 const getAuthToken = (): string | null => {
   if (typeof window === 'undefined') return null
   return localStorage.getItem('access_token')
 }
 
-// Helper function to handle response
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
@@ -79,7 +80,9 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return response.json()
 }
 
-// API Client
+// ----------------------------
+// 🔹 API Client
+// ----------------------------
 class ApiClient {
   private baseURL: string
 
@@ -92,9 +95,14 @@ class ApiClient {
     options: RequestInit = {}
   ): Promise<T> {
     const token = getAuthToken()
+
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
       ...(options.headers as Record<string, string>),
+    }
+
+    // ✅ Chỉ set Content-Type nếu không phải FormData
+    if (!(options.body instanceof FormData)) {
+      headers['Content-Type'] = 'application/json'
     }
 
     if (token) {
@@ -102,18 +110,14 @@ class ApiClient {
     }
 
     const url = `${this.baseURL}${endpoint}`
-    const config: RequestInit = {
-      ...options,
-      headers,
-    }
+    const config: RequestInit = { ...options, headers }
 
     try {
       const response = await fetch(url, config)
       return handleResponse<T>(response)
     } catch (error) {
-      if (error instanceof ApiError) {
-        throw error
-      }
+      console.error('❌ API Request failed:', url, error)
+      if (error instanceof ApiError) throw error
       throw new ApiError(0, 'Network error or server unavailable')
     }
   }
@@ -143,9 +147,7 @@ class ApiClient {
   async postFormData<T>(endpoint: string, formData: FormData): Promise<T> {
     const token = getAuthToken()
     const headers: Record<string, string> = {}
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`
-    }
+    if (token) headers['Authorization'] = `Bearer ${token}`
 
     const url = `${this.baseURL}${endpoint}`
     const response = await fetch(url, {
@@ -158,27 +160,33 @@ class ApiClient {
   }
 }
 
-// Create API client instance
+// ----------------------------
+// 🔹 Create API instance
+// ----------------------------
 const apiClient = new ApiClient(API_BASE_URL)
 
-// Auth API
+// ----------------------------
+// 🔹 Auth API
+// ----------------------------
 export const authApi = {
   login: async (credentials: LoginRequest): Promise<LoginResponse> => {
-    const formData = new FormData()
-    formData.append('username', credentials.username)
-    formData.append('password', credentials.password)
-    
-    const response = await apiClient.postFormData<LoginResponse>(
-      '/api/auth/login',
-      formData
+    // ✅ Gửi JSON thay vì FormData
+    const response = await apiClient.post<LoginResponse>(
+      '/api/v1/login',
+      credentials
     )
-    
-    // Store token
+
+    // ✅ Lưu token rồi lấy thông tin người dùng từ /me
     if (typeof window !== 'undefined' && response.access_token) {
       localStorage.setItem('access_token', response.access_token)
-      localStorage.setItem('user', JSON.stringify(response.user))
+      try {
+        const me = await apiClient.get('/api/v1/me')
+        localStorage.setItem('user', JSON.stringify(me))
+      } catch {
+        // Nếu /me lỗi, vẫn tiếp tục với token đã lưu
+      }
     }
-    
+
     return response
   },
 
@@ -188,12 +196,13 @@ export const authApi = {
     password: string
     full_name: string
     phone_number?: string
+    identification_number: string
   }): Promise<{ message: string; user_id: number }> => {
-    const response = await apiClient.post<{ message: string; user_id: number }>(
-      'api/auth/register',
+    // ✅ Thêm dấu "/" ở đầu endpoint
+    return apiClient.post<{ message: string; user_id: number }>(
+      '/api/v1/register',
       data
     )
-    return response
   },
 
   logout: () => {
@@ -215,32 +224,36 @@ export const authApi = {
   },
 }
 
-// Violations API
+// ----------------------------
+// 🔹 Violations API
+// ----------------------------
 export const violationsApi = {
   getAll: async (params?: {
     page?: number
     limit?: number
     status?: string
   }): Promise<{ violations: Violation[]; total: number }> => {
+    const limit = params?.limit ?? 50
+    const page = params?.page ?? 1
+    const skip = (page - 1) * limit
     const queryParams = new URLSearchParams()
-    if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.limit) queryParams.append('limit', params.limit.toString())
+    queryParams.append('skip', skip.toString())
+    queryParams.append('limit', limit.toString())
     if (params?.status) queryParams.append('status', params.status)
-    
-    const endpoint = `/api/violations${queryParams.toString() ? `?${queryParams}` : ''}`
+
+    const endpoint = `/api/v1/violations${queryParams.toString() ? `?${queryParams}` : ''}`
     return apiClient.get(endpoint)
   },
 
   getById: async (id: string): Promise<Violation> => {
-    return apiClient.get<Violation>(`/api/violations/${id}`)
+    return apiClient.get<Violation>(`/api/v1/violations/${id}`)
   },
 
   lookupByLicensePlate: async (
     licensePlate: string
   ): Promise<Violation[]> => {
-    return apiClient.get<Violation[]>(
-      `/api/citizen/violations/lookup?license_plate=${licensePlate}`
-    )
+    const qp = new URLSearchParams({ license_plate: licensePlate })
+    return apiClient.get<Violation[]>(`/api/v1/violations?${qp.toString()}`)
   },
 
   createReport: async (
@@ -255,25 +268,28 @@ export const violationsApi = {
     formData.append('description', report.description)
     if (report.evidence) formData.append('evidence', report.evidence)
 
-    return apiClient.postFormData(`/api/citizen/violations/report`, formData)
+    // NOTE: Backend has no explicit citizen violation report endpoint.
+    // Consider wiring to complaints or denunciations when available.
+    return apiClient.postFormData(`/api/v1/complaints`, formData)
   },
 
-  updateStatus: async (
-    id: string,
-    status: string
-  ): Promise<Violation> => {
-    return apiClient.put<Violation>(`/api/violations/${id}/status`, { status })
+  updateStatus: async (id: string, status: string): Promise<Violation> => {
+    // Backend exposes officer review endpoint instead of generic status update
+    return apiClient.post<Violation>(`/api/v1/officer/violations/${id}/review`, { action: status })
   },
 }
 
-// Citizen API
+// ----------------------------
+// 🔹 Citizen API
+// ----------------------------
 export const citizenApi = {
   getMyViolations: async (): Promise<Violation[]> => {
-    return apiClient.get<Violation[]>('/api/citizen/violations')
+    return apiClient.get<Violation[]>('/api/v1/citizen/my-violations')
   },
 
   getMyReports: async (): Promise<unknown[]> => {
-    return apiClient.get<unknown[]>('/api/citizen/reports')
+    // Map to complaints list until specific reports endpoint exists
+    return apiClient.get<unknown[]>('/api/v1/complaints')
   },
 
   updateProfile: async (data: {
@@ -281,23 +297,24 @@ export const citizenApi = {
     phone?: string
     address?: string
   }): Promise<unknown> => {
-    return apiClient.put('/api/citizen/profile', data)
+    // No dedicated profile update endpoint in backend
+    return apiClient.put('/api/v1/me', data as unknown)
   },
 }
 
-// Officer API
 export const officerApi = {
   getViolations: async (params?: {
     page?: number
     limit?: number
     status?: string
   }): Promise<{ violations: Violation[]; total: number }> => {
+    const limit = params?.limit ?? 50
+    const page = params?.page ?? 1
+    const skip = (page - 1) * limit
     const queryParams = new URLSearchParams()
-    if (params?.page) queryParams.append('page', params.page.toString())
-    if (params?.limit) queryParams.append('limit', params.limit.toString())
-    if (params?.status) queryParams.append('status', params.status)
-    
-    const endpoint = `/api/officer/violations${queryParams.toString() ? `?${queryParams}` : ''}`
+    queryParams.append('skip', skip.toString())
+    queryParams.append('limit', limit.toString())
+    const endpoint = `/api/v1/officer/violations/review-queue${queryParams.toString() ? `?${queryParams}` : ''}`
     return apiClient.get(endpoint)
   },
 
@@ -306,25 +323,25 @@ export const officerApi = {
     action: 'approve' | 'reject',
     notes?: string
   ): Promise<Violation> => {
-    return apiClient.post<Violation>(`/api/officer/violations/${id}/process`, {
+    return apiClient.post<Violation>(`/api/v1/officer/violations/${id}/review`, {
       action,
       notes,
     })
   },
 }
 
-// Authority/Admin API
 export const adminApi = {
   getStatistics: async (): Promise<unknown> => {
-    return apiClient.get('/api/admin/statistics')
+    return apiClient.get('/api/v1/admin/dashboard/stats')
   },
 
   getCameras: async (): Promise<unknown[]> => {
-    return apiClient.get<unknown[]>('/api/admin/cameras')
+    // Not available in backend; placeholder to avoid runtime errors
+    return [] as unknown as unknown[]
   },
 
   getOfficers: async (): Promise<unknown[]> => {
-    return apiClient.get<unknown[]>('/api/admin/officers')
+    return apiClient.get<unknown[]>('/api/v1/admin/users?role=officer')
   },
 
   createOfficer: async (data: {
@@ -332,10 +349,9 @@ export const adminApi = {
     email: string
     password: string
   }): Promise<unknown> => {
-    return apiClient.post('/api/admin/officers', data)
+    return apiClient.post('/api/v1/admin/users/officers', data)
   },
 }
 
 export { ApiError }
 export default apiClient
-

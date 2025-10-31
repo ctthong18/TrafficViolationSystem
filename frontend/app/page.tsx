@@ -1,33 +1,66 @@
-import { LoginForm } from "@/components/login-form"
-import Image from 'next/image'
+"use client"
+import { useState } from "react"
+import Header from "@/components/Header"
+import { LoginForm } from "../components/login-form"
+
+type UserRole = "authority" | "officer" | "citizen"
 
 export default function HomePage() {
+  const [role, setRole] = useState<UserRole | "">("")
+  const [showLoginForm, setShowLoginForm] = useState(false)
+
   return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <Image src="/logo.png" alt="Traffic Monitoring Logo" width={80} height={80} />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">Traffic Monitoring</h1>
-                <p className="text-sm text-muted-foreground">Self-governing Traffic Department</p>
-              </div>
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+
+      <main className="container mx-auto px-4 py-16 flex-1 flex items-center justify-center">
+        {!showLoginForm ? (
+          // --- Màn hình chọn vai trò ---
+          <div className="text-center space-y-6">
+            <h2 className="text-3xl font-bold">Xin chào</h2>
+            <p className="text-muted-foreground text-lg">Vui lòng chọn vai trò để đăng nhập</p>
+            <div className="flex justify-center gap-4 mt-4">
+              <button
+                className="btn-primary px-4 py-2 rounded"
+                onClick={() => {
+                  setRole("authority")
+                  setShowLoginForm(true)
+                }}
+              >
+                Admin
+              </button>
+              <button
+                className="btn-primary px-4 py-2 rounded"
+                onClick={() => {
+                  setRole("officer")
+                  setShowLoginForm(true)
+                }}
+              >
+                Officer
+              </button>
+              <button
+                className="btn-primary px-4 py-2 rounded"
+                onClick={() => {
+                  setRole("citizen")
+                  setShowLoginForm(true)
+                }}
+              >
+                Citizen
+              </button>
             </div>
           </div>
-        </div>
-      </nav>
+        ) : (
+          // --- Form đăng nhập ---
+          <div className="mx-auto max-w-md w-full">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Đăng nhập hệ thống</h2>
+              <p className="text-muted-foreground">Vai trò: {role}</p>
+            </div>
 
-      <main className="container mx-auto px-4 py-16">
-        <div className="mx-auto max-w-md">
-          <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-2">Đăng nhập hệ thống</h2>
-            <p className="text-muted-foreground">Vui lòng đăng nhập để truy cập hệ thống phạt nguội</p>
+            {/* truyền callback để quay lại chọn role */}
+            <LoginForm role={role as UserRole} onBack={() => setShowLoginForm(false)} />
           </div>
-          <LoginForm />
-        </div>
+        )}
       </main>
     </div>
   )

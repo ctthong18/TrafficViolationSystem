@@ -1,32 +1,31 @@
-import LoginForm from "../components/LoginForm"
-import { Shield } from "lucide-react"
+"use client"
+
+import { useState } from "react"
+import Header from "../components/Header"
+import { LoginForm } from "../../components/login-form"
+
+type UserRole = "authority" | "officer" | "citizen"
 
 export default function LoginPage() {
-  return (
-    <div className="min-h-screen bg-background">
-      <nav className="border-b border-border bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary">
-                <Shield className="h-6 w-6 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold text-foreground">Hệ thống Phạt Nguội</h1>
-                <p className="text-sm text-muted-foreground">Cục Cảnh sát Giao thông</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </nav>
+  const [role] = useState<UserRole>("citizen") // 👈 bạn có thể đổi mặc định tại đây
 
-      <main className="container mx-auto px-4 py-16">
-        <div className="mx-auto max-w-md">
+  return (
+    <div className="min-h-screen bg-background flex flex-col">
+      <Header />
+
+      <main className="container mx-auto px-4 py-16 flex-1 flex items-center justify-center">
+        <div className="mx-auto max-w-md w-full">
           <div className="text-center mb-8">
-            <h2 className="text-2xl font-bold text-foreground mb-2">Đăng nhập hệ thống</h2>
-            <p className="text-muted-foreground">Vui lòng đăng nhập để truy cập hệ thống phạt nguội</p>
+            <h2 className="text-2xl font-bold text-foreground mb-2">
+              Đăng nhập hệ thống
+            </h2>
+            <p className="text-muted-foreground">
+              Vui lòng đăng nhập để truy cập hệ thống phạt nguội
+            </p>
           </div>
-          <LoginForm />
+
+          {/* ✅ Truyền role xuống form */}
+          <LoginForm role={role} />
         </div>
       </main>
     </div>

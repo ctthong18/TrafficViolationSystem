@@ -1,22 +1,27 @@
-from pydantic import BaseModel, EmailStr
-
+from pydantic import BaseModel, EmailStr, Field
+from typing import Optional
 class Token(BaseModel):
     access_token: str
     token_type: str
 
 class TokenData(BaseModel):
-    username: str = None
+    username: Optional[str] = None
 
 class LoginRequest(BaseModel):
-    username: str
+    username_or_email: str
     password: str
+    identification_number: Optional[str] = Field(
+        None, description="Chỉ bắt buộc cho citizen"
+    )
 
 class RegisterRequest(BaseModel):
     username: str
     email: EmailStr
     password: str
     full_name: str
-    phone_number: str = None
+    role: Optional[str] = "citizen"
+    identification_number: Optional[str] = Field(None, description="Chỉ bắt buộc cho citizen")
+    phone_number: str
 
 class ChangePasswordRequest(BaseModel):
     current_password: str

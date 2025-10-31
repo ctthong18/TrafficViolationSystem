@@ -12,7 +12,7 @@ from app.models.base import Base
 # from core.database import engine, get_db
 
 # Import settings
-from core.config import settings
+from app.core.config import settings
 
 # Import all models to ensure they are registered
 from app.models import (

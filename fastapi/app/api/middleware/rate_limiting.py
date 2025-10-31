@@ -5,11 +5,14 @@ from starlette.responses import Response
 from typing import Dict, Tuple
 import redis
 from app.core.config import settings
+import os
 
 class RateLimitingMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, redis_url: str = None):
         super().__init__(app)
-        self.redis_client = redis.from_url(redis_url or "redis://localhost:6379")
+        self.redis_client = redis.from_url(
+            redis_url or os.getenv("REDIS_URL", "redis://redis:6379")
+        )        
         self.rate_limits = {
             "/api/v1/auth/": (10, 60),  # 10 requests per minute for auth
             "/api/v1/violations/": (100, 60),  # 100 requests per minute

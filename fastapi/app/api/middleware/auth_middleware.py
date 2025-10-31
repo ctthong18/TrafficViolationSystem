@@ -14,15 +14,15 @@ class AuthMiddleware(BaseHTTPMiddleware):
     Middleware để xác thực JWT token cho các route yêu cầu authentication
     """
     
-    def __init__(self, app, excluded_paths: list = None):
+    def __init__(self, app, excluded_paths: list[str] | None = None):
         super().__init__(app)
         self.excluded_paths = excluded_paths or [
             "/docs",
             "/redoc", 
             "/openapi.json",
             "/health",
-            "/api/v1/auth/login",
-            "/api/v1/auth/register",
+            "/api/v1/login",
+            "/api/v1/register",
             "/api/v1/auth/refresh"
         ]
     

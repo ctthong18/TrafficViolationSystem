@@ -1,8 +1,8 @@
 from datetime import datetime, timezone
 from sqlalchemy.exc import IntegrityError
-from core.database import Base, engine, SessionLocal
-from models import *
-from models.user import User, UserRole
+from app.core.database import Base, engine, SessionLocal
+from app.models import *
+from app.models.user import User, Role
 from passlib.hash import bcrypt
 
 def init_db():
@@ -13,21 +13,22 @@ def init_db():
     db = SessionLocal()
     try:
         # Kiểm tra xem đã có admin chưa
-        admin = db.query(User).filter(User.role == UserRole.admin).first()
+        admin = db.query(User).filter(User.role == "admin").first()
         if not admin:
             print("Creating default admin account...")
 
-            # Hash mật khẩu với bcrypt
             password = "admin123"
             if len(password.encode("utf-8")) > 72:
                 password = password[:72]
 
             admin = User(
+                username="admin",
                 full_name="Cơ quan cấp cao",
                 email="admin@phatnguoi.gov.vn",
                 password_hash=bcrypt.hash(password),
-                phone="0123456789",
-                role=UserRole.admin,
+                phone_number="0123456789",
+                role="admin",
+                identification_number="000000000000",  # Bắt buộc vì unique và not null
                 is_active=True,
                 created_at=datetime.now(timezone.utc),
             )
@@ -36,10 +37,10 @@ def init_db():
             db.commit()
             print("Created default admin account successfully.")
         else:
-            print("Admin account already exists.")
-    except IntegrityError:
+            print("ℹAdmin account already exists.")
+    except IntegrityError as e:
         db.rollback()
-        print("Admin creation failed due to duplication.")
+        print("Admin creation failed due to duplication:", e)
     finally:
         db.close()
 

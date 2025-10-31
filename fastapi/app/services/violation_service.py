@@ -39,7 +39,8 @@ class ViolationService:
 
     def get_pending_violations(self, skip: int = 0, limit: int = 50, 
                               priority: Optional[str] = None) -> List[Violation]:
-        query = self.db.query(Violation).filter(Violation.status == 'pending')
+        # Include both 'pending' and 'reviewing' as queue statuses for frontend
+        query = self.db.query(Violation).filter(Violation.status.in_(['pending', 'reviewing']))
         
         if priority:
             query = query.filter(Violation.priority == priority)
@@ -50,16 +51,19 @@ class ViolationService:
                         action: str, notes: Optional[str] = None) -> Violation:
         violation = self.get_violation_by_id(violation_id)
         
-        if violation.status != 'pending':
+        if violation.status not in ['pending', 'reviewing']:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Vi phạm đã được xử lý"
             )
         
-        if action == 'approve':
-            violation.status = 'approved'
-        elif action == 'reject':
-            violation.status = 'rejected'
+        normalized = action.lower().strip()
+        if normalized in ['approve', 'approved', 'verify', 'verified']:
+            violation.status = 'verified'
+        elif normalized in ['reject', 'rejected', 'process', 'processed']:
+            violation.status = 'processed'
+        elif normalized in ['processing', 'reviewing']:
+            violation.status = 'reviewing'
         else:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,

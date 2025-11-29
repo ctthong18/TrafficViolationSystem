@@ -3,42 +3,59 @@ import { useOfficers } from "@/hooks/useOfficers"
 import { CreateOfficerDialog } from "@/components/officer-management/CreateOfficerDialog"
 import { OfficerList } from "@/components/officer-management/OfficerList"
 import { OfficerPerformance } from "@/components/officer-management/OfficerPerformance"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { User, CheckCircle } from "lucide-react"
+import { Card, CardContent } from "@/components/ui/card"
 
-export function OfficerManagement() {
+interface OfficerManagementProps {
+  filter?: string
+}
+
+export function OfficerManagement({ filter = "active" }: OfficerManagementProps) {
   const { officers, loading, error } = useOfficers()
 
-  if (loading) return <p>Đang tải dữ liệu...</p>
-  if (error) return <p className="text-destructive">{error}</p>
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          <p className="text-muted-foreground">Đang tải dữ liệu...</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center">
+          <p className="text-destructive">{error}</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const filteredOfficers = officers?.filter((officer: any) => {
+    if (filter === "active") return officer.status === "active"
+    if (filter === "inactive") return officer.status === "inactive"
+    return true
+  }) || []
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold">Quản lý cán bộ</h2>
-        <CreateOfficerDialog />
-      </div>
-
-      <Tabs defaultValue="officers" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="officers" className="flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Danh sách cán bộ
-          </TabsTrigger>
-          <TabsTrigger value="performance" className="flex items-center gap-2">
-            <CheckCircle className="h-4 w-4" />
-            Hiệu suất làm việc
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="officers">
-          <OfficerList officers={officers || []} />
-        </TabsContent>
-
-        <TabsContent value="performance">
-          <OfficerPerformance officers={officers || []} />
-        </TabsContent>
-      </Tabs>
+      {filter === "create" ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <h3 className="text-lg font-semibold mb-4">Thêm cán bộ mới</h3>
+          <CreateOfficerDialog />
+        </div>
+      ) : filter === "settings" ? (
+        <Card>
+          <CardContent className="py-10 text-center">
+            <p className="text-muted-foreground">Tính năng cài đặt đang được phát triển</p>
+          </CardContent>
+        </Card>
+      ) : filter === "active" || filter === "inactive" ? (
+        <OfficerList officers={filteredOfficers} />
+      ) : (
+        <OfficerPerformance officers={filteredOfficers} />
+      )}
     </div>
   )
 }

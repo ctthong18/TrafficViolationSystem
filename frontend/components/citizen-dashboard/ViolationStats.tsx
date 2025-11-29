@@ -8,34 +8,43 @@ interface Props {
 }
 
 export function ViolationStats({ violations }: Props) {
+  // Tính tổng số tiền phạt chưa thanh toán
+  const unpaidViolations = violations.filter((v) => 
+    v.status === "unpaid" || v.status === "verified" || v.status === "approved"
+  )
+  
+  const totalUnpaidFine = unpaidViolations.reduce((sum, v) => {
+    if (!v.fine) return sum
+    const fineValue = typeof v.fine === 'number' 
+      ? v.fine 
+      : Number.parseInt(v.fine.toString().replace(/[^\d]/g, ""))
+    return sum + (isNaN(fineValue) ? 0 : fineValue)
+  }, 0)
+
   const stats = [
     {
-      title: "Vi phạm chưa thanh toán",
-      value: violations.filter((v) => v.status === "unpaid").length.toString(),
+      title: "Tổng vi phạm",
+      value: violations.length.toString(),
       icon: AlertTriangle,
-      color: "text-warning",
+      color: "text-blue-600",
     },
     {
-      title: "Vi phạm đã thanh toán",
+      title: "Chưa thanh toán",
+      value: unpaidViolations.length.toString(),
+      icon: AlertTriangle,
+      color: "text-yellow-600",
+    },
+    {
+      title: "Đã thanh toán",
       value: violations.filter((v) => v.status === "paid").length.toString(),
       icon: CheckCircle,
-      color: "text-success",
+      color: "text-green-600",
     },
     {
-      title: "Tổng số tiền phạt chưa thanh toán",
-      value:
-        violations
-          .filter((v) => v.status === "unpaid")
-          .reduce((sum, v) => sum + Number.parseInt(v.fine.replace(/[^\d]/g, "")), 0)
-          .toLocaleString("vi-VN") + " VNĐ",
+      title: "Tổng tiền phạt chưa thanh toán",
+      value: totalUnpaidFine.toLocaleString("vi-VN") + " VNĐ",
       icon: CreditCard,
-      color: "text-destructive",
-    },
-    {
-      title: "Báo cáo đã gửi",
-      value: "3",
-      icon: FileText,
-      color: "text-primary",
+      color: "text-red-600",
     },
   ]
 

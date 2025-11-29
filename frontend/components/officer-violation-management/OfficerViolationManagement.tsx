@@ -9,11 +9,16 @@ import ViolationList from "./ViolationList"
 import { Violation } from "../../hooks/useViolations"
 import { officerApi } from "@/lib/api"
 
-export default function OfficerViolationManagement() {
+interface OfficerViolationManagementProps {
+  filter?: string
+}
+
+export default function OfficerViolationManagement({ filter = "pending" }: OfficerViolationManagementProps) {
   const [searchTerm, setSearchTerm] = useState("")
   const [violations, setViolations] = useState<Violation[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState(filter)
 
   const fetchViolations = async () => {
     setLoading(true)
@@ -32,6 +37,10 @@ export default function OfficerViolationManagement() {
   useEffect(() => {
     fetchViolations()
   }, [])
+
+  useEffect(() => {
+    setActiveTab(filter)
+  }, [filter])
 
   const handleProcessViolation = async (id: string, action: string, note: string) => {
     try {
@@ -89,7 +98,7 @@ export default function OfficerViolationManagement() {
           <ViolationSearch value={searchTerm} onChange={setSearchTerm} />
         </div>
 
-        <Tabs defaultValue="pending" className="space-y-4">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
           <TabsList>
             <TabsTrigger value="pending">
               <Clock className="h-4 w-4 mr-1" />
@@ -99,9 +108,13 @@ export default function OfficerViolationManagement() {
               <AlertTriangle className="h-4 w-4 mr-1" />
               Đang xử lý ({filteredViolations.filter((v) => v.status === "reviewing").length})
             </TabsTrigger>
-            <TabsTrigger value="verified">
+            <TabsTrigger value="approved">
               <CheckCircle className="h-4 w-4 mr-1" />
-              Đã xác nhận ({filteredViolations.filter((v) => v.status === "verified").length})
+              Đã duyệt ({filteredViolations.filter((v) => v.status === "verified" || v.status === "approved").length})
+            </TabsTrigger>
+            <TabsTrigger value="rejected">
+              <CheckCircle className="h-4 w-4 mr-1" />
+              Từ chối ({filteredViolations.filter((v) => v.status === "rejected").length})
             </TabsTrigger>
           </TabsList>
 
@@ -121,10 +134,18 @@ export default function OfficerViolationManagement() {
             />
           </TabsContent>
 
-          <TabsContent value="verified">
+          <TabsContent value="approved">
             <ViolationList
-              violations={filteredViolations}
+              violations={filteredViolations.filter((v) => v.status === "verified" || v.status === "approved")}
               status="verified"
+              onProcess={handleProcessViolation}
+            />
+          </TabsContent>
+
+          <TabsContent value="rejected">
+            <ViolationList
+              violations={filteredViolations.filter((v) => v.status === "rejected")}
+              status="rejected"
               onProcess={handleProcessViolation}
             />
           </TabsContent>

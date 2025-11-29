@@ -49,7 +49,7 @@ export function CitizenDashboard() {
             </TabsTrigger>
             <TabsTrigger value="report" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
-              Báo cáo vi phạm
+              Báo cáo & Tố cáo
             </TabsTrigger>
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <User className="h-4 w-4" />

@@ -5,7 +5,9 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Trash2, Car } from "lucide-react"
+import { Plus, Trash2, Car, Loader2 } from "lucide-react"
+import { useVehicles } from "@/hooks/useVehicles"
+import { useToast } from "@/hooks/use-toast"
 
 interface Vehicle {
   id: number
@@ -26,19 +28,92 @@ interface Props {
 export function VehicleList({ vehicles, setVehicles }: Props) {
   const [isAdding, setIsAdding] = useState(false)
   const [newVehicle, setNewVehicle] = useState<Partial<Vehicle>>({})
+  const [submitting, setSubmitting] = useState(false)
+  const { createVehicle, deleteVehicle } = useVehicles()
+  const { toast } = useToast()
 
   // Ensure vehicles is always an array
   const safeVehicles = Array.isArray(vehicles) ? vehicles : []
 
-  const handleAdd = () => {
-    if (newVehicle.licensePlate && newVehicle.type) {
-      setVehicles([...safeVehicles, { ...newVehicle, id: safeVehicles.length + 1, status: "active" } as Vehicle])
+  const handleAdd = async () => {
+    if (!newVehicle.licensePlate || !newVehicle.type) {
+      toast({
+        title: "Lỗi",
+        description: "Vui lòng nhập biển số và loại xe",
+        variant: "destructive"
+      })
+      return
+    }
+
+    setSubmitting(true)
+    try {
+      // Get current user info for owner details
+      const userStr = localStorage.getItem('user')
+      const user = userStr ? JSON.parse(userStr) : null
+      
+      if (!user) {
+        throw new Error("Không tìm thấy thông tin người dùng")
+      }
+
+      // Call API to create vehicle
+      const createdVehicle = await createVehicle({
+        license_plate: newVehicle.licensePlate,
+        vehicle_type: newVehicle.type,
+        vehicle_color: newVehicle.color || '',
+        vehicle_brand: newVehicle.brand || '',
+        owner_name: user.full_name || user.username,
+        owner_identification: user.identification_number || ''
+      })
+
+      // Update local state with the created vehicle
+      const mappedVehicle: Vehicle = {
+        id: createdVehicle.id,
+        licensePlate: createdVehicle.license_plate,
+        type: createdVehicle.vehicle_type,
+        brand: createdVehicle.vehicle_brand,
+        model: newVehicle.model,
+        year: newVehicle.year,
+        color: createdVehicle.vehicle_color,
+        status: "active"
+      }
+      
+      setVehicles([...safeVehicles, mappedVehicle])
       setNewVehicle({})
       setIsAdding(false)
+      
+      toast({
+        title: "Thành công",
+        description: "Đã thêm phương tiện mới"
+      })
+    } catch (err: any) {
+      console.error('Failed to create vehicle:', err)
+      toast({
+        title: "Lỗi",
+        description: err.message || "Không thể thêm phương tiện",
+        variant: "destructive"
+      })
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  const handleRemove = (id: number) => setVehicles(safeVehicles.filter((v) => v.id !== id))
+  const handleRemove = async (id: number) => {
+    try {
+      await deleteVehicle(id)
+      setVehicles(safeVehicles.filter((v) => v.id !== id))
+      toast({
+        title: "Thành công",
+        description: "Đã xóa phương tiện"
+      })
+    } catch (err: any) {
+      console.error('Failed to delete vehicle:', err)
+      toast({
+        title: "Lỗi",
+        description: err.message || "Không thể xóa phương tiện",
+        variant: "destructive"
+      })
+    }
+  }
 
   return (
     <div className="space-y-4">
@@ -112,12 +187,21 @@ export function VehicleList({ vehicles, setVehicles }: Props) {
             </div>
 
             <div className="flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setIsAdding(false)}>
+              <Button variant="outline" onClick={() => setIsAdding(false)} disabled={submitting}>
                 Hủy
               </Button>
-              <Button onClick={handleAdd}>
-                <Plus className="h-4 w-4 mr-2" />
-                Thêm
+              <Button onClick={handleAdd} disabled={submitting}>
+                {submitting ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Đang thêm...
+                  </>
+                ) : (
+                  <>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Thêm
+                  </>
+                )}
               </Button>
             </div>
           </CardContent>

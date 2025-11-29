@@ -2,10 +2,12 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Video } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Video, MessageSquare } from "lucide-react"
 import { Violation } from "@/hooks/useViolations"
 import { useState } from "react"
 import { VideoPlayerDialog } from "../process-video/VideoPlayerDialog"
+import { ComplaintForm } from "@/components/complaint/ComplaintForm"
 
 interface Props {
   violations: Violation[]
@@ -13,6 +15,7 @@ interface Props {
 
 export function ViolationList({ violations }: Props) {
   const [selectedVideoViolation, setSelectedVideoViolation] = useState<Violation | null>(null)
+  const [complaintViolation, setComplaintViolation] = useState<Violation | null>(null)
   
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -69,6 +72,14 @@ export function ViolationList({ violations }: Props) {
                       Video
                     </Button>
                   )}
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setComplaintViolation(violation)}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-1" />
+                    Khiếu nại
+                  </Button>
                   {violation.status === "unpaid" && (
                     <Button size="sm">
                       Thanh toán
@@ -90,6 +101,22 @@ export function ViolationList({ violations }: Props) {
           title={`Video bằng chứng - Vi phạm #${selectedVideoViolation.id}`}
         />
       )}
+      
+      {/* Dialog khiếu nại */}
+      <Dialog open={!!complaintViolation} onOpenChange={(open) => !open && setComplaintViolation(null)}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Khiếu nại vi phạm #{complaintViolation?.id}</DialogTitle>
+          </DialogHeader>
+          {complaintViolation && (
+            <ComplaintForm
+              violationId={parseInt(complaintViolation.id)}
+              onSuccess={() => setComplaintViolation(null)}
+              onCancel={() => setComplaintViolation(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
   )
 }

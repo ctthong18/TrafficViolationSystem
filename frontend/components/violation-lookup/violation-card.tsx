@@ -1,11 +1,15 @@
 "use client"
 
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { StatusBadge } from "./status-badge"
-import { Eye, CreditCard, FileText } from "lucide-react"
+import { Eye, CreditCard, FileText, MessageSquare } from "lucide-react"
+import { ComplaintForm } from "@/components/complaint/ComplaintForm"
 import type { Violation } from "../../hooks/useViolations"
 
 export function ViolationCard({ violation }: { violation: Violation }) {
+  const [showComplaintDialog, setShowComplaintDialog] = useState(false)
   return (
     <div className="p-4 border border-border rounded-lg space-y-3">
       <div className="flex items-center justify-between">
@@ -71,6 +75,14 @@ export function ViolationCard({ violation }: { violation: Violation }) {
           <FileText className="h-4 w-4 mr-2" />
           Tải quyết định
         </Button>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={() => setShowComplaintDialog(true)}
+        >
+          <MessageSquare className="h-4 w-4 mr-2" />
+          Khiếu nại
+        </Button>
         {(violation.status === "verified" || violation.status === "unpaid") && violation.fine && (
           <Button size="sm">
             <CreditCard className="h-4 w-4 mr-2" />
@@ -78,6 +90,20 @@ export function ViolationCard({ violation }: { violation: Violation }) {
           </Button>
         )}
       </div>
+      
+      {/* Dialog khiếu nại */}
+      <Dialog open={showComplaintDialog} onOpenChange={setShowComplaintDialog}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Khiếu nại vi phạm #{violation.id}</DialogTitle>
+          </DialogHeader>
+          <ComplaintForm
+            violationId={parseInt(violation.id)}
+            onSuccess={() => setShowComplaintDialog(false)}
+            onCancel={() => setShowComplaintDialog(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

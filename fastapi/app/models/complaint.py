@@ -65,12 +65,24 @@ class Complaint(Base, TimestampMixin):
     source = Column(String(50), default="web")  # web, mobile_app, email, phone
     is_anonymous = Column(Boolean, default=False)
     
+    complainant_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+
     # Relationships
     violation = relationship("Violation", back_populates="complaints")
     vehicle = relationship("Vehicle")
-    assigned_officer = relationship("User", foreign_keys=[assigned_officer_id], overlaps="assigned_complaints")
     appeals = relationship("ComplaintAppeal", back_populates="complaint")
     activities = relationship("ComplaintActivity", back_populates="complaint")
+    assigned_officer = relationship(
+        "User",
+        foreign_keys=[assigned_officer_id],
+        back_populates="assigned_complaints"
+    )
+
+    complainant = relationship(
+        "User",
+        foreign_keys=[complainant_id],
+        back_populates="complaints"
+    )
     
     def __repr__(self):
         return f"<Complaint {self.complaint_code} - {self.complaint_type.value}>"

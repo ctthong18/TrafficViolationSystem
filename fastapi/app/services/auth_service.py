@@ -89,8 +89,11 @@ class AuthService:
         return user
 
     def create_access_token_for_user(self, user: User):
+        from app.schemas.user_schema import UserResponse
+        
         access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
         access_token = create_access_token(
             subject=user.username, expires_delta=access_token_expires
         )
-        return {"access_token": access_token, "token_type": "bearer"}
+        user_response = UserResponse.model_validate(user)
+        return {"access_token": access_token, "token_type": "bearer", "user": user_response}

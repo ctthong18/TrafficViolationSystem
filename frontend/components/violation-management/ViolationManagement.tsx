@@ -18,7 +18,7 @@ export default function ViolationManagement() {
   const filteredViolations = violations.filter((v) => {
     const matchSearch =
       v.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      v.license_plate.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.location.toLowerCase().includes(searchTerm.toLowerCase())
     const matchStatus = statusFilter === "all" || v.status === statusFilter
     return matchSearch && matchStatus
@@ -57,6 +57,7 @@ export default function ViolationManagement() {
             <SelectContent>
               <SelectItem value="all">Tất cả</SelectItem>
               <SelectItem value="pending">Chờ xử lý</SelectItem>
+              <SelectItem value="verified">Đã xác nhận</SelectItem>
               <SelectItem value="processed">Đã xử lý</SelectItem>
             </SelectContent>
           </Select>

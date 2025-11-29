@@ -10,10 +10,6 @@ import logging
 logger = logging.getLogger(__name__)
 
 class AuthMiddleware(BaseHTTPMiddleware):
-    """
-    Middleware để xác thực JWT token cho các route yêu cầu authentication
-    """
-    
     def __init__(self, app, excluded_paths: list[str] | None = None):
         super().__init__(app)
         self.excluded_paths = excluded_paths or [

@@ -13,12 +13,18 @@
 # testing
 /coverage
 
+/Test 
+
+/MODEL
 # next.js
 /.next/
 /out/
 
 # production
 /build
+
+# model
+/MODEL/violation_detection.pt
 
 # misc
 .DS_Store

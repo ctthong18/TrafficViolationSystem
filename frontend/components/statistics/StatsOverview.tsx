@@ -1,10 +1,51 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { TrendingUp, TrendingDown } from "lucide-react"
+import { TrendingUp, TrendingDown, Activity, AlertTriangle, CheckCircle, DollarSign } from "lucide-react"
 
-export function StatsOverview({ stats }: { stats: any[] }) {
+interface StatsOverviewProps {
+  stats: {
+    total_violations: number
+    pending_violations: number
+    processed_violations: number
+    total_revenue: number
+    processing_rate: number
+  }
+}
+
+export function StatsOverview({ stats }: StatsOverviewProps) {
+  const formattedStats = [
+    {
+      title: "Tổng vi phạm",
+      value: stats.total_violations.toLocaleString(),
+      icon: Activity,
+      color: "text-primary",
+      change: `${stats.processing_rate.toFixed(1)}% đã xử lý`
+    },
+    {
+      title: "Chờ xử lý",
+      value: stats.pending_violations.toLocaleString(),
+      icon: AlertTriangle,
+      color: "text-warning",
+      change: `${((stats.pending_violations / stats.total_violations) * 100).toFixed(1)}% tổng số`
+    },
+    {
+      title: "Đã xử lý",
+      value: stats.processed_violations.toLocaleString(),
+      icon: CheckCircle,
+      color: "text-success",
+      change: `${stats.processing_rate.toFixed(1)}% hoàn thành`
+    },
+    {
+      title: "Tổng thu",
+      value: `${(stats.total_revenue / 1000000).toFixed(1)}M`,
+      icon: DollarSign,
+      color: "text-green-600",
+      change: "VNĐ"
+    }
+  ]
+
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {stats.map((stat, index) => {
+      {formattedStats.map((stat, index) => {
         const Icon = stat.icon
         return (
           <Card key={index}>
@@ -14,21 +55,8 @@ export function StatsOverview({ stats }: { stats: any[] }) {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{stat.value}</div>
-              <p className="text-xs text-muted-foreground flex items-center gap-1">
-                {stat.trend === "up" && <TrendingUp className="h-3 w-3 text-success" />}
-                {stat.trend === "down" && <TrendingDown className="h-3 w-3 text-destructive" />}
-                <span
-                  className={
-                    stat.trend === "up"
-                      ? "text-success"
-                      : stat.trend === "down"
-                      ? "text-destructive"
-                      : ""
-                  }
-                >
-                  {stat.change}
-                </span>
-                {stat.trend !== "stable" && " so với kỳ trước"}
+              <p className="text-xs text-muted-foreground">
+                {stat.change}
               </p>
             </CardContent>
           </Card>

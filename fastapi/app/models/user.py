@@ -47,12 +47,23 @@ class User(Base, TimestampMixin):
     
     # Relationships
     reviewed_violations = relationship("Violation", foreign_keys="Violation.reviewed_by")
-    assigned_complaints = relationship("Complaint", foreign_keys="Complaint.assigned_officer_id")
     appeal_reviews = relationship("ComplaintAppeal", foreign_keys="ComplaintAppeal.reviewed_by")
     audit_logs = relationship("AuditLog", back_populates="user")
     driving_licenses = relationship("DrivingLicense", back_populates="user")
     vehicles = relationship("Vehicle", back_populates="owner")
     payments = relationship("Payment", back_populates="user")  # Tất cả giao dịch
+    assigned_complaints = relationship(
+        "Complaint",
+        foreign_keys="Complaint.assigned_officer_id",
+        back_populates="assigned_officer"
+    )
+    
+    complaints = relationship(
+        "Complaint",
+        foreign_keys="Complaint.complainant_id",
+        back_populates="complainant"
+    )
+
     # ĐÃ XÓA wallet_transactions relationship
     
     def __repr__(self):

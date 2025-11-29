@@ -17,21 +17,27 @@ import {
 import { DailyPerformance, ViolationTypeStat, MonthlyComparison } from "@/hooks/useOfficerStats"
 
 interface Props {
-  dailyPerformance: DailyPerformance[]
-  violationTypeStats: ViolationTypeStat[]
-  monthlyComparison: MonthlyComparison[]
+  dailyPerformance?: DailyPerformance[]
+  violationTypeStats?: ViolationTypeStat[]
+  monthlyComparison?: MonthlyComparison[]
 }
 
-export function ChartsOverview({ dailyPerformance, violationTypeStats, monthlyComparison }: Props) {
+export function ChartsOverview({
+  dailyPerformance = [],
+  violationTypeStats = [],
+  monthlyComparison = [],
+}: Props) {
+  // pie chart data
   const pieChartData = violationTypeStats.map(stat => ({
     name: stat.name,
     processed: stat.processed,
     color: stat.color,
   }))
-  
+
   return (
     <div className="space-y-6">
       <div className="grid gap-6 md:grid-cols-2">
+        {/* Daily Performance LineChart */}
         <Card>
           <CardHeader>
             <CardTitle>Hiệu suất hàng ngày</CardTitle>
@@ -56,53 +62,71 @@ export function ChartsOverview({ dailyPerformance, violationTypeStats, monthlyCo
           </CardContent>
         </Card>
 
+        {/* Violation Type PieChart */}
         <Card>
           <CardHeader>
             <CardTitle>Phân loại vi phạm đã xử lý</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie data={pieChartData} cx="50%" cy="50%" innerRadius={60} outerRadius={100} paddingAngle={5} dataKey="processed">
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
+            {pieChartData.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <PieChart>
+                  <Pie
+                    data={pieChartData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={100}
+                    paddingAngle={5}
+                    dataKey="processed"
+                  >
+                    {pieChartData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-muted-foreground">Không có dữ liệu</p>
+            )}
           </CardContent>
         </Card>
       </div>
 
+      {/* Monthly Comparison BarChart */}
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
           <CardHeader>
             <CardTitle>So sánh theo tháng</CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={monthlyComparison}>
-                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
-                <XAxis dataKey="month" className="text-muted-foreground" />
-                <YAxis className="text-muted-foreground" />
-                <Tooltip
-                  contentStyle={{
-                    backgroundColor: "hsl(var(--card))",
-                    border: "1px solid hsl(var(--border))",
-                    borderRadius: "8px",
-                  }}
-                />
-                <Bar dataKey="lastYear" fill="hsl(var(--muted-foreground))" name="Năm trước" />
-                <Bar dataKey="thisYear" fill="hsl(var(--primary))" name="Năm nay" />
-              </BarChart>
-            </ResponsiveContainer>
+            {monthlyComparison.length > 0 ? (
+              <ResponsiveContainer width="100%" height={300}>
+                <BarChart data={monthlyComparison}>
+                  <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                  <XAxis dataKey="month" className="text-muted-foreground" />
+                  <YAxis className="text-muted-foreground" />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "hsl(var(--card))",
+                      border: "1px solid hsl(var(--border))",
+                      borderRadius: "8px",
+                    }}
+                  />
+                  <Bar dataKey="lastYear" fill="hsl(var(--muted-foreground))" name="Năm trước" />
+                  <Bar dataKey="thisYear" fill="hsl(var(--primary))" name="Năm nay" />
+                </BarChart>
+              </ResponsiveContainer>
+            ) : (
+              <p className="text-center text-muted-foreground">Không có dữ liệu</p>
+            )}
           </CardContent>
         </Card>
       </div>

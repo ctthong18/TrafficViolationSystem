@@ -22,6 +22,7 @@ from app.models import (
 from app.models.user import User, Role
 from datetime import datetime
 from passlib.hash import bcrypt
+from app.seed_data import seed_core_data
 
 
 def create_admin_user(db):
@@ -62,7 +63,7 @@ def main():
     print("=" * 60)
 
     db_url = settings.DATABASE_URL
-    print(f"\n1️⃣ Kiểm tra kết nối PostgreSQL...")
+    print(f"\nKiểm tra kết nối PostgreSQL...")
     try:
         conn = psycopg2.connect(db_url) 
         conn.close()
@@ -71,7 +72,7 @@ def main():
         print(f"Lỗi kết nối PostgreSQL: {e}")
         return
 
-    print("\n2️⃣ Tạo database...")
+    print("\nTạo database...")
     engine = create_engine(db_url, echo=False)
     if not database_exists(engine.url):
         create_database(engine.url)
@@ -90,6 +91,13 @@ def main():
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     db = SessionLocal()
     create_admin_user(db)
+    # Seed core sample data (idempotent)
+    print("\nSeed dữ liệu mẫu (rules, violations, payments, templates, configs, cameras)...")
+    try:
+        seed_core_data()
+        print("Đã seed dữ liệu mẫu.")
+    except Exception as e:
+        print(f"Lỗi seed dữ liệu: {e}")
     db.close()
 
     print("\n Hoàn tất setup database!")

@@ -259,6 +259,26 @@ class DenunciationService:
             DenunciationActivity.denunciation_id == denunciation_id
         ).order_by(DenunciationActivity.performed_at.asc()).all()
 
+    def get_user_denunciations(self, user_identification: str, user_email: str = None) -> List[Denunciation]:
+        """Lấy danh sách tố cáo của user dựa trên identification number hoặc email"""
+        query = self.db.query(Denunciation)
+        
+        # Match by identification or email
+        conditions = []
+        if user_identification:
+            conditions.append(Denunciation.informant_identification == user_identification)
+        if user_email:
+            conditions.append(Denunciation.informant_email == user_email)
+        
+        if not conditions:
+            return []
+        
+        # Use OR condition to match either identification or email
+        from sqlalchemy import or_
+        query = query.filter(or_(*conditions))
+        
+        return query.order_by(Denunciation.created_at.desc()).all()
+
     def export_denunciations_report(self, start_date: datetime, end_date: datetime) -> List[Dict[str, Any]]:
         """Xuất báo cáo tố cáo"""
         denunciations = self.db.query(Denunciation).filter(

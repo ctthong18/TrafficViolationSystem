@@ -1,10 +1,7 @@
-"""
-Database models package
-"""
-
 from app.models.base import Base
 from app.models.user import User
 from app.models.vehicle import Vehicle
+from app.models.violation_rule import ViolationRule
 from app.models.violation import Violation
 from app.models.complaint import Complaint, ComplaintStatus, ComplaintType
 from app.models.complaint_appeal import ComplaintAppeal, AppealStatus
@@ -16,7 +13,7 @@ from app.models.evidence import Evidence
 from app.models.camera import Camera
 from app.models.notification import Notification, NotificationStatus, NotificationChannel
 from app.models.notification_template import NotificationTemplate, NotificationType
-from app.models.audit_log import AuditLog
+from app.models.audit_log import AuditLog, AuditAction, AuditResource
 from app.models.system_config import SystemConfig
 
 # Analytics models
@@ -28,10 +25,17 @@ from app.models.model_performance import ModelPerformance
 from app.models.violation_forecasts import ViolationForecasts
 from app.models.action_recommendations import ActionRecommendations
 
+# AI Camera System models
+from app.models.CameraVideo import CameraVideo, ProcessingStatus
+from app.models.ai_detection import AIDetection, DetectionType, ReviewStatus
+from app.models.video_processing_job import VideoProcessingJob, JobType, JobStatus
+from app.models.ai_model_config import AIModelConfig
+
 __all__ = [
     'Base',
     'User',
     'Vehicle',
+    'ViolationRule',
     'Violation',
     'Complaint', 'ComplaintStatus', 'ComplaintType',
     'ComplaintAppeal', 'AppealStatus', 
@@ -43,7 +47,7 @@ __all__ = [
     'Camera',
     'Notification', 'NotificationStatus', 'NotificationChannel',
     'NotificationTemplate', 'NotificationType',
-    'AuditLog',
+    'AuditLog', 'AuditAction', 'AuditResource',
     'SystemConfig',
     'DailyStats',
     'LocationHotspots', 
@@ -51,5 +55,9 @@ __all__ = [
     'ConfidenceAnalytics',
     'ModelPerformance',
     'ViolationForecasts',
-    'ActionRecommendations'
+    'ActionRecommendations',
+    'CameraVideo', 'ProcessingStatus',
+    'AIDetection', 'DetectionType', 'ReviewStatus',
+    'VideoProcessingJob', 'JobType', 'JobStatus',
+    'AIModelConfig'
 ]

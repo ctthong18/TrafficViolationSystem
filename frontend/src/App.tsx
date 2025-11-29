@@ -1,9 +1,9 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom"
-import { LoginPage } from "./pages/LoginPage"
-import { AuthorityDashboard } from "./pages/AuthorityDashboard"
-import { OfficerDashboard } from "./pages/OfficerDashboard"
-import { CitizenDashboard } from "./pages/CitizenDashboard"
-import { ProtectedRoute } from "./components/ProtectedRoute"
+import  LoginPage from "./pages/LoginPage"
+import { AdminDashboard } from "../components/authority-dashboard/AuthorityDashboard"
+import  OfficerDashboard  from "./pages/OfficerDashboard"
+import { CitizenDashboard } from "../components/citizen-dashboard/CitizenDashboard"
+import  ProtectedRoute  from "./components/ProtectedRoute"
 import "./App.css"
 
 function App() {
@@ -15,10 +15,10 @@ function App() {
           <Route path="/login" element={<Navigate to="/" replace />} />
 
           <Route
-            path="/authority"
+            path="/admin"
             element={
-              <ProtectedRoute allowedRoles={["authority"]}>
-                <AuthorityDashboard />
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />

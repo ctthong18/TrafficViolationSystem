@@ -1,7 +1,7 @@
 "use client"
-import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { TrendingUp, TrendingDown } from "lucide-react"
+import { useDashboardStats } from "@/hooks/useDashboard"
 
 export interface Stat {
   title: string
@@ -12,29 +12,11 @@ export interface Stat {
 }
 
 export function OverviewStats() {
-  const [stats, setStats] = useState<Stat[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        setLoading(true)
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/dashboard/stats`)
-        if (!res.ok) throw new Error("Không thể tải dữ liệu thống kê")
-        const data: Stat[] = await res.json()
-        setStats(data)
-      } catch (err: any) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
-    }
-    fetchStats()
-  }, [])
+  const { stats, loading, error } = useDashboardStats()
 
   if (loading) return <p>Đang tải thống kê...</p>
   if (error) return <p className="text-destructive">{error}</p>
+  if (!stats || stats.length === 0) return <p className="text-muted-foreground">Không có dữ liệu thống kê</p>
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

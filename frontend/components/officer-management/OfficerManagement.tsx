@@ -32,11 +32,11 @@ export function OfficerManagement() {
         </TabsList>
 
         <TabsContent value="officers">
-          <OfficerList officers={officers} />
+          <OfficerList officers={officers || []} />
         </TabsContent>
 
         <TabsContent value="performance">
-          <OfficerPerformance officers={officers} />
+          <OfficerPerformance officers={officers || []} />
         </TabsContent>
       </Tabs>
     </div>

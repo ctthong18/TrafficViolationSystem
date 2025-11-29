@@ -1,38 +1,27 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { StatsOverview } from "./StatsOverview"
 import { ViolationTrendChart } from "./ViolationTrendChart"
 import { ViolationTypePie } from "./ViolationTypePie"
 import { LocationBarChart } from "./LocationBarChart"
 import { ProcessingEfficiency } from "./ProcessingEfficiency"
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL
+import { useStatistics } from "@/hooks/useStatistics"
 
 export function StatisticsPanel() {
-  const [timeRange, setTimeRange] = useState("7days")
-  const [data, setData] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true)
-      const res = await fetch(`${API_URL}/statistics?range=${timeRange}`)
-      const json = await res.json()
-      setData(json)
-      setLoading(false)
-    }
-    fetchData()
-  }, [timeRange])
+  const [timeRange, setTimeRange] = useState<'7days' | '30days' | '3months' | 'year'>("7days")
+  const { data, loading, error } = useStatistics(timeRange)
 
   if (loading) return <p>Đang tải dữ liệu...</p>
+  if (error) return <p className="text-destructive">{error}</p>
+  if (!data) return <p>Không có dữ liệu</p>
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Thống kê và báo cáo</h2>
-        <Select value={timeRange} onValueChange={setTimeRange}>
+        <Select value={timeRange} onValueChange={(value) => setTimeRange(value as any)}>
           <SelectTrigger className="w-48">
             <SelectValue placeholder="Chọn thời gian" />
           </SelectTrigger>

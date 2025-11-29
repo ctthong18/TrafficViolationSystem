@@ -126,6 +126,7 @@ Content-Type: application/json
 
 {
   "username": "ctthong18",
+  "identification_number": "0402051205012",
   "password": "thong123"
 }
 

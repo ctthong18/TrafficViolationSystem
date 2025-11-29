@@ -13,6 +13,7 @@ async def get_current_user(
     db: Session = Depends(get_db)
 ) -> User:
     token = credentials.credentials
+    print("Authorization Header:", credentials)
     username = verify_token(token)
     
     if username is None:

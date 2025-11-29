@@ -30,6 +30,17 @@ class ViolationReview(BaseModel):
     action: str  # 'approve' or 'reject'
     notes: Optional[str] = None
 
+class VideoEvidenceInfo(BaseModel):
+    """Video evidence information for violation"""
+    video_id: int
+    cloudinary_url: str
+    thumbnail_url: Optional[str] = None
+    duration: Optional[int] = None
+    
+    class Config:
+        from_attributes = True
+
+
 class ViolationResponse(ViolationBase):
     id: int
     detected_at: datetime
@@ -42,6 +53,12 @@ class ViolationResponse(ViolationBase):
     evidence_images: Optional[List[str]]
     evidence_gif: Optional[str]
     ai_metadata: Optional[Dict[str, Any]]
+    violation_description: Optional[str] = None
+    fine_amount: Optional[Decimal] = None
+    points_deducted: Optional[int] = None
+    legal_reference: Optional[str] = None
+    video_id: Optional[int] = None
+    video_evidence: Optional[VideoEvidenceInfo] = None
     created_at: datetime
     updated_at: datetime
 

@@ -1,13 +1,34 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Header from "@/components/Header"
-import { LoginForm } from "../components/login-form"
+import { LoginForm } from "../components/account/login-form"
+import { useRouter } from "next/navigation"
 
-type UserRole = "authority" | "officer" | "citizen"
+type UserRole = "admin" | "officer" | "citizen"
 
 export default function HomePage() {
   const [role, setRole] = useState<UserRole | "">("")
   const [showLoginForm, setShowLoginForm] = useState(false)
+  const router = useRouter()
+
+  useEffect(() => {
+    const userJson = localStorage.getItem("user")
+    if (!userJson) return
+    
+    const user = JSON.parse(userJson)
+
+    switch(user.role) {
+      case "admin":
+        router.push("/admin")
+        break
+      case "officer":
+        router.push("/officer")
+        break
+      case "citizen":
+        router.push("/citizen")
+        break
+    }
+  }, [])
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -23,7 +44,7 @@ export default function HomePage() {
               <button
                 className="btn-primary px-4 py-2 rounded"
                 onClick={() => {
-                  setRole("authority")
+                  setRole("admin")
                   setShowLoginForm(true)
                 }}
               >

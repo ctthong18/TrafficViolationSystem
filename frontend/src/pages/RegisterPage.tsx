@@ -1,4 +1,4 @@
-import { RegisterForm } from "../../components/register-form"
+import { RegisterForm } from "../../components/account/register-form"
 import { Shield } from "lucide-react"
 
 export default function RegisterPage() {

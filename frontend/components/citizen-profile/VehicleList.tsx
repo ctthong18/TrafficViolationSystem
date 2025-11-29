@@ -27,15 +27,18 @@ export function VehicleList({ vehicles, setVehicles }: Props) {
   const [isAdding, setIsAdding] = useState(false)
   const [newVehicle, setNewVehicle] = useState<Partial<Vehicle>>({})
 
+  // Ensure vehicles is always an array
+  const safeVehicles = Array.isArray(vehicles) ? vehicles : []
+
   const handleAdd = () => {
     if (newVehicle.licensePlate && newVehicle.type) {
-      setVehicles([...vehicles, { ...newVehicle, id: vehicles.length + 1, status: "active" } as Vehicle])
+      setVehicles([...safeVehicles, { ...newVehicle, id: safeVehicles.length + 1, status: "active" } as Vehicle])
       setNewVehicle({})
       setIsAdding(false)
     }
   }
 
-  const handleRemove = (id: number) => setVehicles(vehicles.filter((v) => v.id !== id))
+  const handleRemove = (id: number) => setVehicles(safeVehicles.filter((v) => v.id !== id))
 
   return (
     <div className="space-y-4">
@@ -121,7 +124,7 @@ export function VehicleList({ vehicles, setVehicles }: Props) {
         </Card>
       )}
 
-      {vehicles.map((v) => (
+      {safeVehicles.map((v) => (
         <Card key={v.id}>
           <CardHeader className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
@@ -163,7 +166,7 @@ export function VehicleList({ vehicles, setVehicles }: Props) {
         </Card>
       ))}
 
-      {vehicles.length === 0 && (
+      {safeVehicles.length === 0 && (
         <Card>
           <CardContent className="py-8 text-center">
             <Car className="h-12 w-12 text-muted-foreground mx-auto mb-4" />

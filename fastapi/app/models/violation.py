@@ -3,6 +3,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
+
 class Violation(Base, TimestampMixin):
     __tablename__ = "violations"
     
@@ -20,17 +21,17 @@ class Violation(Base, TimestampMixin):
     # Thông tin vi phạm
     violation_type = Column(String(100), nullable=False)
     violation_description = Column(Text)
+    violation_rule_id = Column(Integer, ForeignKey("violation_rules.id"))
     
     # Điểm trừ và tiền phạt
     points_deducted = Column(Integer, default=0)  # Điểm trừ theo quy định
     fine_amount = Column(DECIMAL(15, 2))  # Tiền phạt
     legal_reference = Column(String(500))  # Căn cứ pháp lý
     
-    # Các trường khác giữ nguyên...
     location_name = Column(String(255))
     latitude = Column(DECIMAL(10, 8))
     longitude = Column(DECIMAL(11, 8))
-    camera_id = Column(String(100))
+    camera_id = Column(String(100), ForeignKey("cameras.camera_id"))
     detected_at = Column(DateTime, nullable=False)
     
     # AI Analysis Results
@@ -38,6 +39,9 @@ class Violation(Base, TimestampMixin):
     ai_metadata = Column(JSONB)
     evidence_images = Column(JSON)
     evidence_gif = Column(String(500))
+    
+    # Video evidence from AI camera system
+    video_id = Column(Integer, ForeignKey("camera_videos.id"), nullable=True, index=True)
     
     # Trạng thái xử lý
     status = Column(String(50), default="pending")
@@ -47,9 +51,12 @@ class Violation(Base, TimestampMixin):
     reviewed_by = Column(Integer, ForeignKey("users.id"))
     reviewed_at = Column(DateTime)
     review_notes = Column(Text)
-    
+
     # Relationships
     driving_license = relationship("DrivingLicense", back_populates="violations")
+    rule = relationship("ViolationRule", back_populates="violations")
+    camera = relationship("Camera", back_populates="violations")
+    video = relationship("CameraVideo", foreign_keys=[video_id])
     payments = relationship("Payment", back_populates="violation")
     evidence = relationship("Evidence", back_populates="violation")
     notifications = relationship("Notification", back_populates="violation")

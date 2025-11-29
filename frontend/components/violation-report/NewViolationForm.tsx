@@ -31,11 +31,16 @@ export function NewViolationForm({ onSubmitSuccess }: Props) {
     setSubmitting(true)
     try {
       const formData = new FormData()
-      Object.entries(form).forEach(([key, value]) => {
-        if (value) formData.append(key, value as any)
-      })
+      formData.append('type', form.type)
+      formData.append('location', form.location)
+      formData.append('time', form.time)
+      formData.append('date', form.date)
+      if (form.licensePlate) formData.append('license_plate', form.licensePlate)
+      formData.append('description', form.description)
+      if (form.evidence) formData.append('evidence', form.evidence)
 
       await violationsApi.createReport(formData)
+      
       alert("Báo cáo đã được gửi thành công!")
 
       setForm({
@@ -49,8 +54,9 @@ export function NewViolationForm({ onSubmitSuccess }: Props) {
       })
 
       onSubmitSuccess?.()
-    } catch (err) {
-      alert("Gửi báo cáo thất bại. Vui lòng thử lại.")
+    } catch (err: any) {
+      console.error("Error creating report:", err)
+      alert(err.message || "Gửi báo cáo thất bại. Vui lòng thử lại.")
     } finally {
       setSubmitting(false)
     }

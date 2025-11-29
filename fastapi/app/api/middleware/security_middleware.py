@@ -18,6 +18,10 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         ]
     
     async def dispatch(self, request: Request, call_next):
+        # Skip security checks for OPTIONS requests (CORS preflight)
+        if request.method == "OPTIONS":
+            return await call_next(request)
+        
         # Check for SQL injection in query parameters
         for param_name, param_value in request.query_params.items():
             if self.detect_sql_injection(str(param_value)):
@@ -43,7 +47,15 @@ class SecurityMiddleware(BaseHTTPMiddleware):
         response.headers["X-XSS-Protection"] = "1; mode=block"
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-        response.headers["Content-Security-Policy"] = "default-src 'self'"
+        response.headers["Content-Security-Policy"] = (
+            "default-src 'self'; "
+            "script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; "
+            "img-src 'self' https://fastapi.tiangolo.com data:; "
+            "connect-src 'self' https://cdn.jsdelivr.net;"
+        )
+
+
         
         return response
     

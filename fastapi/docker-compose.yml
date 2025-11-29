@@ -1,7 +1,5 @@
 services:
-  # ===================================
   # FastAPI backend
-  # ===================================
   fastapi:
     build: .
     container_name: fastapi_app
@@ -18,9 +16,7 @@ services:
     command: >
       sh -c "python -c 'import time; time.sleep(5)' && uvicorn main:app --host 0.0.0.0 --port 8000"
 
-  # ===================================
-  # 🧱 PostgreSQL Database
-  # ===================================
+  # PostgreSQL Database
   postgres:
     image: postgres:16
     environment:
@@ -35,9 +31,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
-  # ===================================
   # pgAdmin
-  # ===================================
   pgadmin:
     image: dpage/pgadmin4
     environment:
@@ -53,9 +47,7 @@ services:
     volumes:
       - pgadmin_data:/var/lib/pgadmin
 
-  # ===================================
   # MinIO (object storage)
-  # ===================================
   minio:
     image: minio/minio
     environment:
@@ -71,9 +63,7 @@ services:
     volumes:
       - minio_data:/data
 
-  # ===================================
-  # ⚡ Redis
-  # ===================================
+  # Redis
   redis:
     image: redis:7
     container_name: redis_cache
@@ -83,9 +73,7 @@ services:
     volumes:
       - redis_data:/data
 
-  # ===================================
-  # 🧩 MongoDB
-  # ===================================
+  # MongoDB
   mongo:
     image: mongo:7
     container_name: mongo_ai_logs
@@ -95,9 +83,8 @@ services:
     volumes:
       - mongo_data:/data/db
 
-  # ===================================
-  # 🧭 Portainer (quản lý Docker)
-  # ===================================
+  # Portainer (quản lý Docker)
+
   portainer:
     image: portainer/portainer-ce:latest
     container_name: portainer
@@ -108,9 +95,7 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - portainer_data:/data
 
-  # ===================================
-  # MySQL (cho WordPress hoặc thử nghiệm)
-  # ===================================
+  # MySQL 
   mysql:
     image: mysql:8
     container_name: mysql_db
@@ -125,10 +110,7 @@ services:
     volumes:
       - mysql_data:/var/lib/mysql
 
-
-  # ===================================
   # WordPress site
-  # ===================================
   wordpress:
     image: wordpress:latest
     container_name: wordpress_site

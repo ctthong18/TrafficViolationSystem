@@ -2,12 +2,12 @@
 
 import { useState } from "react"
 import Header from "../components/Header"
-import { LoginForm } from "../../components/login-form"
+import { LoginForm } from "../../components/account/login-form"
 
-type UserRole = "authority" | "officer" | "citizen"
+type UserRole = "admin" | "officer" | "citizen"
 
 export default function LoginPage() {
-  const [role] = useState<UserRole>("citizen") // 👈 bạn có thể đổi mặc định tại đây
+  const [role] = useState<UserRole>("citizen") 
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
@@ -24,7 +24,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          {/* ✅ Truyền role xuống form */}
           <LoginForm role={role} />
         </div>
       </main>

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, Query, HTTPException, status
+from fastapi import APIRouter, Depends, Query, HTTPException, status, Request
 from sqlalchemy.orm import Session
 from typing import Optional, List
 from datetime import datetime
@@ -16,13 +16,50 @@ router = APIRouter()
 
 @router.post("/", response_model=ComplaintResponse, status_code=status.HTTP_201_CREATED)
 async def create_complaint(
-    complaint_data: ComplaintCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Tạo khiếu nại mới"""
+    """Tạo khiếu nại mới. Hỗ trợ cả JSON (ComplaintCreate) và multipart/form-data từ frontend.
+
+    - JSON body: theo schema ComplaintCreate
+    - multipart/form-data: các field minimal như type, location, time, date, license_plate, description, evidence (file)
+    """
     complaint_service = ComplaintService(db)
-    return complaint_service.create_complaint(complaint_data.dict(), current_user.id)
+
+    content_type = request.headers.get("content-type", "")
+    if content_type.startswith("multipart/form-data"):
+        form = await request.form()
+        violation_type = form.get("type")
+        location = form.get("location")
+        time = form.get("time")
+        date = form.get("date")
+        license_plate = form.get("license_plate")
+        description = form.get("description")
+        # evidence = form.get("evidence")  # UploadFile, not persisted here
+
+        title = f"Báo cáo vi phạm {license_plate or ''}".strip()
+        composed_description = description or f"{violation_type or ''} tại {location or ''} vào {date or ''} {time or ''}".strip()
+
+        payload = ComplaintCreate(
+            title=title or "Báo cáo vi phạm",
+            description=composed_description or "",
+            complaint_type=ComplaintType.OTHER,
+            desired_resolution=None,
+            is_anonymous=False,
+            violation_id=None,
+            vehicle_id=None,
+            evidence_urls=None,
+        )
+        return complaint_service.create_complaint(payload.dict(), current_user.id)
+
+    # Mặc định: JSON
+    body = await request.json()
+    try:
+        payload = ComplaintCreate(**body)
+    except Exception:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid complaint payload")
+    return complaint_service.create_complaint(payload.dict(), current_user.id)
 
 @router.get("/", response_model=ComplaintListResponse)
 async def get_complaints(

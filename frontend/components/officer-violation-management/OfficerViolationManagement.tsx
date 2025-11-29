@@ -7,6 +7,7 @@ import { Clock, AlertTriangle, CheckCircle } from "lucide-react"
 import ViolationSearch from "./ViolationSearch"
 import ViolationList from "./ViolationList"
 import { Violation } from "../../hooks/useViolations"
+import { officerApi } from "@/lib/api"
 
 export default function OfficerViolationManagement() {
   const [searchTerm, setSearchTerm] = useState("")
@@ -14,46 +15,40 @@ export default function OfficerViolationManagement() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchViolations = async () => {
-      setLoading(true)
-      try {
-        const token = localStorage.getItem('access_token')
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/officer/violations/review-queue`, {
-          headers: token ? { Authorization: `Bearer ${token}` } : undefined,
-        })
-        if (!res.ok) throw new Error("Không thể tải danh sách vi phạm")
-        const data: Violation[] = await res.json()
-        setViolations(data)
-      } catch (err: any) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
+  const fetchViolations = async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const data = await officerApi.getViolations({ limit: 100 })
+      setViolations(data.violations)
+    } catch (err: any) {
+      setError(err.message || "Không thể tải danh sách vi phạm")
+      console.error("Error fetching violations:", err)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
     fetchViolations()
   }, [])
 
   const handleProcessViolation = async (id: string, action: string, note: string) => {
     try {
-      const token = localStorage.getItem('access_token')
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/officer/violations/${id}/review`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify({ action, notes: note }),
-      })
-      if (!res.ok) throw new Error("Không thể cập nhật vi phạm")
-      setViolations((prev) =>
-        prev.map((v) =>
-          v.id === id ? { ...v, status: action === "approve" ? "verified" : "processed" } : v,
-        ),
-      )
+      // Map action to backend format
+      let backendAction = action
+      if (action === "approve") backendAction = "approve"
+      if (action === "reject") backendAction = "reject"
+      
+      await officerApi.processViolation(id, backendAction as any, note)
+      
+      // Refresh violations list
+      await fetchViolations()
+      
       alert("Cập nhật thành công")
     } catch (err: any) {
-      alert(err.message)
+      alert(err.message || "Không thể cập nhật vi phạm")
+      console.error("Error processing violation:", err)
     }
   }
 
@@ -61,11 +56,28 @@ export default function OfficerViolationManagement() {
     (v) =>
       v.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       v.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      v.licensePlate.toLowerCase().includes(searchTerm.toLowerCase()),
+      v.license_plate.toLowerCase().includes(searchTerm.toLowerCase()),
   )
 
-  if (loading) return <p>Đang tải dữ liệu...</p>
-  if (error) return <p className="text-destructive">Lỗi: {error}</p>
+  if (loading && violations.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center text-muted-foreground">
+          <p>Đang tải dữ liệu...</p>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (error && violations.length === 0) {
+    return (
+      <Card>
+        <CardContent className="py-10 text-center text-destructive">
+          <p>Lỗi: {error}</p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   return (
     <Card>

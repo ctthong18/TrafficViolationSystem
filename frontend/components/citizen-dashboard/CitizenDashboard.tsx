@@ -7,7 +7,7 @@ import Header from "../../src/components/Header"
 import { ViolationLookup } from "@/components/violation-lookup/violation-lookup"
 import { ViolationReport } from "@/components/violation-report/ViolationReport"
 import { CitizenProfile } from "@/components/citizen-profile/CitizenProfile"
-import { PaymentGuide } from "@/components/payment-guide/PaymentGuide"
+import { PaymentSection } from "@/components/payment-section/PaymentSection"
 import { useViolations } from "@/hooks/useViolations"
 import { ViolationStats } from "@/components/citizen-dashboard/ViolationStats"
 import { ViolationList } from "@/components/citizen-dashboard/ViolationList"
@@ -57,7 +57,7 @@ export function CitizenDashboard() {
             </TabsTrigger>
             <TabsTrigger value="payment" className="flex items-center gap-2">
               <CreditCard className="h-4 w-4" />
-              Hướng dẫn nộp phạt
+              Giao dịch
             </TabsTrigger>
           </TabsList>
 
@@ -84,7 +84,7 @@ export function CitizenDashboard() {
           </TabsContent>
 
           <TabsContent value="payment">
-            <PaymentGuide />
+            <PaymentSection />
           </TabsContent>
         </Tabs>
       </div>

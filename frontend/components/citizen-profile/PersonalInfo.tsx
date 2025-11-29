@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -7,18 +7,44 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Edit, Save, X } from "lucide-react"
 
-interface Props {
-  data: any
-  setData: (data: any) => void
-}
-
-export function PersonalInfo({ data, setData }: Props) {
+export function PersonalInfo() {
+  const [data, setData] = useState<any>(null)
   const [isEditing, setIsEditing] = useState(false)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchPersonalInfo = async () => {
+      const token = localStorage.getItem("access_token")
+      if (!token) return
+
+      try {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/citizen/personal-info`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        })
+
+        if (!res.ok) throw new Error("Không thể tải thông tin cá nhân")
+
+        const result = await res.json()
+        setData(result)
+      } catch (err) {
+        console.error("Lỗi khi lấy thông tin cá nhân:", err)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchPersonalInfo()
+  }, [])
 
   const handleSave = () => {
-    // TODO: call API to save profile
+    // TODO: Gọi API update profile (PUT /personal-info)
     setIsEditing(false)
   }
+
+  if (loading) return <p>Đang tải...</p>
+  if (!data) return <p>Không có dữ liệu người dùng</p>
 
   return (
     <Card>
@@ -42,22 +68,21 @@ export function PersonalInfo({ data, setData }: Props) {
           </div>
         )}
       </CardHeader>
+
       <CardContent className="space-y-4">
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="fullName">Họ và tên</Label>
+            <Label>Họ và tên</Label>
             <Input
-              id="fullName"
-              value={data.fullName}
+              value={data.fullName || ""}
               onChange={(e) => setData({ ...data, fullName: e.target.value })}
               disabled={!isEditing}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="idNumber">Số CCCD/CMND</Label>
+            <Label>Số CCCD/CMND</Label>
             <Input
-              id="idNumber"
-              value={data.idNumber}
+              value={data.idNumber || ""}
               onChange={(e) => setData({ ...data, idNumber: e.target.value })}
               disabled={!isEditing}
             />
@@ -66,19 +91,17 @@ export function PersonalInfo({ data, setData }: Props) {
 
         <div className="grid gap-4 md:grid-cols-2">
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label>Email</Label>
             <Input
-              id="email"
-              value={data.email}
+              value={data.email || ""}
               onChange={(e) => setData({ ...data, email: e.target.value })}
               disabled={!isEditing}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="phone">Số điện thoại</Label>
+            <Label>Số điện thoại</Label>
             <Input
-              id="phone"
-              value={data.phone}
+              value={data.phone || ""}
               onChange={(e) => setData({ ...data, phone: e.target.value })}
               disabled={!isEditing}
             />
@@ -86,21 +109,19 @@ export function PersonalInfo({ data, setData }: Props) {
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="dateOfBirth">Ngày sinh</Label>
+          <Label>Ngày sinh</Label>
           <Input
-            id="dateOfBirth"
             type="date"
-            value={data.dateOfBirth}
+            value={data.dateOfBirth ? data.dateOfBirth.split("T")[0] : ""}
             onChange={(e) => setData({ ...data, dateOfBirth: e.target.value })}
             disabled={!isEditing}
           />
         </div>
 
         <div className="space-y-2">
-          <Label htmlFor="address">Địa chỉ</Label>
+          <Label>Địa chỉ</Label>
           <Input
-            id="address"
-            value={data.address}
+            value={data.address || ""}
             onChange={(e) => setData({ ...data, address: e.target.value })}
             disabled={!isEditing}
           />
@@ -112,15 +133,21 @@ export function PersonalInfo({ data, setData }: Props) {
             <div className="grid gap-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Ngày tạo tài khoản:</span>
-                <span>15/01/2024</span>
+                <span>{new Date(data.createdAt).toLocaleDateString("vi-VN")}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Trạng thái:</span>
-                <Badge className="bg-success text-success-foreground">Đã xác thực</Badge>
+                <Badge className={data.isActive ? "bg-success" : "bg-destructive"}>
+                  {data.isActive ? "Đã xác thực" : "Bị khóa"}
+                </Badge>
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Lần đăng nhập cuối:</span>
-                <span>Hôm nay, 14:30</span>
+                <span>
+                  {data.lastLogin
+                    ? new Date(data.lastLogin).toLocaleString("vi-VN")
+                    : "Chưa có"}
+                </span>
               </div>
             </div>
           </div>

@@ -1,0 +1,4 @@
+cd D:\git_project\TrafficViolationSystem\fastapi
+conda activate TrafficViolationSystem
+docker-compose exec postgres psql -U traffic_user -d traffic_violation
+docker-compose exec bash

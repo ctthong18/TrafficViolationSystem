@@ -7,6 +7,10 @@ __pycache__/
 *.pyc
 *.pyo
 
+/Test 
+
+/MODEL
+
 # Thư mục build, dist
 dist/
 build/

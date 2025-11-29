@@ -4,7 +4,8 @@ API endpoints package
 
 from app.api.endpoints import (
     auth, admin, officer, citizen, violations, 
-    complaints, denuciations, vehicles, calendar_analytics
+    complaints, denuciations, vehicles, driving_licenses, calendar_analytics,
+    payments, users, notifications
 )
 
 __all__ = [
@@ -16,5 +17,9 @@ __all__ = [
     'complaints',
     'denuciations', 
     'vehicles',
-    'calendar_analytics'
+    'driving_licenses',
+    'calendar_analytics',
+    'payments',
+    'users',
+    'notifications',
 ]

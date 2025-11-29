@@ -1,21 +1,6 @@
 "use client"
 import { useEffect, useState } from "react"
-
-export interface Violation {
-  id: string
-  type: string
-  location: string
-  time: string
-  licensePlate: string
-  status: "pending" | "processed" | "reviewing" | "verified" | "unpaid" | "paid" | "processing"
-  officer?: string | null 
-  fine: string
-  dueDate?: string
-  paidDate?: string
-  evidence?: string
-  description?: string
-  priority?: "high" | "medium" | "low"
-}
+import { violationsApi, citizenApi, Violation } from "@/lib/api"
 
 export interface Report {
   id: string
@@ -27,6 +12,9 @@ export interface Report {
   description: string
 }
 
+// Re-export Violation type from api
+export type { Violation }
+
 export function useViolations() {
   const [violations, setViolations] = useState<Violation[]>([])
   const [reports, setReports] = useState<Report[]>([])
@@ -36,29 +24,35 @@ export function useViolations() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const token = localStorage.getItem("access_token") 
-        if (!token) {
-            setLoading(false); 
-            return;
-        }
-
-        const [violationRes, reportRes] = await Promise.all([
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/violations`, {
-            headers: { Authorization: `Bearer ${token}` },
+        setLoading(true)
+        setError(null)
+        
+        const [violationsData, reportsData] = await Promise.all([
+          violationsApi.getAll({ limit: 100 }).catch(err => {
+            console.error("Lỗi khi tải violations:", err)
+            return { violations: [], total: 0, page: 1, size: 0 }
           }),
-          fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/complaints`, {
-            headers: { Authorization: `Bearer ${token}` },
+          citizenApi.getMyReports().catch(err => {
+            console.error("Lỗi khi tải reports:", err)
+            return []
           }),
         ])
 
-        if (!violationRes.ok || !reportRes.ok)
-          throw new Error("Không thể tải dữ liệu")
-
-        setViolations(await violationRes.json())
-        setReports(await reportRes.json())
+        setViolations(violationsData.violations || [])
+        // Map complaints to reports format if needed
+        const reportsArray = Array.isArray(reportsData) ? reportsData : []
+        setReports(reportsArray.map((r: any) => ({
+          id: r.id?.toString() || '',
+          type: r.complaint_type || r.type || '',
+          location: r.location || '',
+          time: r.created_at || '',
+          reporter: r.complainant_name || '',
+          status: r.status === 'resolved' ? 'verified' : 'reviewing',
+          description: r.description || r.title || '',
+        })))
       } catch (err: any) { 
         console.error("Lỗi tải dữ liệu:", err)
-        setError(err.message) 
+        setError(err.message || 'Có lỗi xảy ra khi tải dữ liệu') 
       } finally {
         setLoading(false)
       }
@@ -75,41 +69,34 @@ export function useCitizenViolations() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const fetchViolations = async () => {
-      try {
-        setLoading(true)
-        const token = localStorage.getItem("access_token")
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/citizen/my-violations`, {
-          headers: {
-            Authorization: token ? `Bearer ${token}` : "",
-          },
-        })
-        if (!res.ok) throw new Error("Không thể tải dữ liệu vi phạm")
-        const data: Violation[] = await res.json()
-        setViolations(data)
-      } catch (err: any) {
-        setError(err.message)
-      } finally {
-        setLoading(false)
-      }
+  const fetchViolations = async () => {
+    try {
+      setLoading(true)
+      const data = await citizenApi.getMyViolations()
+      setViolations(data)
+    } catch (err: any) {
+      setError(err.message)
+    } finally {
+      setLoading(false)
     }
+  }
 
+  useEffect(() => {
     fetchViolations()
   }, [])
 
-  return { violations, loading, error }
+  return { violations, loading, error, refetch: fetchViolations }
 }
 
 export async function fetchViolationsByLicense(license: string): Promise<Violation[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/violations?license_plate=${encodeURIComponent(license)}`)
-  if (!res.ok) throw new Error("Không thể tải dữ liệu")
-  return res.json()
+  return violationsApi.lookupByLicensePlate(license)
 }
 
 export async function fetchViolationById(id: string): Promise<Violation[]> {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/v1/violations/${id}`)
-  if (!res.ok) throw new Error("Không thể tải dữ liệu")
-  const data = await res.json()
-  return Array.isArray(data) ? data : [data] 
+  try {
+    const violation = await violationsApi.getById(id)
+    return [violation]
+  } catch (error) {
+    return []
+  }
 }

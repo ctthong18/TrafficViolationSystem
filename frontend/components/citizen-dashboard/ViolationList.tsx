@@ -2,13 +2,18 @@
 import { Card, CardHeader, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Video } from "lucide-react"
 import { Violation } from "@/hooks/useViolations"
+import { useState } from "react"
+import { VideoPlayerDialog } from "../process-video/VideoPlayerDialog"
 
 interface Props {
   violations: Violation[]
 }
 
 export function ViolationList({ violations }: Props) {
+  const [selectedVideoViolation, setSelectedVideoViolation] = useState<Violation | null>(null)
+  
   const getStatusBadge = (status: string) => {
     switch (status) {
       case "unpaid":
@@ -43,13 +48,7 @@ export function ViolationList({ violations }: Props) {
                 <p className="text-xs text-muted-foreground">
                   {violation.location} • {violation.time}
                 </p>
-                <p className="text-xs text-muted-foreground">Biển số: {violation.licensePlate}</p>
-                {violation.status === "unpaid" && (
-                  <p className="text-xs text-destructive">Hạn nộp: {violation.dueDate}</p>
-                )}
-                {violation.status === "paid" && (
-                  <p className="text-xs text-success">Đã thanh toán: {violation.paidDate}</p>
-                )}
+                <p className="text-xs text-muted-foreground">Biển số: {violation.license_plate}</p>
               </div>
               <div className="text-right">
                 <p
@@ -59,16 +58,38 @@ export function ViolationList({ violations }: Props) {
                 >
                   {violation.fine}
                 </p>
-                {violation.status === "unpaid" && (
-                  <Button size="sm" className="mt-2">
-                    Thanh toán
-                  </Button>
-                )}
+                <div className="flex gap-2 mt-2">
+                  {violation.video_evidence && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setSelectedVideoViolation(violation)}
+                    >
+                      <Video className="h-4 w-4 mr-1" />
+                      Video
+                    </Button>
+                  )}
+                  {violation.status === "unpaid" && (
+                    <Button size="sm">
+                      Thanh toán
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           ))}
         </div>
       </CardContent>
+      
+      {selectedVideoViolation?.video_evidence && (
+        <VideoPlayerDialog
+          open={!!selectedVideoViolation}
+          onOpenChange={(open) => !open && setSelectedVideoViolation(null)}
+          videoUrl={selectedVideoViolation.video_evidence.cloudinary_url}
+          videoId={selectedVideoViolation.video_evidence.video_id}
+          title={`Video bằng chứng - Vi phạm #${selectedVideoViolation.id}`}
+        />
+      )}
     </Card>
   )
 }

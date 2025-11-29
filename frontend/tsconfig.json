@@ -8,6 +8,7 @@
       "DOM.Iterable"
     ],
     "module": "ESNext",
+    "types": ["node"],
     "skipLibCheck": true,
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
@@ -38,8 +39,11 @@
   "include": [
     "app",
     "components",
+    "hooks",
     "src",
-    ".next/types/**/*.ts"
+    ".next/types/**/*.ts",
+    "next-env.d.ts",
+    "types/**/*.d.ts",
   ],
   "references": [
     {

@@ -5,12 +5,12 @@ import Header  from "../../src/components/Header"
 import { OverviewStats } from "./OverviewStats"
 import { RecentViolations } from "./RecentViolations"
 import { SystemActivity } from "./SystemActivity"
-import { CameraSystem } from "@/components/camera-system"
+import { CameraSystem } from "@/components/camera-system/CameraSystem"
 import ViolationManagement  from "@/components/violation-management/ViolationManagement"
 import { StatisticsPanel } from "@/components/statistics/StatisticsPanel"
 import { OfficerManagement } from "@/components/officer-management/OfficerManagement"
 
-export function AuthorityDashboard() {
+export function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
 
   return (

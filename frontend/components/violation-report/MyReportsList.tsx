@@ -3,13 +3,14 @@
 import { Card, CardContent } from "@/components/ui/card"
 import { FileText } from "lucide-react"
 import { ReportCard } from "./ReportCard"
+import { Denunciation } from "@/hooks/useDenuciation"
 
 export function MyReportsList({
   reports,
   loading,
   onRefresh
 }: {
-  reports: any[]
+  reports: Denunciation[]
   loading: boolean
   onRefresh: () => void
 }) {
@@ -35,7 +36,7 @@ export function MyReportsList({
   return (
     <div className="space-y-4">
       {reports.map((report) => (
-        <ReportCard key={report.id} report={report} onRefresh={onRefresh} />
+        <ReportCard key={report.id} report={report} />
       ))}
     </div>
   )

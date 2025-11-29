@@ -7,7 +7,7 @@ interface Props {
   activities: RecentActivity[]
 }
 
-export function RecentActivities({ activities }: Props) {
+export function RecentActivities({ activities = []}: Props) {
   return (
     <Card>
       <CardHeader>

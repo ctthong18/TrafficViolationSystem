@@ -45,6 +45,16 @@ class Settings(BaseSettings):
     mongo_uri: str = "mongodb://mongo:27017"
     mongo_db: str = "ai_logs"
 
+    # Cloudinary
+    cloudinary_cloud_name: str = "your_cloud_name"
+    cloudinary_api_key: str = "753927628427979"
+    cloudinary_api_secret: str = "mvjCCHu33schCthNzZqSuYmaP5Y"
+
+    # Celery
+    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+    REDIS_URL: str = "redis://localhost:6379/0"
+
     # Pydantic settings configuration (v2)
     model_config = SettingsConfigDict(
         env_file=ENV_PATH,
@@ -55,5 +65,5 @@ class Settings(BaseSettings):
 
 # Khởi tạo settings
 settings = Settings()
-print(f"🔍 DEBUG: Loaded DATABASE_URL = {settings.DATABASE_URL}")
-print(f"🔍 DEBUG: Loaded SECRET_KEY = {settings.SECRET_KEY}")
+print(f"DEBUG: Loaded DATABASE_URL = {settings.DATABASE_URL}")
+print(f"DEBUG: Loaded SECRET_KEY = {settings.SECRET_KEY}")

@@ -1,4 +1,4 @@
-import OfficerDashboard from "../../src/pages/OfficerDashboard";
+import OfficerDashboard from "@/components/officer-dashboard/OfficerDashboard";
 
 export default function OfficerPage() {
   return <OfficerDashboard />

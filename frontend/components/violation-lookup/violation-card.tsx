@@ -10,34 +10,44 @@ export function ViolationCard({ violation }: { violation: Violation }) {
     <div className="p-4 border border-border rounded-lg space-y-3">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="font-medium text-lg">{violation.id}</span>
-          <StatusBadge status={violation.status} />
+          <span className="font-medium text-lg">Vi phạm #{violation?.id}</span>
+          <StatusBadge status={violation?.status} />
         </div>
-        <div className="text-right">
-          <p
-            className={`text-xl font-bold ${
-              violation.status === "unpaid" ? "text-destructive" : "text-success"
-            }`}
-          >
-            {violation.fine}
-          </p>
-        </div>
+        {violation.fine && (
+          <div className="text-right">
+            <p
+              className={`text-xl font-bold ${
+                violation.status === "unpaid" || violation.status === "verified" ? "text-destructive" : "text-success"
+              }`}
+            >
+              {violation.fine.toLocaleString('vi-VN')} VNĐ
+            </p>
+          </div>
+        )}
       </div>
 
       <div className="grid gap-2 md:grid-cols-2">
         <Info label="Loại vi phạm" value={violation.type} />
-        <Info label="Biển số" value={violation.licensePlate} />
-        <Info label="Địa điểm" value={violation.location} />
-        <Info label="Thời gian" value={violation.time} />
+        <Info label="Biển số" value={violation.license_plate} />
+        <Info label="Địa điểm" value={violation.location || 'N/A'} />
+        <Info label="Thời gian" value={`${violation.date || ''} ${violation.time || ''}`.trim()} />
       </div>
 
-      {violation.status === "unpaid" && (
+      {violation.description && (
+        <div className="bg-muted/50 rounded-lg p-3">
+          <p className="text-sm">
+            <strong>Mô tả:</strong> {violation.description}
+          </p>
+        </div>
+      )}
+
+      {(violation.status === "verified" || violation.status === "unpaid") && violation.fine && (
         <div className="bg-warning/10 border border-warning/20 rounded-lg p-3">
           <p className="text-sm text-warning-foreground">
-            <strong>Hạn nộp phạt:</strong> {violation.dueDate}
+            <strong>Mức phạt:</strong> {violation.fine.toLocaleString('vi-VN')} VNĐ
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            Vui lòng thanh toán trước hạn để tránh bị tăng mức phạt
+            Vui lòng thanh toán để hoàn tất xử lý vi phạm
           </p>
         </div>
       )}
@@ -45,21 +55,23 @@ export function ViolationCard({ violation }: { violation: Violation }) {
       {violation.status === "paid" && (
         <div className="bg-success/10 border border-success/20 rounded-lg p-3">
           <p className="text-sm text-success-foreground">
-            <strong>Đã thanh toán:</strong> {violation.paidDate}
+            <strong>Đã thanh toán</strong>
           </p>
         </div>
       )}
 
-      <div className="flex gap-2">
-        <Button variant="outline" size="sm">
-          <Eye className="h-4 w-4 mr-2" />
-          Xem bằng chứng
-        </Button>
+      <div className="flex gap-2 flex-wrap">
+        {violation.evidence && (
+          <Button variant="outline" size="sm">
+            <Eye className="h-4 w-4 mr-2" />
+            Xem bằng chứng
+          </Button>
+        )}
         <Button variant="outline" size="sm">
           <FileText className="h-4 w-4 mr-2" />
           Tải quyết định
         </Button>
-        {violation.status === "unpaid" && (
+        {(violation.status === "verified" || violation.status === "unpaid") && violation.fine && (
           <Button size="sm">
             <CreditCard className="h-4 w-4 mr-2" />
             Thanh toán ngay
@@ -74,7 +86,7 @@ function Info({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <span className="text-sm text-muted-foreground">{label}:</span>
-      <p className="font-medium">{value}</p>
+      <p className="font-medium">{value || 'N/A'}</p>
     </div>
   )
 }

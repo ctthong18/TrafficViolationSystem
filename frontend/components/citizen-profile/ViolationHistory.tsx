@@ -16,7 +16,7 @@ interface Props {
 }
 
 export function ViolationHistory({ violations }: Props) {
-  if (violations.length === 0)
+  if (violations?.length === 0)
     return (
       <div className="text-center py-8">
         <User className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -26,7 +26,7 @@ export function ViolationHistory({ violations }: Props) {
 
   return (
     <div className="space-y-4">
-      {violations.map((v, i) => (
+      {violations?.map((v, i) => (
         <Card key={i}>
           <CardHeader className="flex justify-between items-start">
             <div className="flex-1">

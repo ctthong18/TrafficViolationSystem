@@ -12,6 +12,9 @@ from app.services.complaint_service import ComplaintService
 from app.services.denuciation_service import DenunciationService
 from app.services.analytics_service import AnalyticsService
 from app.services.notification_service import NotificationService
+from app.services.camera_service import CameraService
+from app.services.cloudinary_service import CloudinaryService, cloudinary_service
+from app.services.ai_detection_service import AIDetectionService, ai_detection_service
 
 __all__ = [
     'AuthService',
@@ -22,7 +25,12 @@ __all__ = [
     'AIService',
     'ai_service',
     'ComplaintService',
-    'DenunciationService',  # ← THÊM DÒNG NÀY
+    'DenunciationService',
     'AnalyticsService', 
     'NotificationService',
+    'CameraService',
+    'CloudinaryService',
+    'cloudinary_service',
+    'AIDetectionService',
+    'ai_detection_service',
 ]

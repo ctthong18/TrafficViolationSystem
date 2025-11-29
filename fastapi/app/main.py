@@ -1,9 +1,8 @@
 from fastapi import FastAPI
-from core.config import settings  # Đổi: từ app.core
-from core.database import create_tables  # Đổi: từ app.core
-from api.router import api_router  # Đổi: từ app.api
+from core.config import settings  
+from core.database import create_tables  
+from api.router import api_router 
 
-# Middleware imports: Đổi prefix
 from api.middleware.cors_middleware import setup_cors_middleware
 from api.middleware.logging_middleware import LoggingMiddleware
 from api.middleware.rate_limiting import RateLimitingMiddleware
@@ -16,7 +15,7 @@ app = FastAPI(
     debug=settings.DEBUG
 )
 
-# Add middleware (giữ nguyên)
+# Add middleware
 app.add_middleware(ErrorHandlerMiddleware)
 app.add_middleware(SecurityMiddleware)
 app.add_middleware(LoggingMiddleware)
@@ -40,7 +39,7 @@ def read_root():
 def health_check():
     return {"status": "healthy"}
 
-# Startup: Tạo tables khi start (tránh chạy sớm)
+# Startup
 @app.on_event("startup")
 async def startup_event():
     create_tables()

@@ -1,5 +1,5 @@
 ```bash
-🧱 Table: users
+ Table: users
   - id (INTEGER) nullable=False
   - username (VARCHAR(100)) nullable=False
   - email (VARCHAR(255)) nullable=False
@@ -23,7 +23,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: cameras
+ Table: cameras
   - id (INTEGER) nullable=False
   - camera_id (VARCHAR(100)) nullable=False
   - name (VARCHAR(255)) nullable=False
@@ -42,7 +42,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: system_configs
+ Table: system_configs
   - id (INTEGER) nullable=False
   - config_key (VARCHAR(100)) nullable=False
   - config_value (TEXT) nullable=True
@@ -52,7 +52,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: daily_stats
+ Table: daily_stats
   - id (INTEGER) nullable=False
   - stat_date (DATE) nullable=False
   - total_violations (INTEGER) nullable=True
@@ -72,7 +72,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: location_hotspots
+ Table: location_hotspots
   - id (INTEGER) nullable=False
   - location_name (VARCHAR(255)) nullable=False
   - latitude (NUMERIC(10, 8)) nullable=True
@@ -87,7 +87,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: time_series_trends
+ Table: time_series_trends
   - id (INTEGER) nullable=False
   - trend_type (VARCHAR(50)) nullable=False
   - period_date (DATE) nullable=False
@@ -99,7 +99,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: confidence_analytics
+ Table: confidence_analytics
   - id (INTEGER) nullable=False
   - analysis_date (DATE) nullable=False
   - score_range (VARCHAR(20)) nullable=False
@@ -111,7 +111,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: model_performance
+ Table: model_performance
   - id (INTEGER) nullable=False
   - model_name (VARCHAR(100)) nullable=False
   - evaluation_date (DATE) nullable=False
@@ -125,7 +125,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: violation_forecasts
+ Table: violation_forecasts
   - id (INTEGER) nullable=False
   - forecast_date (DATE) nullable=False
   - forecast_type (VARCHAR(50)) nullable=False
@@ -137,7 +137,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: driving_licenses
+ Table: driving_licenses
   - id (INTEGER) nullable=False
   - license_number (VARCHAR(20)) nullable=False
   - user_id (INTEGER) nullable=False
@@ -162,7 +162,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: vehicles
+ Table: vehicles
   - id (INTEGER) nullable=False
   - license_plate (VARCHAR(20)) nullable=False
   - vehicle_type (VARCHAR(50)) nullable=False
@@ -185,7 +185,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: audit_logs
+ Table: audit_logs
   - id (INTEGER) nullable=False
   - action (VARCHAR(100)) nullable=False
   - table_name (VARCHAR(100)) nullable=False
@@ -197,7 +197,7 @@
   - user_agent (TEXT) nullable=True
   - timestamp (TIMESTAMP) nullable=False
 
-🧱 Table: action_recommendations
+ Table: action_recommendations
   - id (INTEGER) nullable=False
   - recommendation_type (VARCHAR(100)) nullable=False
   - priority_level (VARCHAR(20)) nullable=False
@@ -211,7 +211,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: violations
+ Table: violations
   - id (INTEGER) nullable=False
   - license_plate (VARCHAR(20)) nullable=False
   - vehicle_type (VARCHAR(50)) nullable=True
@@ -240,7 +240,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: complaints
+ Table: complaints
   - id (INTEGER) nullable=False
   - complaint_code (VARCHAR(50)) nullable=True
   - complainant_name (VARCHAR(255)) nullable=False
@@ -270,7 +270,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: denunciations
+ Table: denunciations
   - id (INTEGER) nullable=False
   - denunciation_code (VARCHAR(50)) nullable=True
   - is_anonymous (BOOLEAN) nullable=True
@@ -308,7 +308,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: payments
+ Table: payments
   - id (INTEGER) nullable=False
   - violation_id (INTEGER) nullable=True
   - vehicle_id (INTEGER) nullable=True
@@ -335,7 +335,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: evidence
+ Table: evidence
   - id (INTEGER) nullable=False
   - violation_id (INTEGER) nullable=True
   - image_urls (JSON) nullable=True
@@ -348,7 +348,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: complaint_appeals
+ Table: complaint_appeals
   - id (INTEGER) nullable=False
   - complaint_id (INTEGER) nullable=False
   - appeal_code (VARCHAR(50)) nullable=True
@@ -361,7 +361,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: complaint_activities
+ Table: complaint_activities
   - id (INTEGER) nullable=False
   - complaint_id (INTEGER) nullable=False
   - activity_type (VARCHAR(100)) nullable=False
@@ -370,7 +370,7 @@
   - performed_by (INTEGER) nullable=True
   - performed_at (TIMESTAMP) nullable=False
 
-🧱 Table: denunciation_activities
+ Table: denunciation_activities
   - id (INTEGER) nullable=False
   - denunciation_id (INTEGER) nullable=False
   - activity_type (VARCHAR(100)) nullable=False
@@ -379,7 +379,7 @@
   - performed_by (INTEGER) nullable=True
   - performed_at (TIMESTAMP) nullable=False
 
-🧱 Table: notification_templates
+ Table: notification_templates
   - id (INTEGER) nullable=False
   - name (VARCHAR(255)) nullable=False
   - template_code (VARCHAR(100)) nullable=True
@@ -401,7 +401,7 @@
   - created_at (TIMESTAMP) nullable=False
   - updated_at (TIMESTAMP) nullable=False
 
-🧱 Table: notifications
+ Table: notifications
   - id (INTEGER) nullable=False
   - notification_code (VARCHAR(100)) nullable=True
   - template_id (INTEGER) nullable=True

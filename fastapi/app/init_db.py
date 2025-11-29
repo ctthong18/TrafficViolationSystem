@@ -28,7 +28,7 @@ def init_db():
                 password_hash=bcrypt.hash(password),
                 phone_number="0123456789",
                 role="admin",
-                identification_number="000000000000",  # Bắt buộc vì unique và not null
+                identification_number="000000000000",  
                 is_active=True,
                 created_at=datetime.now(timezone.utc),
             )

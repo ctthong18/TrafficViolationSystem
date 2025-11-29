@@ -5,24 +5,46 @@ from starlette.responses import Response
 from typing import Dict, Tuple
 import redis
 from app.core.config import settings
+from app.core.security_config import security_config
 import os
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class RateLimitingMiddleware(BaseHTTPMiddleware):
     def __init__(self, app, redis_url: str = None):
         super().__init__(app)
-        self.redis_client = redis.from_url(
-            redis_url or os.getenv("REDIS_URL", "redis://redis:6379")
-        )        
+        try:
+            self.redis_client = redis.from_url(
+                redis_url or os.getenv("REDIS_URL", "redis://redis:6379"),
+                socket_connect_timeout=5
+            )
+            # Test connection
+            self.redis_client.ping()
+            logger.info("Rate limiting middleware initialized with Redis")
+        except Exception as e:
+            logger.warning(f"Redis connection failed, rate limiting disabled: {e}")
+            self.redis_client = None
+        
+        # Enhanced rate limits with security focus
         self.rate_limits = {
-            "/api/v1/auth/": (10, 60),  # 10 requests per minute for auth
-            "/api/v1/violations/": (100, 60),  # 100 requests per minute
-            "/api/v1/admin/": (50, 60),  # 50 requests per minute for admin
-            "default": (100, 60)  # Default rate limit
+            "/api/v1/auth/": (100, 60),  # 100 requests per minute for auth
+            "/api/v1/videos/upload": (50, 60),  # 50 uploads per minute
+            "/api/v1/videos/": (500, 60),  # 500 requests per minute for video operations
+            "/api/v1/detections/": (500, 60),  # 500 requests per minute for detections
+            "/api/v1/violations/": (1000, 60),  # 1000 requests per minute
+            "/api/v1/admin/": (500, 60),  # 500 requests per minute for admin
+            "default": (1000, 60)  # Default rate limit
         }
     
     async def dispatch(self, request: Request, call_next):
         # Skip rate limiting for certain paths
-        if request.url.path in ["/", "/health", "/docs", "/redoc"]:
+        if request.url.path in ["/", "/health", "/docs", "/redoc", "/openapi.json"]:
+            return await call_next(request)
+        
+        # Skip if rate limiting is disabled or Redis unavailable
+        if not security_config.enable_rate_limiting or not self.redis_client:
             return await call_next(request)
         
         # Get client identifier
@@ -35,19 +57,28 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
             max_requests, window_seconds = rate_limit
             key = f"rate_limit:{client_id}:{request.url.path}"
             
-            # Check current count
-            current = self.redis_client.get(key)
-            if current and int(current) >= max_requests:
-                raise HTTPException(
-                    status_code=429,
-                    detail=f"Rate limit exceeded. Maximum {max_requests} requests per {window_seconds} seconds"
-                )
-            
-            # Increment counter
-            pipeline = self.redis_client.pipeline()
-            pipeline.incr(key, 1)
-            pipeline.expire(key, window_seconds)
-            pipeline.execute()
+            try:
+                # Check current count
+                current = self.redis_client.get(key)
+                if current and int(current) >= max_requests:
+                    logger.warning(
+                        f"Rate limit exceeded for {client_id} on {request.url.path}: "
+                        f"{current}/{max_requests} requests"
+                    )
+                    raise HTTPException(
+                        status_code=429,
+                        detail=f"Rate limit exceeded. Maximum {max_requests} requests per {window_seconds} seconds"
+                    )
+                
+                # Increment counter
+                pipeline = self.redis_client.pipeline()
+                pipeline.incr(key, 1)
+                pipeline.expire(key, window_seconds)
+                pipeline.execute()
+                
+            except redis.RedisError as e:
+                logger.error(f"Redis error in rate limiting: {e}")
+                # Continue without rate limiting if Redis fails
         
         return await call_next(request)
     

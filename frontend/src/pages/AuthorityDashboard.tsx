@@ -42,7 +42,7 @@ type Activity = {
   type: "violation" | "process" | "report" | "system"
 }
 
-export default function AuthorityDashboard() {
+export default function AdminDashboard() {
   const [activeTab, setActiveTab] = useState("overview")
   const [stats, setStats] = useState<Stat[]>([])
   const [recentViolations, setRecentViolations] = useState<Violation[]>([])

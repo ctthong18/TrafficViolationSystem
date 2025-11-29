@@ -6,10 +6,17 @@ from app.models.violation import Violation
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.schemas.violation_schema import ViolationCreate, ViolationUpdate, ViolationReview
+from app.services.notification_service import NotificationService
+import cv2
+import os
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ViolationService:
     def __init__(self, db: Session):
         self.db = db
+        self.notification_service = NotificationService(db)
 
     def get_violation_by_id(self, violation_id: int) -> Violation:
         violation = self.db.query(Violation).filter(Violation.id == violation_id).first()
@@ -47,6 +54,15 @@ class ViolationService:
         
         return query.order_by(Violation.detected_at.desc()).offset(skip).limit(limit).all()
 
+    def count_pending_violations(self, priority: Optional[str] = None) -> int:
+        """Đếm số lượng vi phạm đang chờ xử lý (pending và reviewing)"""
+        query = self.db.query(Violation).filter(Violation.status.in_(['pending', 'reviewing']))
+        
+        if priority:
+            query = query.filter(Violation.priority == priority)
+        
+        return query.count()
+
     def review_violation(self, violation_id: int, officer_id: int, 
                         action: str, notes: Optional[str] = None) -> Violation:
         violation = self.get_violation_by_id(violation_id)
@@ -56,6 +72,9 @@ class ViolationService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Vi phạm đã được xử lý"
             )
+        
+        # Check if this is a new assignment (officer not previously assigned)
+        is_new_assignment = violation.reviewed_by != officer_id
         
         normalized = action.lower().strip()
         if normalized in ['approve', 'approved', 'verify', 'verified']:
@@ -76,6 +95,16 @@ class ViolationService:
         
         self.db.commit()
         self.db.refresh(violation)
+        
+        # Send notification to officer if newly assigned
+        if is_new_assignment:
+            try:
+                self.notification_service.notify_officer_assignment(
+                    violation_id=violation_id,
+                    officer_id=officer_id
+                )
+            except Exception as e:
+                logger.error(f"Failed to send officer assignment notification: {e}")
         
         return violation
 
@@ -225,3 +254,242 @@ class ViolationService:
             query = query.filter(Violation.detected_at <= end_date)
         
         return query.order_by(Violation.detected_at.desc()).offset(skip).limit(limit).all()
+
+    def count_violations(self, license_plate: Optional[str] = None,
+                        violation_type: Optional[str] = None,
+                        status: Optional[str] = None,
+                        location: Optional[str] = None,
+                        start_date: Optional[datetime] = None,
+                        end_date: Optional[datetime] = None) -> int:
+        """Đếm số lượng vi phạm với các bộ lọc"""
+        query = self.db.query(Violation)
+        
+        if license_plate:
+            query = query.filter(Violation.license_plate.ilike(f"%{license_plate}%"))
+        if violation_type:
+            query = query.filter(Violation.violation_type == violation_type)
+        if status:
+            query = query.filter(Violation.status == status)
+        if location:
+            query = query.filter(Violation.location_name.ilike(f"%{location}%"))
+        if start_date:
+            query = query.filter(Violation.detected_at >= start_date)
+        if end_date:
+            query = query.filter(Violation.detected_at <= end_date)
+        
+        return query.count()
+
+    def get_processed_violations(self, skip: int = 0, limit: int = 50) -> List[Violation]:
+        """Lấy danh sách vi phạm đã xử lý (verified, processed, paid)"""
+        processed_statuses = ['verified', 'processed', 'paid']
+        return self.db.query(Violation).filter(
+            Violation.status.in_(processed_statuses)
+        ).order_by(Violation.detected_at.desc()).offset(skip).limit(limit).all()
+
+    def count_processed_violations(self) -> int:
+        """Đếm số lượng vi phạm đã xử lý"""
+        processed_statuses = ['verified', 'processed', 'paid']
+        return self.db.query(Violation).filter(
+            Violation.status.in_(processed_statuses)
+        ).count()
+
+    def get_user_violation_stats(self, license_plates: List[str]) -> Dict[str, Any]:
+        """Lấy thống kê vi phạm của user dựa trên danh sách biển số"""
+        if not license_plates:
+            return {
+                "total": 0,
+                "unpaid": 0,
+                "total_fines": 0.0
+            }
+        
+        violations = self.get_violations_by_vehicles(license_plates)
+        total = len(violations)
+        unpaid = len([v for v in violations if v.status not in ['paid', 'processed']])
+        total_fines = sum(float(v.fine_amount or 0) for v in violations)
+        
+        return {
+            "total": total,
+            "unpaid": unpaid,
+            "total_fines": total_fines
+        }
+    
+    def create_violation_from_detection(
+        self, 
+        detection_id: int, 
+        officer_id: Optional[int] = None
+    ) -> Violation:
+        """
+        Create a violation record from an approved AI detection.
+        
+        This method:
+        - Converts detection data to violation format
+        - Links video evidence to the violation
+        - Sets violation status to "ai_detected"
+        - Optionally assigns to an officer for review
+        
+        Requirements: 4.1, 10.1, 10.2
+        
+        Args:
+            detection_id: ID of the AI detection to convert
+            officer_id: Optional officer ID to assign for review
+            
+        Returns:
+            Created Violation object
+            
+        Raises:
+            HTTPException: If detection not found or invalid
+        """
+        from app.models.ai_detection import AIDetection, DetectionType, ReviewStatus
+        from app.models.CameraVideo import CameraVideo
+        from app.models.camera import Camera
+        
+        # Get the detection
+        detection = self.db.query(AIDetection).filter(
+            AIDetection.id == detection_id
+        ).first()
+        
+        if not detection:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Detection with ID {detection_id} not found"
+            )
+        
+        # Verify detection is approved and is a violation type
+        if detection.review_status != ReviewStatus.APPROVED:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Detection must be approved before creating violation. Current status: {detection.review_status.value}"
+            )
+        
+        if detection.detection_type != DetectionType.VIOLATION:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Detection type must be 'violation'. Current type: {detection.detection_type.value}"
+            )
+        
+        # Check if violation already exists for this detection
+        if detection.violation_id:
+            existing_violation = self.db.query(Violation).filter(
+                Violation.id == detection.violation_id
+            ).first()
+            if existing_violation:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Violation already exists for this detection (ID: {detection.violation_id})"
+                )
+        
+        # Get video and camera information for context
+        video = self.db.query(CameraVideo).filter(
+            CameraVideo.id == detection.video_id
+        ).first()
+        
+        camera = None
+        if video:
+            camera = self.db.query(Camera).filter(
+                Camera.id == video.camera_id
+            ).first()
+        
+        # Extract violation data from detection
+        violation_data = detection.detection_data
+        license_plate = violation_data.get('license_plate', 'UNKNOWN')
+        violation_type = violation_data.get('violation_type', 'Unknown Violation')
+        vehicle_type = violation_data.get('vehicle_type')
+        vehicle_color = violation_data.get('vehicle_color')
+        vehicle_brand = violation_data.get('vehicle_brand')
+        description = violation_data.get('description')
+        
+        # Prepare evidence images - include video thumbnail and cloudinary URL
+        evidence_images = []
+        if video:
+            if video.thumbnail_url:
+                evidence_images.append(video.thumbnail_url)
+            if video.cloudinary_url:
+                evidence_images.append(video.cloudinary_url)
+        
+        # Create violation record
+        violation = Violation(
+            license_plate=license_plate,
+            vehicle_type=vehicle_type,
+            vehicle_color=vehicle_color,
+            vehicle_brand=vehicle_brand,
+            violation_type=violation_type,
+            violation_description=description,
+            location_name=camera.location if camera else None,
+            latitude=camera.latitude if camera else None,
+            longitude=camera.longitude if camera else None,
+            camera_id=str(camera.camera_id) if camera else None,
+            video_id=detection.video_id,  # Link video evidence directly
+            detected_at=detection.detected_at,
+            confidence_score=float(detection.confidence_score),
+            evidence_images=evidence_images,
+            status="ai_detected",  # Set status to ai_detected as per requirement
+            priority="medium",  # Default priority
+            ai_metadata={
+                'detection_id': detection.id,
+                'video_id': detection.video_id,
+                'video_url': video.cloudinary_url if video else None,
+                'frame_timestamp': float(detection.frame_timestamp),
+                'detection_data': violation_data,
+                'reviewed_by': detection.reviewed_by,
+                'reviewed_at': detection.reviewed_at.isoformat() if detection.reviewed_at else None
+            }
+        )
+        
+        # Assign to officer if provided
+        if officer_id:
+            # Verify officer exists
+            officer = self.db.query(User).filter(User.id == officer_id).first()
+            if not officer:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Officer with ID {officer_id} not found"
+                )
+            violation.reviewed_by = officer_id
+        
+        # Save violation
+        self.db.add(violation)
+        self.db.flush()
+        
+        # Link violation back to detection
+        detection.violation_id = violation.id
+        
+        # Update video violation count
+        if video:
+            video.has_violations = True
+            video.violation_count = self.db.query(AIDetection).filter(
+                AIDetection.video_id == video.id,
+                AIDetection.violation_id.isnot(None)
+            ).count()
+        
+        self.db.commit()
+        self.db.refresh(violation)
+        
+        # Send notification to admins about new violation
+        try:
+            self.notification_service.notify_admin_new_violation(
+                violation_id=violation.id,
+                detection_confidence=float(detection.confidence_score)
+            )
+        except Exception as e:
+            logger.error(f"Failed to send admin notification for violation {violation.id}: {e}")
+        
+        return violation
+    
+    async def save_violation(frame, detection, frame_index):
+        x1, y1, x2, y2 = detection("bbox")
+        
+        crop = frame[y1:y2, x1:x2]
+        filename = f"{datetime.now().timestamp()}_frame{frame_index}.jpg"
+        filepath = os.path.join(SAVE_DIR, filename)
+        cv2.imwrite(filepath, crop)        
+        
+        violation = Violation(
+            confidence=detection["confidence"],
+            time=datetime.now(),
+            frame_index=frame_index,
+            bbox=BoundingBox(x1=x1, y1=y1, x2=x2, y2=y2),
+        )
+        
+        await violations_collection.insert_one(violation.model_dump())
+        
+        return violation

@@ -40,10 +40,23 @@ export function useCitizen(citizenId: string) {
     const fetchCitizen = async () => {
       try {
         setLoading(true)
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/citizens/${citizenId}`)
+        const token = localStorage.getItem("access_token")
+        const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+        const res = await fetch(`${apiUrl}/v1/citizen/personal-info`, {
+          headers: {
+            ...(token && { Authorization: `Bearer ${token}` }),
+            'Content-Type': 'application/json',
+          },
+        })
         if (!res.ok) throw new Error("Không thể tải dữ liệu")
         const data: Citizen = await res.json()
-        setCitizen(data)
+        
+        // Ensure vehicles and violationHistory are always arrays
+        setCitizen({
+          ...data,
+          vehicles: Array.isArray(data.vehicles) ? data.vehicles : [],
+          violationHistory: Array.isArray(data.violationHistory) ? data.violationHistory : []
+        })
       } catch (err: any) {
         setError(err.message)
       } finally {

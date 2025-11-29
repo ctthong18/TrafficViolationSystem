@@ -1,6 +1,8 @@
 from sqlalchemy import Column, String, Integer, DateTime, Text, DECIMAL, Date, JSON
 from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
+
 
 class Camera(Base, TimestampMixin):
     __tablename__ = "cameras"
@@ -16,7 +18,7 @@ class Camera(Base, TimestampMixin):
     # Camera specifications
     camera_type = Column(String(100))
     resolution = Column(String(50))
-    status = Column(String(50), default="active")
+    status = Column(String(50), default="online")
     
     # AI Configuration
     enabled_detections = Column(JSONB)
@@ -26,6 +28,9 @@ class Camera(Base, TimestampMixin):
     # Maintenance info
     last_maintenance = Column(Date)
     next_maintenance = Column(Date)
+    
+    violations = relationship("Violation", back_populates="camera")
+    videos = relationship("CameraVideo", back_populates="camera")
     
     def __repr__(self):
         return f"<Camera {self.camera_id} - {self.location_name}>"

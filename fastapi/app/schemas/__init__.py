@@ -1,7 +1,3 @@
-"""
-Pydantic schemas package
-"""
-
 from app.schemas.auth_schema import (
     Token, TokenData, LoginRequest, RegisterRequest, ChangePasswordRequest
 )

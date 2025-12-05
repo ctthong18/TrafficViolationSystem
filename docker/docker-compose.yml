@@ -1,0 +1,158 @@
+services:
+  # FastAPI Backend
+  backend:
+    build:
+      context: ../fastapi
+      dockerfile: ../docker/backend.dockerfile
+    container_name: traffic_backend
+    restart: always
+    env_file: ../fastapi/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+      - redis
+      - minio
+      - mongo
+    volumes:
+      - ../fastapi:/fastapi
+    working_dir: /fastapi/app
+    command: >
+      sh -c "python -c 'import time; time.sleep(5)' && uvicorn main:app --host 0.0.0.0 --port 8000 --reload"
+
+  # Next.js Frontend
+  frontend:
+    build:
+      context: ../frontend
+      dockerfile: ../docker/frontend.dockerfile
+    container_name: traffic_frontend
+    restart: always
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      - ../frontend:/app
+      - /app/node_modules
+      - /app/.next
+    environment:
+      - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://localhost:8000
+    command: npm run dev
+
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16
+    environment:
+      - POSTGRES_USER=traffic_user
+      - POSTGRES_PASSWORD=trafficviolation
+      - POSTGRES_DB=traffic_violation
+    container_name: postgres_db
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  # pgAdmin
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@local.com
+      - PGADMIN_DEFAULT_PASSWORD=admin123
+    container_name: pgadmin
+    restart: always
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+
+  # MinIO (object storage)
+  minio:
+    image: minio/minio
+    environment:
+      - MINIO_ROOT_USER=minio
+      - MINIO_ROOT_PASSWORD=minio123
+    container_name: minio_storage
+    command: server /data --console-address ":9001"
+    restart: always
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  # Redis
+  redis:
+    image: redis:7
+    container_name: redis_cache
+    restart: always
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  # MongoDB
+  mongo:
+    image: mongo:7
+    container_name: mongo_ai_logs
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  # Portainer (quản lý Docker)
+  portainer:
+    image: portainer/portainer-ce:latest
+    container_name: portainer
+    restart: always
+    ports:
+      - "9002:9000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+
+  # MySQL 
+  mysql:
+    image: mysql:8
+    container_name: mysql_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root123
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wp_user
+      MYSQL_PASSWORD: wp_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  # WordPress site
+  wordpress:
+    image: wordpress:latest
+    container_name: wordpress_site
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: mysql:3306
+      WORDPRESS_DB_USER: wp_user
+      WORDPRESS_DB_PASSWORD: wp_pass
+      WORDPRESS_DB_NAME: wordpress
+    volumes:
+      - wordpress_data:/var/www/html
+
+volumes:
+  postgres_data:
+  pgadmin_data:
+  minio_data:
+  redis_data:
+  mongo_data:
+  portainer_data:
+  mysql_data:
+  wordpress_data:

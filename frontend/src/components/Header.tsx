@@ -39,6 +39,18 @@ export default function Header() {
       return
     }
 
+    // Kiểm tra localStorage cache trước
+    const cachedUser = localStorage.getItem("user")
+    if (cachedUser) {
+      try {
+        const userData = JSON.parse(cachedUser)
+        setUser(userData)
+        setLoading(false)
+      } catch (e) {
+        console.error("Cached user data invalid:", e)
+      }
+    }
+
     try {
       const payload = JSON.parse(atob(token.split(".")[1]))
       const now = Date.now() / 1000
@@ -56,34 +68,39 @@ export default function Header() {
       return
     }
 
-    const fetchUser = async () => {
-      try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/me`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        })
+    // Chỉ fetch nếu chưa có user data
+    if (!cachedUser) {
+      const fetchUser = async () => {
+        try {
+          const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/me`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
 
-        if (res.status === 401) {
-          console.warn("Token bị từ chối (401) — đăng xuất")
-          handleLogout()
-          return
+          if (res.status === 401) {
+            console.warn("Token bị từ chối (401) — đăng xuất")
+            handleLogout()
+            return
+          }
+
+          if (!res.ok) throw new Error("Không thể tải thông tin người dùng")
+
+          const data = await res.json()
+          setUser(data)
+          // Cache user data
+          localStorage.setItem("user", JSON.stringify(data))
+        } catch (err) {
+          console.error("Lỗi lấy thông tin user:", err)
+          if (!isPublic) router.push("/login")
+        } finally {
+          setLoading(false)
         }
-
-        if (!res.ok) throw new Error("Không thể tải thông tin người dùng")
-
-        const data = await res.json()
-        setUser(data)
-      } catch (err) {
-        console.error("Lỗi lấy thông tin user:", err)
-        if (!isPublic) router.push("/login")
-      } finally {
-        setLoading(false)
       }
-    }
 
-    fetchUser()
-  }, [router, pathname])
+      fetchUser()
+    }
+  }, [router, isPublic])
 
   if (!user && !loading && isPublic) return null
 

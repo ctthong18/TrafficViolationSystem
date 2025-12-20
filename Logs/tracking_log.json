@@ -1,0 +1,41 @@
+{
+  "session_id": "session_20240115_100000",
+  "tracks": [
+    {
+      "track_id": "car_028",
+      "vehicle_type": "car",
+      "color": "white",
+      "first_seen": {
+        "timestamp": "00:01:40.100",
+        "frame": 3100,
+        "bbox": [420, 310, 520, 410]
+      },
+      "last_seen": {
+        "timestamp": "00:01:50.500",
+        "frame": 3245,
+        "bbox": [800, 305, 900, 405]
+      },
+      "track_length_frames": 146,
+      "trajectory": [
+        {"frame": 3100, "bbox": [420, 310, 520, 410], "center": [470, 360]},
+        {"frame": 3101, "bbox": [422, 311, 522, 411], "center": [472, 361]},
+      ],
+      "speed_estimate": "45 km/h",  # nếu biết FPS và tỷ lệ không gian
+      "path_summary": {
+        "entry_point": "bottom_left",
+        "exit_point": "right_center",
+        "total_distance_pixels": 480
+      }
+    }
+  ],
+  "statistics": {
+    "total_vehicles_detected": 125,
+    "vehicle_type_distribution": {
+      "car": 85,
+      "motorcycle": 30,
+      "truck": 8,
+      "bus": 2
+    },
+    "average_track_length": "2.5 seconds"
+  }
+}

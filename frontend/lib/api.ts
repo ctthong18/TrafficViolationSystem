@@ -1213,6 +1213,234 @@ export const drivingLicenseApi = {
   }> => apiClient.get(`/v1/driving-licenses/${licenseNumber}/status`)
 }
 
+// Processed Video API Types
+export interface ProcessedVideoSummary {
+  video_id: number
+  filename: string
+  camera_id?: number
+  camera_name?: string
+  uploaded_at?: string
+  duration?: number
+  thumbnail_url?: string
+  processing_status: string
+  vehicle_count: number
+  violation_count: number
+}
+
+export interface ProcessedVideoDetail {
+  video_id: number
+  filename: string
+  camera_id?: number
+  camera_name?: string
+  uploaded_at?: string
+  duration?: number
+  cloudinary_url?: string
+  cloudinary_public_id?: string
+  thumbnail_url?: string
+  processing_status: string
+  detection_stats: Record<string, any>
+  violation_summary: Record<string, any>
+  job_history: Array<Record<string, any>>
+  frame_summary: Record<string, any>
+}
+
+export interface FrameDetectionData {
+  detection_id: number
+  frame_timestamp: number
+  detection_type: string
+  confidence_score: number
+  detection_data: Record<string, any>
+  detected_at?: string
+  violation_id?: number
+  reviewed: boolean
+  review_status?: string
+}
+
+export interface VideoStatistics {
+  video_id: number
+  duration?: number
+  total_detections: number
+  detection_counts: Record<string, number>
+  violation_count: number
+  confidence_stats: Record<string, number | null>
+  detection_time_range: Record<string, number | null>
+}
+
+// Processed Video API
+export const processedVideoApi = {
+  // Get list of processed videos
+  getAll: async (params?: {
+    skip?: number
+    limit?: number
+    camera_id?: number
+  }): Promise<ProcessedVideoSummary[]> => {
+    const queryParams = new URLSearchParams()
+    if (params?.skip !== undefined) queryParams.append('skip', params.skip.toString())
+    if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString())
+    if (params?.camera_id !== undefined) queryParams.append('camera_id', params.camera_id.toString())
+
+    const endpoint = `/v1/processed-videos/processed-videos${queryParams.toString() ? `?${queryParams}` : ''}`
+    return apiClient.get<ProcessedVideoSummary[]>(endpoint)
+  },
+
+  // Get processed video details
+  getById: async (videoId: number): Promise<ProcessedVideoDetail> => {
+    return apiClient.get<ProcessedVideoDetail>(`/v1/processed-videos/processed-videos/${videoId}`)
+  },
+
+  // Get video detections with time range
+  getDetections: async (videoId: number, params?: {
+    start_time?: number
+    end_time?: number
+    detection_types?: string[]
+    limit?: number
+  }): Promise<FrameDetectionData[]> => {
+    const queryParams = new URLSearchParams()
+    if (params?.start_time !== undefined) queryParams.append('start_time', params.start_time.toString())
+    if (params?.end_time !== undefined) queryParams.append('end_time', params.end_time.toString())
+    if (params?.detection_types?.length) {
+      params.detection_types.forEach(type => queryParams.append('detection_types', type))
+    }
+    if (params?.limit !== undefined) queryParams.append('limit', params.limit.toString())
+
+    const endpoint = `/v1/processed-videos/processed-videos/${videoId}/detections${queryParams.toString() ? `?${queryParams}` : ''}`
+    return apiClient.get<FrameDetectionData[]>(endpoint)
+  },
+
+  // Get detection for specific frame
+  getFrameDetection: async (videoId: number, frameNumber: number): Promise<Record<string, any>> => {
+    return apiClient.get(`/v1/processed-videos/processed-videos/${videoId}/detections/frame/${frameNumber}`)
+  },
+
+  // Get detection by timestamp
+  getDetectionByTimestamp: async (videoId: number, timestamp: number, tolerance?: number): Promise<Record<string, any>> => {
+    const queryParams = new URLSearchParams()
+    if (tolerance !== undefined) queryParams.append('tolerance', tolerance.toString())
+
+    const endpoint = `/v1/processed-videos/processed-videos/${videoId}/detections/timestamp/${timestamp}${queryParams.toString() ? `?${queryParams}` : ''}`
+    return apiClient.get(endpoint)
+  },
+
+  // Get detections for frame range
+  getDetectionsRange: async (videoId: number, startFrame: number, endFrame: number): Promise<Array<Record<string, any>>> => {
+    const queryParams = new URLSearchParams()
+    queryParams.append('start_frame', startFrame.toString())
+    queryParams.append('end_frame', endFrame.toString())
+
+    return apiClient.get(`/v1/processed-videos/processed-videos/${videoId}/detections/range?${queryParams}`)
+  },
+
+  // Get video statistics
+  getStatistics: async (videoId: number): Promise<VideoStatistics> => {
+    return apiClient.get<VideoStatistics>(`/v1/processed-videos/processed-videos/${videoId}/statistics`)
+  },
+
+  // Get video metadata
+  getMetadata: async (videoId: number): Promise<Record<string, any>> => {
+    return apiClient.get(`/v1/processed-videos/processed-videos/${videoId}/metadata`)
+  },
+
+  // Get video violations
+  getViolations: async (videoId: number, params?: {
+    violation_type?: string
+    min_confidence?: number
+  }): Promise<Array<Record<string, any>>> => {
+    const queryParams = new URLSearchParams()
+    if (params?.violation_type) queryParams.append('violation_type', params.violation_type)
+    if (params?.min_confidence !== undefined) queryParams.append('min_confidence', params.min_confidence.toString())
+
+    const endpoint = `/v1/processed-videos/processed-videos/${videoId}/violations${queryParams.toString() ? `?${queryParams}` : ''}`
+    return apiClient.get(endpoint)
+  },
+
+  // Search processed videos
+  search: async (query: string, searchType: string = 'filename', limit: number = 20): Promise<{
+    query: string
+    search_type: string
+    total_results: number
+    results: ProcessedVideoSummary[]
+  }> => {
+    const queryParams = new URLSearchParams()
+    queryParams.append('query', query)
+    queryParams.append('search_type', searchType)
+    queryParams.append('limit', limit.toString())
+
+    return apiClient.get(`/v1/processed-videos/processed-videos/search?${queryParams}`)
+  }
+}
+
+// Analytics API Types
+export interface DashboardMetrics {
+  totalViolations: number
+  violationsTrend: number
+  activeCameras: number
+  totalCameras: number
+  violationsToday: number
+  violationsTodayTrend: number
+  averageSpeed: number
+  processingPerformance: number
+}
+
+export interface AnalyticsTimeRange {
+  start_time: string
+  end_time: string
+}
+
+// Analytics API
+export const analyticsApi = {
+  // Get dashboard metrics
+  getDashboardMetrics: async (params?: {
+    start_time?: string
+    end_time?: string
+    camera_ids?: string
+  }): Promise<DashboardMetrics> => {
+    const queryParams = new URLSearchParams()
+    if (params?.start_time) queryParams.append('start_time', params.start_time)
+    if (params?.end_time) queryParams.append('end_time', params.end_time)
+    if (params?.camera_ids) queryParams.append('camera_ids', params.camera_ids)
+
+    const endpoint = `/analytics/dashboard-metrics${queryParams.toString() ? `?${queryParams}` : ''}`
+    return apiClient.get<DashboardMetrics>(endpoint)
+  },
+
+  // Export analytics data
+  exportData: async (params: {
+    format: 'csv' | 'pdf' | 'excel'
+    start_time?: string
+    end_time?: string
+    camera_ids?: string
+  }): Promise<Blob> => {
+    const queryParams = new URLSearchParams()
+    queryParams.append('format', params.format)
+    if (params.start_time) queryParams.append('start_time', params.start_time)
+    if (params.end_time) queryParams.append('end_time', params.end_time)
+    if (params.camera_ids) queryParams.append('camera_ids', params.camera_ids)
+
+    const endpoint = `/analytics/export${queryParams.toString() ? `?${queryParams}` : ''}`
+    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+      headers: {
+        'Authorization': `Bearer ${getAuthToken()}`
+      }
+    })
+    
+    if (!response.ok) {
+      throw new ApiError(response.status, 'Export failed')
+    }
+    
+    return response.blob()
+  },
+
+  // Get real-time metrics (fallback for when WebSocket is not available)
+  getRealtimeMetrics: async (): Promise<{
+    active_violations: number
+    vehicles_per_minute: number
+    average_processing_time: number
+    model_confidence: number
+  }> => {
+    return apiClient.get('/analytics/realtime-metrics')
+  },
+}
+
 export { ApiError }
 export default apiClient
 

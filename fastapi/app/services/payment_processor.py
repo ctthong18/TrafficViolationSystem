@@ -32,7 +32,8 @@ class PaymentProcessor:
         qr_info = self.qr_service.create_payment_qr(
             amount=amount,
             user_id=user_id,
-            description=f"Thanh toán phạt - user:{user_id}"
+            description="Thanh toan phat nguoi",
+            violation_id=violation_id
         )
 
         payment = Payment(

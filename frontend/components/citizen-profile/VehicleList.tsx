@@ -1,5 +1,5 @@
 "use client"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -29,8 +29,30 @@ export function VehicleList({ vehicles, setVehicles }: Props) {
   const [isAdding, setIsAdding] = useState(false)
   const [newVehicle, setNewVehicle] = useState<Partial<Vehicle>>({})
   const [submitting, setSubmitting] = useState(false)
-  const { createVehicle, deleteVehicle } = useVehicles()
+  const { vehicles: fetchedVehicles, loading, fetchVehicles, createVehicle, deleteVehicle } = useVehicles()
   const { toast } = useToast()
+
+  // Fetch vehicles on mount
+  useEffect(() => {
+    fetchVehicles()
+  }, [fetchVehicles])
+
+  // Update parent state when vehicles are fetched
+  useEffect(() => {
+    if (fetchedVehicles && fetchedVehicles.length > 0) {
+      const mappedVehicles: Vehicle[] = fetchedVehicles.map((v: any) => ({
+        id: v.id,
+        licensePlate: v.license_plate,
+        type: v.vehicle_type,
+        brand: v.vehicle_brand,
+        model: v.vehicle_model,
+        year: v.year_of_manufacture?.toString(),
+        color: v.vehicle_color,
+        status: v.status === 'active' ? 'active' : 'inactive'
+      }))
+      setVehicles(mappedVehicles)
+    }
+  }, [fetchedVehicles, setVehicles])
 
   // Ensure vehicles is always an array
   const safeVehicles = Array.isArray(vehicles) ? vehicles : []
@@ -81,6 +103,9 @@ export function VehicleList({ vehicles, setVehicles }: Props) {
       setNewVehicle({})
       setIsAdding(false)
       
+      // Refetch to get updated list from server
+      await fetchVehicles()
+      
       toast({
         title: "Thành công",
         description: "Đã thêm phương tiện mới"
@@ -101,6 +126,10 @@ export function VehicleList({ vehicles, setVehicles }: Props) {
     try {
       await deleteVehicle(id)
       setVehicles(safeVehicles.filter((v) => v.id !== id))
+      
+      // Refetch to get updated list from server
+      await fetchVehicles()
+      
       toast({
         title: "Thành công",
         description: "Đã xóa phương tiện"

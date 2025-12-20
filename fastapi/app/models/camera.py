@@ -31,6 +31,7 @@ class Camera(Base, TimestampMixin):
     
     violations = relationship("Violation", back_populates="camera")
     videos = relationship("CameraVideo", back_populates="camera")
+    ai_logs = relationship("AILog", back_populates="camera")
     
     def __repr__(self):
         return f"<Camera {self.camera_id} - {self.location_name}>"

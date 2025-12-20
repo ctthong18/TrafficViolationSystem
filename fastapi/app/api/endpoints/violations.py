@@ -142,15 +142,13 @@ def get_recent_violations(
     current_user: User = Depends(require_roles(["admin", "officer"])),
     db: Session = Depends(get_db)
 ):
-    """Lấy danh sách vi phạm gần đây cho dashboard"""
-    from datetime import datetime
-    
-    # Lấy limit từ query params thủ công để tránh lỗi parse
+    """Lấy danh sách vi phạm gần đây cho dashboard."""
+    # Parse limit manually to avoid validation issues from malformed queries
     limit_param = request.query_params.get("limit", "10")
     try:
-        limit = int(limit_param)
-        limit = max(1, min(50, limit))  # Giới hạn trong khoảng 1-50
-    except (ValueError, TypeError):
+        limit = int(str(limit_param).strip())
+        limit = max(1, min(50, limit))
+    except Exception:
         limit = 10
     
     violations = db.query(Violation).order_by(

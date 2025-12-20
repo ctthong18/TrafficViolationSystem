@@ -60,11 +60,13 @@ class ComplaintService:
         """Lấy khiếu nại được phân công cho officer"""
         return self.db.query(Complaint).filter(
             Complaint.assigned_officer_id == officer_id
-        ).order_by(Complointment.assigned_at.desc()).all()
+        ).order_by(Complaint.assigned_at.desc()).all()
 
-    def update_complaint(self, complaint_id: int, update_data: dict) -> Complaint:
+    def update_complaint(self, complaint_id: int, update_data: dict, updated_by: int) -> Complaint:
         """Cập nhật khiếu nại"""
         complaint = self.get_complaint_by_id(complaint_id)
+        
+        old_status = complaint.status
         
         for field, value in update_data.items():
             if value is not None:
@@ -73,6 +75,50 @@ class ComplaintService:
         complaint.updated_at = datetime.now()
         self.db.commit()
         self.db.refresh(complaint)
+        
+        # Log activity if status changed
+        if 'status' in update_data and update_data['status'] != old_status:
+            status_text = {
+                ComplaintStatus.PENDING: "Chờ xử lý",
+                ComplaintStatus.UNDER_REVIEW: "Đang xem xét",
+                ComplaintStatus.RESOLVED: "Đã giải quyết",
+                ComplaintStatus.REJECTED: "Đã từ chối"
+            }.get(update_data['status'], str(update_data['status']))
+            
+            self._log_activity(
+                complaint.id, 
+                "status_changed", 
+                f"Trạng thái thay đổi thành: {status_text}",
+                updated_by
+            )
+        
+        return complaint
+    
+    def update_complaint_status(self, complaint_id: int, new_status: ComplaintStatus, updated_by: int) -> Complaint:
+        """Cập nhật trạng thái khiếu nại"""
+        complaint = self.get_complaint_by_id(complaint_id)
+        
+        old_status = complaint.status
+        complaint.status = new_status
+        complaint.updated_at = datetime.now()
+        
+        self.db.commit()
+        self.db.refresh(complaint)
+        
+        # Log activity
+        status_text = {
+            ComplaintStatus.PENDING: "Chờ xử lý",
+            ComplaintStatus.UNDER_REVIEW: "Đang xem xét",
+            ComplaintStatus.RESOLVED: "Đã giải quyết",
+            ComplaintStatus.REJECTED: "Đã từ chối"
+        }.get(new_status, str(new_status))
+        
+        self._log_activity(
+            complaint.id, 
+            "status_changed", 
+            f"Trạng thái thay đổi từ {old_status.value} thành {status_text}",
+            updated_by
+        )
         
         return complaint
 

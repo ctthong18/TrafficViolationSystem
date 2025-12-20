@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { 
   BarChart3, Camera, AlertTriangle, TrendingUp, Users,
-  UserCheck, UserX, UserPlus, Settings
+  UserCheck, UserX, UserPlus
 } from "lucide-react"
 import Header from "../../src/components/Header"
 import { OverviewStats } from "./OverviewStats"
@@ -30,7 +30,6 @@ export function AdminDashboard() {
     { id: "active", label: "Cán bộ hoạt động", icon: UserCheck },
     { id: "inactive", label: "Cán bộ ngừng hoạt động", icon: UserX },
     { id: "create", label: "Thêm cán bộ mới", icon: UserPlus },
-    { id: "settings", label: "Cài đặt", icon: Settings },
   ]
 
   const getMainTabContent = () => {

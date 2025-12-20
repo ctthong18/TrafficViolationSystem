@@ -170,10 +170,14 @@ async def create_qr_payment(
     )
 
     if should_generate_new:
+        # Lấy violation_id từ payment để thêm vào nội dung QR
+        violation_id = payment.violation_id if payment.violation_id else None
+        
         qr_info = processor.qr_service.create_payment_qr(
             amount=float(payment.amount),
             user_id=current_user.id,
-            description=f"Thanh toán phạt - {payment_id}"
+            description="Thanh toan phat nguoi",
+            violation_id=violation_id
         )
 
         payment.qr_code_data = qr_info["qr_url"]  # Lưu QR URL

@@ -50,6 +50,17 @@ export function CitizenDashboard() {
     { id: "history", label: "Lịch sử vi phạm", icon: AlertCircle },
   ]
 
+  const reportSubTabs = [
+    { id: "new-report", label: "Báo cáo mới", icon: FileText },
+    { id: "my-reports", label: "Báo cáo của tôi", icon: AlertCircle },
+  ]
+
+  const transactionSubTabs = [
+    { id: "payment", label: "Thanh toán", icon: CreditCard },
+    { id: "wallet", label: "Ví của tôi", icon: Car },
+    { id: "rules", label: "Quy định phạt", icon: FileText },
+  ]
+
   const getMainTabContent = () => {
     switch (mainTab) {
       case "search":
@@ -68,23 +79,29 @@ export function CitizenDashboard() {
         )
       
       case "report":
-        return <ViolationReport />
-      
       case "profile":
-        return null // Handled by sidebar
-      
       case "transaction":
-        return <PaymentSection />
+        return null // Handled by sidebar
       
       default:
         return null
     }
   }
 
-  const getProfileSubTabContent = () => {
-    if (mainTab !== "profile") return null
-
-    return <CitizenProfile citizenId={citizenId} activeSubTab={subTab} />
+  const getSubTabContent = () => {
+    if (mainTab === "profile") {
+      return <CitizenProfile citizenId={citizenId} activeSubTab={subTab} />
+    }
+    
+    if (mainTab === "report") {
+      return <ViolationReport activeSubTab={subTab} />
+    }
+    
+    if (mainTab === "transaction") {
+      return <PaymentSection activeSubTab={subTab} />
+    }
+    
+    return null
   }
 
   return (
@@ -103,6 +120,8 @@ export function CitizenDashboard() {
                   onClick={() => {
                     setMainTab(tab.id)
                     if (tab.id === "profile") setSubTab("account")
+                    if (tab.id === "report") setSubTab("new-report")
+                    if (tab.id === "transaction") setSubTab("payment")
                   }}
                   className={`px-4 py-2 text-sm font-medium flex items-center gap-2 border-b-2 transition-colors ${
                     mainTab === tab.id
@@ -120,15 +139,53 @@ export function CitizenDashboard() {
 
         {/* Content Area with Conditional Sidebar */}
         <div className="flex gap-6">
-          {/* Left Sidebar - Only show for tabs with sub-tabs */}
-          {mainTab === "profile" && (
+          {/* Left Sidebar - Show for tabs with sub-tabs */}
+          {(mainTab === "profile" || mainTab === "report" || mainTab === "transaction") && (
             <div className="w-64 flex-shrink-0">
               <div className="sticky top-6">
                 <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">
-                  Thông Tin Cá Nhân
+                  {mainTab === "profile" && "Thông Tin Cá Nhân"}
+                  {mainTab === "report" && "Báo Cáo & Tố Cáo"}
+                  {mainTab === "transaction" && "Giao Dịch"}
                 </h3>
                 <nav className="space-y-1">
-                  {profileSubTabs.map((tab) => {
+                  {mainTab === "profile" && profileSubTabs.map((tab) => {
+                    const Icon = tab.icon
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setSubTab(tab.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all text-sm ${
+                          subTab === tab.id
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <Icon size={16} />
+                        {tab.label}
+                      </button>
+                    )
+                  })}
+                  
+                  {mainTab === "report" && reportSubTabs.map((tab) => {
+                    const Icon = tab.icon
+                    return (
+                      <button
+                        key={tab.id}
+                        onClick={() => setSubTab(tab.id)}
+                        className={`w-full flex items-center gap-3 px-3 py-2 rounded-md transition-all text-sm ${
+                          subTab === tab.id
+                            ? "bg-primary text-primary-foreground"
+                            : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        }`}
+                      >
+                        <Icon size={16} />
+                        {tab.label}
+                      </button>
+                    )
+                  })}
+                  
+                  {mainTab === "transaction" && transactionSubTabs.map((tab) => {
                     const Icon = tab.icon
                     return (
                       <button
@@ -152,7 +209,9 @@ export function CitizenDashboard() {
 
           {/* Main Content */}
           <div className="flex-1">
-            {mainTab === "profile" ? getProfileSubTabContent() : getMainTabContent()}
+            {(mainTab === "profile" || mainTab === "report" || mainTab === "transaction") 
+              ? getSubTabContent() 
+              : getMainTabContent()}
           </div>
         </div>
       </div>

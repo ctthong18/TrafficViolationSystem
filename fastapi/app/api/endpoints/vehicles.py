@@ -45,8 +45,18 @@ async def get_my_vehicles(
     db: Session = Depends(get_db)
 ):
     """Lấy danh sách phương tiện của người dùng hiện tại"""
-    vehicle_service = VehicleService(db)
-    return vehicle_service.get_user_vehicles(current_user.id)
+    try:
+        vehicle_service = VehicleService(db)
+        vehicles = vehicle_service.get_user_vehicles(current_user.id)
+        return vehicles
+    except Exception as e:
+        import traceback
+        print(f"Error in get_my_vehicles: {str(e)}")
+        print(traceback.format_exc())
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Lỗi khi lấy danh sách phương tiện: {str(e)}"
+        )
 
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
 async def get_vehicle_detail(

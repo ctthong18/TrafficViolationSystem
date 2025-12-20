@@ -45,16 +45,19 @@ export function OfficerManagement({ filter = "active" }: OfficerManagementProps)
           <h3 className="text-lg font-semibold mb-4">Thêm cán bộ mới</h3>
           <CreateOfficerDialog />
         </div>
-      ) : filter === "settings" ? (
-        <Card>
-          <CardContent className="py-10 text-center">
-            <p className="text-muted-foreground">Tính năng cài đặt đang được phát triển</p>
-          </CardContent>
-        </Card>
-      ) : filter === "active" || filter === "inactive" ? (
-        <OfficerList officers={filteredOfficers} />
+      ) : filter === "performance" ? (
+        <OfficerPerformance compact={false} />
       ) : (
-        <OfficerPerformance officers={filteredOfficers} />
+        <div className="flex gap-6">
+          {/* Danh sách cán bộ - 2/3 */}
+          <div className="flex-[2]">
+            <OfficerList officers={filteredOfficers} />
+          </div>
+          {/* Thống kê hoạt động - 1/3 */}
+          <div className="flex-[1]">
+            <OfficerPerformance compact={true} />
+          </div>
+        </div>
       )}
     </div>
   )

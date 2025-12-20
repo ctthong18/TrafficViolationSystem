@@ -36,7 +36,8 @@ export function usePaymentQRLog() {
 
       console.log(`[QRLog] Fetching QR for userId=${userId}, paymentId=${paymentId}`)
       
-      const token = localStorage.getItem("access_token")
+      const token = localStorage.getItem("access_token") || localStorage.getItem("token")
+      console.log(`[QRLog] Token found:`, token ? "YES" : "NO")
       if (!token) {
         console.error("[QRLog] No token found in localStorage")
         setError("Vui lòng đăng nhập để tải QR code")
@@ -45,7 +46,7 @@ export function usePaymentQRLog() {
         return
       }
       
-      const res = await fetch(`${apiUrl}/v1/payments/payments/${paymentId}/qr`, {
+      const res = await fetch(`${apiUrl}/api/v1/payments/${paymentId}/qr`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

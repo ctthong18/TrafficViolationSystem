@@ -8,8 +8,9 @@ from app.models.user import User
 from app.schemas.complaint_schema import (
     ComplaintCreate, ComplaintResponse, ComplaintListResponse,
     ComplaintUpdate, AppealCreate, AppealResponse,
-    ComplaintActivityResponse, ComplaintStatus, ComplaintType
+    ComplaintActivityResponse, ComplaintType
 )
+from app.models.complaint import ComplaintStatus
 from app.services.complaint_service import ComplaintService
 
 router = APIRouter()
@@ -155,7 +156,20 @@ async def update_complaint(
 ):
     """Cập nhật khiếu nại (Officer/Admin only)"""
     complaint_service = ComplaintService(db)
-    return complaint_service.update_complaint(complaint_id, complaint_data.dict())
+    updated_complaint = complaint_service.update_complaint(complaint_id, complaint_data.dict(), current_user.id)
+    return updated_complaint
+
+@router.patch("/{complaint_id}/status", response_model=ComplaintResponse)
+async def update_complaint_status(
+    complaint_id: int,
+    status: ComplaintStatus,
+    current_user: User = Depends(require_roles(["admin", "officer"])),
+    db: Session = Depends(get_db)
+):
+    """Cập nhật trạng thái khiếu nại (Officer/Admin only)"""
+    complaint_service = ComplaintService(db)
+    updated_complaint = complaint_service.update_complaint_status(complaint_id, status, current_user.id)
+    return updated_complaint
 
 @router.post("/{complaint_id}/assign")
 async def assign_complaint(

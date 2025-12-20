@@ -1,6 +1,6 @@
 "use client"
 import { useState } from "react"
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card"
+import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select"
 import { User, Trash2, Shield, Clock, UserX } from "lucide-react"
@@ -92,46 +92,44 @@ export function OfficerList({ officers }: Props) {
         </Card>
       ) : (
         filteredOfficers.map((officer) => (
-        <Card key={officer.id}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
+        <Card key={officer.id} className="hover:shadow-md transition-shadow">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">
-                  <User className="h-6 w-6 text-primary" />
+                <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10">
+                  <User className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">{officer.name || "Không có tên"}</CardTitle>
-                  <p className="text-sm text-muted-foreground">{officer.position || "Không có chức vụ"} • {officer.id}</p>
+                  <h4 className="font-semibold text-base">{officer.name || "Không có tên"}</h4>
+                  <p className="text-xs text-muted-foreground">{officer.position || "Không có chức vụ"}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2">
-                {getStatusBadge(officer.status)}
-              </div>
+              {getStatusBadge(officer.status)}
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 gap-4 text-sm mb-4">
+            
+            <div className="grid grid-cols-2 gap-2 text-xs mb-3">
               <div>
                 <p className="text-muted-foreground">Email</p>
-                <p className="font-medium">{officer.email || "N/A"}</p>
-              </div>
-              <div>
-                <p className="text-muted-foreground">Điện thoại</p>
-                <p className="font-medium">{officer.phone || "N/A"}</p>
+                <p className="font-medium truncate">{officer.email || "N/A"}</p>
               </div>
               <div>
                 <p className="text-muted-foreground">Phòng ban</p>
                 <p className="font-medium">{officer.department || "N/A"}</p>
               </div>
-              <div>
-                <p className="text-muted-foreground">Ngày tham gia</p>
-                <p className="font-medium">{officer.joinDate || "N/A"}</p>
-              </div>
             </div>
-            <div className="flex gap-2 mt-4">
-              <Button variant="outline" size="sm"><Shield className="h-4 w-4 mr-2"/>Phân quyền</Button>
-              <Button variant="outline" size="sm"><Clock className="h-4 w-4 mr-2"/>Lịch sử hoạt động</Button>
-              {officer.status === "active" && <Button variant="outline" size="sm" className="text-destructive bg-transparent"><Trash2 className="h-4 w-4 mr-2"/>Vô hiệu hóa</Button>}
+            
+            <div className="flex gap-1">
+              <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-7">
+                <Shield className="h-3 w-3 mr-1"/>Chi tiết
+              </Button>
+              <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-7">
+                <Clock className="h-3 w-3 mr-1"/>Hoạt động
+              </Button>
+              {officer.status === "active" && (
+                <Button variant="outline" size="sm" className="text-xs px-2 py-1 h-7 text-destructive">
+                  <Trash2 className="h-3 w-3 mr-1"/>Tắt
+                </Button>
+              )}
             </div>
           </CardContent>
         </Card>

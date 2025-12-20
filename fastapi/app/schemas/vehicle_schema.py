@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import date
+from typing import Optional
 
 class VehicleBase(BaseModel):
     license_plate: str
@@ -12,22 +13,22 @@ class VehicleCreate(VehicleBase):
     owner_identification: str
 
 class VehicleUpdate(BaseModel):
-    vehicle_type: str = None
-    vehicle_color: str = None
-    vehicle_brand: str = None
-    vehicle_model: str = None
-    year_of_manufacture: int = None
-    owner_name: str = None
-    owner_identification: str = None
-    owner_address: str = None
-    owner_phone: str = None
-    owner_email: str = None
-    status: str = None
+    vehicle_type: Optional[str] = None
+    vehicle_color: Optional[str] = None
+    vehicle_brand: Optional[str] = None
+    vehicle_model: Optional[str] = None
+    year_of_manufacture: Optional[int] = None
+    owner_name: Optional[str] = None
+    owner_identification: Optional[str] = None
+    owner_address: Optional[str] = None
+    owner_phone: Optional[str] = None
+    owner_email: Optional[str] = None
+    status: Optional[str] = None
 
 class VehicleResponse(VehicleBase):
     id: int
     owner_name: str
-    registration_date: date
+    registration_date: Optional[date] = None
     
     class Config:
         from_attributes = True

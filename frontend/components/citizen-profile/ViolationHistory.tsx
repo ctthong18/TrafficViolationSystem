@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { AlertCircle, Video, MessageSquare, CreditCard } from "lucide-react"
 import { Violation } from "@/hooks/useViolations"
 import { useState } from "react"
-import { VideoPlayerDialog } from "@/components/process-video/VideoPlayerDialog"
 import { ComplaintForm } from "@/components/complaint/ComplaintForm"
 import { format } from "date-fns"
 import { vi } from "date-fns/locale"

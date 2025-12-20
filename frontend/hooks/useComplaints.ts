@@ -1,37 +1,18 @@
-import { useState } from 'react'
+"use client"
 
-// Complaint types
+import { useState, useCallback } from "react"
+
 export interface Complaint {
-  id: number
+  id: string
   complaint_code: string
   title: string
   description: string
-  complaint_type: string
-  status: string
-  priority: string
   complainant_name?: string
-  complainant_phone?: string
-  complainant_email?: string
-  violation_id?: number
-  vehicle_id?: number
-  assigned_officer_id?: number
-  assigned_at?: string
-  resolved_at?: string
-  user_rating?: number
-  user_feedback?: string
+  status: "new" | "processing" | "resolved" | "rejected"
+  priority: "low" | "medium" | "high"
   created_at: string
   updated_at: string
-}
-
-export interface ComplaintCreate {
-  title: string
-  description: string
-  complaint_type: string
-  desired_resolution?: string
-  is_anonymous?: boolean
-  violation_id?: number
-  vehicle_id?: number
-  evidence_urls?: string[]
+  violation_id?: string
 }
 
 export function useComplaints() {
@@ -39,110 +20,140 @@ export function useComplaints() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const fetchComplaints = async () => {
+  const fetchComplaints = useCallback(async (filter?: string) => {
     setLoading(true)
     setError(null)
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch('http://localhost:8000/api/v1/complaints', {
+      // TODO: Replace with actual API endpoint when available
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/complaints${filter ? `?status=${filter}` : ''}`, {
         headers: {
-          'Authorization': `Bearer ${token}`
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
         }
       })
       
       if (!response.ok) {
-        throw new Error('Failed to fetch complaints')
+        // API chưa có, không hiển thị lỗi
+        console.warn("Complaints API not available yet")
+        setComplaints([])
+        return
       }
       
       const data = await response.json()
       setComplaints(data.complaints || [])
     } catch (err: any) {
-      setError(err.message || 'Không thể tải danh sách khiếu nại')
-      console.error('Error fetching complaints:', err)
+      // Không hiển thị lỗi khi API chưa có
+      console.warn("Complaints API not available:", err.message)
+      setComplaints([])
     } finally {
       setLoading(false)
     }
-  }
+  }, [])
 
-  const fetchMyComplaints = async () => {
-    setLoading(true)
-    setError(null)
+  const createComplaint = useCallback(async (complaint: Partial<Complaint>) => {
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch('http://localhost:8000/api/v1/complaints/my-complaints', {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      })
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch my complaints')
-      }
-      
-      const data = await response.json()
-      setComplaints(data.complaints || [])
-    } catch (err: any) {
-      setError(err.message || 'Không thể tải khiếu nại của bạn')
-      console.error('Error fetching my complaints:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const createComplaint = async (payload: ComplaintCreate) => {
-    try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch('http://localhost:8000/api/v1/complaints', {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/complaints`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
         },
-        body: JSON.stringify(payload)
+        body: JSON.stringify(complaint)
       })
       
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.detail || 'Failed to create complaint')
-      }
+      if (!response.ok) throw new Error("Không thể tạo khiếu nại")
       
       const data = await response.json()
       setComplaints(prev => [data, ...prev])
       return data
     } catch (err: any) {
-      throw new Error(err.message || 'Tạo khiếu nại thất bại')
+      throw new Error(err.message || "Tạo khiếu nại thất bại")
     }
-  }
+  }, [])
 
-  const rateComplaint = async (complaintId: number, rating: number, feedback?: string) => {
+  const updateComplaintStatus = useCallback(async (id: string, status: Complaint['status']) => {
     try {
-      const token = localStorage.getItem('access_token')
-      const response = await fetch(`http://localhost:8000/api/v1/complaints/${complaintId}/rate?rating=${rating}${feedback ? `&feedback=${encodeURIComponent(feedback)}` : ''}`, {
-        method: 'POST',
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/complaints/${id}/status`, {
+        method: 'PATCH',
         headers: {
-          'Authorization': `Bearer ${token}`
-        }
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({ status })
       })
       
-      if (!response.ok) {
-        throw new Error('Failed to rate complaint')
-      }
+      if (!response.ok) throw new Error("Không thể cập nhật trạng thái")
       
-      const data = await response.json()
-      setComplaints(prev => prev.map(c => c.id === complaintId ? data : c))
-      return data
+      const updatedComplaint = await response.json()
+      
+      // Update local state - remove from current list since status changed
+      setComplaints(prev => prev.filter(c => c.id !== id))
+      
+      return updatedComplaint
     } catch (err: any) {
-      throw new Error(err.message || 'Đánh giá thất bại')
+      throw new Error(err.message || "Cập nhật trạng thái thất bại")
     }
-  }
+  }, [])
+  
+  const resolveComplaint = useCallback(async (id: string, resolution: string) => {
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/complaints/${id}/resolve`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({ resolution })
+      })
+      
+      if (!response.ok) throw new Error("Không thể giải quyết khiếu nại")
+      
+      const resolvedComplaint = await response.json()
+      
+      // Remove from current list since it's now resolved
+      setComplaints(prev => prev.filter(c => c.id !== id))
+      
+      return resolvedComplaint
+    } catch (err: any) {
+      throw new Error(err.message || "Giải quyết khiếu nại thất bại")
+    }
+  }, [])
+  
+  const rejectComplaint = useCallback(async (id: string, reason: string) => {
+    try {
+      // Update status to rejected with reason
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/v1/complaints/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${localStorage.getItem('access_token')}`
+        },
+        body: JSON.stringify({ 
+          status: 'rejected',
+          resolution: reason
+        })
+      })
+      
+      if (!response.ok) throw new Error("Không thể từ chối khiếu nại")
+      
+      const rejectedComplaint = await response.json()
+      
+      // Remove from current list since it's now rejected
+      setComplaints(prev => prev.filter(c => c.id !== id))
+      
+      return rejectedComplaint
+    } catch (err: any) {
+      throw new Error(err.message || "Từ chối khiếu nại thất bại")
+    }
+  }, [])
 
   return {
     complaints,
     loading,
     error,
     fetchComplaints,
-    fetchMyComplaints,
     createComplaint,
-    rateComplaint,
+    updateComplaintStatus,
+    resolveComplaint,
+    rejectComplaint
   }
 }

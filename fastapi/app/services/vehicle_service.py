@@ -41,16 +41,26 @@ class VehicleService:
                 detail="Biển số xe đã tồn tại trong hệ thống"
             )
         
-        vehicle = Vehicle(
-            **vehicle_data.dict(),
-            owner_id=user_id
-        )
-        
-        self.db.add(vehicle)
-        self.db.commit()
-        self.db.refresh(vehicle)
-        
-        return vehicle
+        try:
+            vehicle = Vehicle(
+                **vehicle_data.dict(),
+                owner_id=user_id
+            )
+            
+            self.db.add(vehicle)
+            self.db.commit()
+            self.db.refresh(vehicle)
+            
+            return vehicle
+        except Exception as e:
+            self.db.rollback()
+            import traceback
+            print(f"Error creating vehicle: {str(e)}")
+            print(traceback.format_exc())
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Lỗi khi tạo phương tiện: {str(e)}"
+            )
 
     def update_vehicle(self, vehicle_id: int, vehicle_data: VehicleUpdate) -> Vehicle:
         vehicle = self.get_vehicle_by_id(vehicle_id)

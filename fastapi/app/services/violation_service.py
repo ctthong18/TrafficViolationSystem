@@ -7,7 +7,7 @@ from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.schemas.violation_schema import ViolationCreate, ViolationUpdate, ViolationReview
 from app.services.notification_service import NotificationService
-import cv2
+
 import os
 import logging
 

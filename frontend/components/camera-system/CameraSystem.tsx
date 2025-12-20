@@ -11,7 +11,7 @@ import { CameraLiveGrid } from "./CameraLiveGrid"
 import { CameraLiveDialog } from "./CameraLiveDialog"
 import { Card, CardContent } from "../ui/card"
 import { Camera } from "lucide-react"
-import DetectVideo from "./DetectVideo"
+import { DetectVideo } from "./DetectVideo"
 
 type ViewMode = "card" | "liveRealtime" | "liveDetected"
 

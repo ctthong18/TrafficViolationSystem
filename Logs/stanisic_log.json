@@ -1,0 +1,47 @@
+# statistics_logs.json
+{
+  "period": {
+    "start": "2024-01-15T07:00:00Z",
+    "end": "2024-01-15T19:00:00Z",
+    "interval": "hourly"  // hoặc "daily", "15min"
+  },
+  "camera_id": "CAM_001",
+  "location": "Đường Nguyễn Văn Linh, Quận 7",
+  "counting_zones": [
+    {
+      "zone_id": "zone_1",
+      "name": "Làn xe máy",
+      "coordinates": [[100, 300], [600, 300], [600, 500], [100, 500]],
+      "counts": [
+        {
+          "time_interval": "07:00-08:00",
+          "total": 450,
+          "by_type": {
+            "motorcycle": 420,
+            "car": 25,
+            "bicycle": 5
+          },
+          "direction": {
+            "inbound": 280,
+            "outbound": 170
+          },
+          "peak_minute": {
+            "time": "07:45",
+            "count": 12
+          }
+        },
+        // ... các interval tiếp theo
+      ]
+    }
+  ],
+  "summary": {
+    "total_vehicles_12h": 5200,
+    "busiest_hour": "17:00-18:00 (680 vehicles)",
+    "vehicle_type_percentage": {
+      "motorcycle": "78%",
+      "car": "19%",
+      "other": "3%"
+    },
+    "average_speed": "38 km/h"  // nếu có thể tính
+  }
+}

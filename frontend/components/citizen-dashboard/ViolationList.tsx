@@ -6,7 +6,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Video, MessageSquare } from "lucide-react"
 import { Violation } from "@/hooks/useViolations"
 import { useState } from "react"
-import { VideoPlayerDialog } from "../process-video/VideoPlayerDialog"
 import { ComplaintForm } from "@/components/complaint/ComplaintForm"
 
 interface Props {

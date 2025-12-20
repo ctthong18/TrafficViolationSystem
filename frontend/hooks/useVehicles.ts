@@ -60,6 +60,7 @@ export function useVehicles() {
     vehicles,
     loading,
     error,
+    fetchVehicles,
     refetch: fetchVehicles,
     createVehicle,
     updateVehicle,

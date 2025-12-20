@@ -1,440 +1,195 @@
-"""
-AI Model Configuration Endpoints
-Handles AI detection parameter configuration and history
-"""
-from typing import Optional
-from datetime import datetime
-
-from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import desc
+from typing import List, Optional
+from datetime import datetime
 
 from app.core.database import get_db
 from app.api.dependencies import get_current_user
 from app.models.user import User
-from app.models.ai_model_config import AIModelConfig
-from app.schemas.ai_config_schema import (
-    AIConfigCreate,
-    AIConfigUpdate,
-    AIConfigResponse,
-    AIConfigListResponse,
-    AIConfigStatsResponse
+from app.services.ai_log_service import AILogService
+from app.schemas.ai_log_schema import (
+    AILogCreate, AILogUpdate, AILogResponse, 
+    AILogFilter, AILogStats
 )
-from app.services.ai_detection_service import ai_detection_service
-import logging
 
 router = APIRouter()
-logger = logging.getLogger(__name__)
 
-
-@router.get("/current", response_model=AIConfigResponse)
-def get_current_config(
-    current_user: User = Depends(get_current_user),
+@router.post("/logs", response_model=AILogResponse)
+async def create_ai_log(
+    ai_log_data: AILogCreate,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """
-    Get the current active AI model configuration
-    
-    Returns the most recent active configuration used for video processing
-    
-    Requirements: 8.1, 8.2, 8.3
-    """
-    logger.info(f"User {current_user.id} fetching current AI config")
-    
-    # Get the most recent active configuration
-    config = db.query(AIModelConfig).filter(
-        AIModelConfig.is_active == True
-    ).order_by(desc(AIModelConfig.created_at)).first()
-    
-    if not config:
-        # Return default configuration if none exists
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No active AI configuration found. Please create one."
-        )
-    
-    return AIConfigResponse(
-        id=config.id,
-        confidence_threshold=config.confidence_threshold,
-        iou_threshold=config.iou_threshold,
-        detection_frequency=config.detection_frequency,
-        violation_types=config.violation_types,
-        is_active=config.is_active,
-        created_by=config.created_by,
-        created_at=config.created_at,
-        notes=config.notes
+    """Tạo AI log mới"""
+    ai_log_service = AILogService(db)
+    ai_log = ai_log_service.create_ai_log(ai_log_data)
+    return AILogResponse.from_attributes(ai_log)
+
+@router.get("/logs", response_model=List[AILogResponse])
+async def get_ai_logs(
+    camera_id: Optional[int] = Query(None),
+    detection_type: Optional[str] = Query(None),
+    is_processed: Optional[bool] = Query(None),
+    is_violation: Optional[bool] = Query(None),
+    license_plate: Optional[str] = Query(None),
+    vehicle_type: Optional[str] = Query(None),
+    violation_type: Optional[str] = Query(None),
+    start_date: Optional[datetime] = Query(None),
+    end_date: Optional[datetime] = Query(None),
+    min_confidence: Optional[float] = Query(None),
+    skip: int = Query(0, ge=0),
+    limit: int = Query(100, ge=1, le=1000),
+    order_by: str = Query("timestamp"),
+    order_desc: bool = Query(True),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Lấy danh sách AI logs"""
+    filters = AILogFilter(
+        camera_id=camera_id,
+        detection_type=detection_type,
+        is_processed=is_processed,
+        is_violation=is_violation,
+        license_plate=license_plate,
+        vehicle_type=vehicle_type,
+        violation_type=violation_type,
+        start_date=start_date,
+        end_date=end_date,
+        min_confidence=min_confidence
     )
-
-
-@router.post("/", response_model=AIConfigResponse, status_code=status.HTTP_201_CREATED)
-def create_config(
-    config_data: AIConfigCreate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Create a new AI model configuration
     
-    This will:
-    - Deactivate the previous active configuration
-    - Create a new active configuration
-    - Apply the configuration to the AI detection service
-    - Save configuration history
-    
-    Requirements: 8.1, 8.2, 8.3, 8.4
-    """
-    logger.info(f"User {current_user.id} creating new AI config")
-    
-    try:
-        # Deactivate all previous configurations
-        db.query(AIModelConfig).filter(
-            AIModelConfig.is_active == True
-        ).update({'is_active': False})
-        
-        # Convert violation_types to dict format
-        violation_types_dict = {
-            vtype: {'enabled': vconfig.enabled, 'confidence_min': vconfig.confidence_min}
-            for vtype, vconfig in config_data.violation_types.items()
-        }
-        
-        # Create new configuration
-        new_config = AIModelConfig(
-            confidence_threshold=config_data.confidence_threshold,
-            iou_threshold=config_data.iou_threshold,
-            detection_frequency=config_data.detection_frequency,
-            violation_types=violation_types_dict,
-            is_active=True,
-            created_by=current_user.id,
-            notes=config_data.notes
-        )
-        
-        db.add(new_config)
-        db.commit()
-        db.refresh(new_config)
-        
-        # Apply configuration to AI detection service
-        ai_detection_service.set_confidence_threshold(config_data.confidence_threshold)
-        ai_detection_service.configure_violation_rules(violation_types_dict)
-        
-        logger.info(f"Created new AI config {new_config.id} and applied to service")
-        
-        return AIConfigResponse(
-            id=new_config.id,
-            confidence_threshold=new_config.confidence_threshold,
-            iou_threshold=new_config.iou_threshold,
-            detection_frequency=new_config.detection_frequency,
-            violation_types=new_config.violation_types,
-            is_active=new_config.is_active,
-            created_by=new_config.created_by,
-            created_at=new_config.created_at,
-            notes=new_config.notes
-        )
-        
-    except Exception as e:
-        logger.error(f"Error creating AI config: {str(e)}")
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to create AI configuration: {str(e)}"
-        )
-
-
-@router.patch("/{config_id}", response_model=AIConfigResponse)
-def update_config(
-    config_id: int,
-    config_data: AIConfigUpdate,
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Update an existing AI model configuration
-    
-    Note: This creates a new configuration entry (for history tracking)
-    rather than modifying the existing one
-    
-    Requirements: 8.1, 8.2, 8.3, 8.4
-    """
-    logger.info(f"User {current_user.id} updating AI config {config_id}")
-    
-    # Get the existing configuration
-    existing_config = db.query(AIModelConfig).filter(
-        AIModelConfig.id == config_id
-    ).first()
-    
-    if not existing_config:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Configuration with ID {config_id} not found"
-        )
-    
-    try:
-        # Deactivate all previous configurations
-        db.query(AIModelConfig).filter(
-            AIModelConfig.is_active == True
-        ).update({'is_active': False})
-        
-        # Prepare violation types
-        violation_types_dict = existing_config.violation_types.copy()
-        if config_data.violation_types:
-            violation_types_dict = {
-                vtype: {'enabled': vconfig.enabled, 'confidence_min': vconfig.confidence_min}
-                for vtype, vconfig in config_data.violation_types.items()
-            }
-        
-        # Create new configuration with updated values
-        new_config = AIModelConfig(
-            confidence_threshold=config_data.confidence_threshold if config_data.confidence_threshold is not None else existing_config.confidence_threshold,
-            iou_threshold=config_data.iou_threshold if config_data.iou_threshold is not None else existing_config.iou_threshold,
-            detection_frequency=config_data.detection_frequency if config_data.detection_frequency is not None else existing_config.detection_frequency,
-            violation_types=violation_types_dict,
-            is_active=True,
-            created_by=current_user.id,
-            notes=config_data.notes if config_data.notes is not None else existing_config.notes
-        )
-        
-        db.add(new_config)
-        db.commit()
-        db.refresh(new_config)
-        
-        # Apply configuration to AI detection service
-        ai_detection_service.set_confidence_threshold(new_config.confidence_threshold)
-        ai_detection_service.configure_violation_rules(new_config.violation_types)
-        
-        logger.info(f"Updated AI config, created new version {new_config.id}")
-        
-        return AIConfigResponse(
-            id=new_config.id,
-            confidence_threshold=new_config.confidence_threshold,
-            iou_threshold=new_config.iou_threshold,
-            detection_frequency=new_config.detection_frequency,
-            violation_types=new_config.violation_types,
-            is_active=new_config.is_active,
-            created_by=new_config.created_by,
-            created_at=new_config.created_at,
-            notes=new_config.notes
-        )
-        
-    except Exception as e:
-        logger.error(f"Error updating AI config: {str(e)}")
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to update AI configuration: {str(e)}"
-        )
-
-
-@router.get("/history", response_model=AIConfigListResponse)
-def get_config_history(
-    skip: int = Query(0, ge=0, description="Number of records to skip"),
-    limit: int = Query(20, ge=1, le=100, description="Maximum number of records to return"),
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get configuration history
-    
-    Returns all AI model configurations ordered by creation date (most recent first)
-    
-    Requirements: 8.4, 8.5
-    """
-    logger.info(f"User {current_user.id} fetching AI config history")
-    
-    # Get total count
-    total = db.query(AIModelConfig).count()
-    
-    # Get configurations with pagination
-    configs = db.query(AIModelConfig).order_by(
-        desc(AIModelConfig.created_at)
-    ).offset(skip).limit(limit).all()
-    
-    # Get current active configuration
-    current_config = db.query(AIModelConfig).filter(
-        AIModelConfig.is_active == True
-    ).order_by(desc(AIModelConfig.created_at)).first()
-    
-    # Convert to response format
-    config_list = [
-        AIConfigResponse(
-            id=config.id,
-            confidence_threshold=config.confidence_threshold,
-            iou_threshold=config.iou_threshold,
-            detection_frequency=config.detection_frequency,
-            violation_types=config.violation_types,
-            is_active=config.is_active,
-            created_by=config.created_by,
-            created_at=config.created_at,
-            notes=config.notes
-        )
-        for config in configs
-    ]
-    
-    current_config_response = None
-    if current_config:
-        current_config_response = AIConfigResponse(
-            id=current_config.id,
-            confidence_threshold=current_config.confidence_threshold,
-            iou_threshold=current_config.iou_threshold,
-            detection_frequency=current_config.detection_frequency,
-            violation_types=current_config.violation_types,
-            is_active=current_config.is_active,
-            created_by=current_config.created_by,
-            created_at=current_config.created_at,
-            notes=current_config.notes
-        )
-    
-    logger.info(f"Found {total} configurations in history")
-    
-    return AIConfigListResponse(
-        configs=config_list,
-        total=total,
-        current_config=current_config_response
+    ai_log_service = AILogService(db)
+    ai_logs = ai_log_service.get_ai_logs(
+        filters=filters,
+        skip=skip,
+        limit=limit,
+        order_by=order_by,
+        order_desc=order_desc
     )
+    
+    return [AILogResponse.from_attributes(log) for log in ai_logs]
 
-
-@router.get("/{config_id}", response_model=AIConfigResponse)
-def get_config_by_id(
-    config_id: int,
-    current_user: User = Depends(get_current_user),
+@router.get("/logs/{log_id}", response_model=AILogResponse)
+async def get_ai_log(
+    log_id: int,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """
-    Get a specific AI configuration by ID
+    """Lấy AI log theo ID"""
+    ai_log_service = AILogService(db)
+    ai_log = ai_log_service.get_ai_log(log_id)
     
-    Useful for viewing historical configurations
+    if not ai_log:
+        raise HTTPException(status_code=404, detail="AI log not found")
     
-    Requirements: 8.5
-    """
-    logger.info(f"User {current_user.id} fetching AI config {config_id}")
+    return AILogResponse.from_attributes(ai_log)
+
+@router.put("/logs/{log_id}", response_model=AILogResponse)
+async def update_ai_log(
+    log_id: int,
+    update_data: AILogUpdate,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Cập nhật AI log"""
+    ai_log_service = AILogService(db)
+    ai_log = ai_log_service.update_ai_log(log_id, update_data)
     
-    config = db.query(AIModelConfig).filter(
-        AIModelConfig.id == config_id
-    ).first()
+    if not ai_log:
+        raise HTTPException(status_code=404, detail="AI log not found")
     
-    if not config:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Configuration with ID {config_id} not found"
-        )
+    return AILogResponse.from_attributes(ai_log)
+
+@router.delete("/logs/{log_id}")
+async def delete_ai_log(
+    log_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Xóa AI log"""
+    ai_log_service = AILogService(db)
+    success = ai_log_service.delete_ai_log(log_id)
     
-    return AIConfigResponse(
-        id=config.id,
-        confidence_threshold=config.confidence_threshold,
-        iou_threshold=config.iou_threshold,
-        detection_frequency=config.detection_frequency,
-        violation_types=config.violation_types,
-        is_active=config.is_active,
-        created_by=config.created_by,
-        created_at=config.created_at,
-        notes=config.notes
+    if not success:
+        raise HTTPException(status_code=404, detail="AI log not found")
+    
+    return {"message": "AI log deleted successfully"}
+
+@router.get("/logs/camera/{camera_id}", response_model=List[AILogResponse])
+async def get_ai_logs_by_camera(
+    camera_id: int,
+    hours: int = Query(24, ge=1, le=168),  # Max 1 week
+    detection_type: Optional[str] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Lấy AI logs của camera trong khoảng thời gian"""
+    ai_log_service = AILogService(db)
+    ai_logs = ai_log_service.get_ai_logs_by_camera(
+        camera_id=camera_id,
+        hours=hours,
+        detection_type=detection_type
     )
+    
+    return [AILogResponse.from_attributes(log) for log in ai_logs]
 
-
-@router.post("/{config_id}/activate", response_model=AIConfigResponse)
-def activate_config(
-    config_id: int,
-    current_user: User = Depends(get_current_user),
+@router.get("/logs/violations", response_model=List[AILogResponse])
+async def get_violation_logs(
+    camera_id: Optional[int] = Query(None),
+    hours: int = Query(24, ge=1, le=168),
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
 ):
-    """
-    Activate a specific configuration from history
-    
-    This allows reverting to a previous configuration
-    
-    Requirements: 8.5
-    """
-    logger.info(f"User {current_user.id} activating AI config {config_id}")
-    
-    config = db.query(AIModelConfig).filter(
-        AIModelConfig.id == config_id
-    ).first()
-    
-    if not config:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Configuration with ID {config_id} not found"
-        )
-    
-    try:
-        # Deactivate all configurations
-        db.query(AIModelConfig).filter(
-            AIModelConfig.is_active == True
-        ).update({'is_active': False})
-        
-        # Activate the selected configuration
-        config.is_active = True
-        db.commit()
-        db.refresh(config)
-        
-        # Apply configuration to AI detection service
-        ai_detection_service.set_confidence_threshold(config.confidence_threshold)
-        ai_detection_service.configure_violation_rules(config.violation_types)
-        
-        logger.info(f"Activated AI config {config_id}")
-        
-        return AIConfigResponse(
-            id=config.id,
-            confidence_threshold=config.confidence_threshold,
-            iou_threshold=config.iou_threshold,
-            detection_frequency=config.detection_frequency,
-            violation_types=config.violation_types,
-            is_active=config.is_active,
-            created_by=config.created_by,
-            created_at=config.created_at,
-            notes=config.notes
-        )
-        
-    except Exception as e:
-        logger.error(f"Error activating AI config: {str(e)}")
-        db.rollback()
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to activate configuration: {str(e)}"
-        )
-
-
-@router.get("/stats/summary", response_model=AIConfigStatsResponse)
-def get_config_stats(
-    current_user: User = Depends(get_current_user),
-    db: Session = Depends(get_db),
-):
-    """
-    Get statistics about AI configurations
-    
-    Returns summary information about configurations and current settings
-    """
-    logger.info(f"User {current_user.id} fetching AI config stats")
-    
-    # Get total configurations
-    total_configs = db.query(AIModelConfig).count()
-    
-    # Get current active configuration
-    current_config = db.query(AIModelConfig).filter(
-        AIModelConfig.is_active == True
-    ).order_by(desc(AIModelConfig.created_at)).first()
-    
-    enabled_types = []
-    disabled_types = []
-    current_config_id = None
-    last_updated = None
-    last_updated_by = None
-    
-    if current_config:
-        current_config_id = current_config.id
-        last_updated = current_config.created_at
-        last_updated_by = current_config.created_by
-        
-        # Parse violation types
-        for vtype, vconfig in current_config.violation_types.items():
-            if vconfig.get('enabled', False):
-                enabled_types.append(vtype)
-            else:
-                disabled_types.append(vtype)
-    
-    return AIConfigStatsResponse(
-        total_configs=total_configs,
-        current_config_id=current_config_id,
-        enabled_violation_types=enabled_types,
-        disabled_violation_types=disabled_types,
-        last_updated=last_updated,
-        last_updated_by=last_updated_by
+    """Lấy các logs có vi phạm"""
+    ai_log_service = AILogService(db)
+    ai_logs = ai_log_service.get_violation_logs(
+        camera_id=camera_id,
+        hours=hours
     )
+    
+    return [AILogResponse.from_attributes(log) for log in ai_logs]
+
+@router.get("/logs/stats", response_model=AILogStats)
+async def get_ai_log_stats(
+    camera_id: Optional[int] = Query(None),
+    start_date: Optional[datetime] = Query(None),
+    end_date: Optional[datetime] = Query(None),
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Lấy thống kê AI logs"""
+    ai_log_service = AILogService(db)
+    stats = ai_log_service.get_ai_log_stats(
+        camera_id=camera_id,
+        start_date=start_date,
+        end_date=end_date
+    )
+    
+    return stats
+
+@router.post("/logs/bulk", response_model=List[AILogResponse])
+async def bulk_create_ai_logs(
+    ai_logs_data: List[AILogCreate],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Tạo nhiều AI logs cùng lúc"""
+    ai_log_service = AILogService(db)
+    ai_logs = ai_log_service.bulk_create_ai_logs(ai_logs_data)
+    
+    return [AILogResponse.from_attributes(log) for log in ai_logs]
+
+@router.post("/logs/mark-processed")
+async def mark_logs_as_processed(
+    log_ids: List[int],
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+):
+    """Đánh dấu các logs đã được xử lý"""
+    ai_log_service = AILogService(db)
+    updated_count = ai_log_service.mark_as_processed(log_ids)
+    
+    return {
+        "message": f"Marked {updated_count} logs as processed",
+        "updated_count": updated_count
+    }

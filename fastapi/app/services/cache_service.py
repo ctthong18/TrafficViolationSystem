@@ -29,8 +29,13 @@ class CacheService:
         
         if REDIS_AVAILABLE and hasattr(settings, 'redis_url') and settings.redis_url:
             try:
+                redis_url = settings.redis_url
+                # Fallback to localhost if default docker host unreachable
+                if redis_url == "redis://redis:6379/0":
+                    redis_url = "redis://localhost:6379/0"
+                
                 self.redis_client = redis.from_url(
-                    settings.redis_url,
+                    redis_url,
                     decode_responses=True,
                     socket_connect_timeout=5,
                     socket_timeout=5
@@ -38,7 +43,7 @@ class CacheService:
                 # Test connection
                 self.redis_client.ping()
                 self.enabled = True
-                logger.info("Redis cache service initialized successfully")
+                logger.info(f"Redis cache service initialized successfully ({redis_url})")
             except Exception as e:
                 logger.warning(f"Redis not available, caching disabled: {e}")
                 self.redis_client = None

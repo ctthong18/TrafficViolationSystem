@@ -5,6 +5,10 @@ services:
     container_name: fastapi_app
     restart: always
     env_file: .env
+    environment:
+      - MODEL_DIR=/fastapi/MODEL
+      - REDIS_URL=redis://redis:6379/0
+      - redis_url=redis://redis:6379/0
     ports:
       - "8000:8000"
     depends_on:
@@ -15,6 +19,9 @@ services:
     working_dir: /fastapi/app
     command: >
       sh -c "python -c 'import time; time.sleep(5)' && uvicorn main:app --host 0.0.0.0 --port 8000"
+    volumes:
+      - ./MODEL:/fastapi/MODEL:ro
+      - ./Logs:/fastapi/Logs
 
   # PostgreSQL Database
   postgres:

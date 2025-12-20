@@ -3,7 +3,8 @@ FROM python:3.11-slim
 # Thiết lập môi trường
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
-    PYTHONPATH=/fastapi
+    PYTHONPATH=/fastapi \
+    YOLO_CONFIG_DIR=/tmp/Ultralytics
 
 # Đặt thư mục làm việc
 WORKDIR /fastapi/app
@@ -21,8 +22,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Sao chép file requirements trước (tối ưu cache layer)
 COPY requirements.txt .
 
-# Cài đặt dependencies Python (giả sử requirements.txt đã có fastapi/uvicorn, xóa dòng thừa)
-RUN pip install --no-cache-dir -r requirements.txt alembic
+# Upgrade pip first
+RUN pip install --upgrade pip
+
+# Cài đặt dependencies Python với timeout và retry
+RUN pip install --default-timeout=100 --retries 5 --no-cache-dir -r requirements.txt && \
+    pip install --default-timeout=100 --retries 5 --no-cache-dir alembic
 
 # Sao chép toàn bộ project vào /fastapi
 COPY . /fastapi/

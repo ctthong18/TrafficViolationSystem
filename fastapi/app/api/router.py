@@ -20,6 +20,12 @@ from app.api.endpoints import (
     notifications,
     ai_config,
     video_analytics,
+    realtime,
+    realtime_analytics,
+    processed_videos,
+    detection_logs,
+    cloudinary_stream,
+    video_ai_processing,
 )
 
 api_router = APIRouter()
@@ -49,3 +55,9 @@ api_router.include_router(videos.router, prefix="/videos", tags=["Videos"])
 api_router.include_router(video_analytics.router, prefix="/video-analytics", tags=["Video Analytics"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
 api_router.include_router(ai_config.router, prefix="/ai-config", tags=["AI Configuration"])
+api_router.include_router(realtime.router, tags=["Realtime"])
+api_router.include_router(realtime_analytics.router, prefix="/realtime-analytics", tags=["Realtime Analytics"])
+api_router.include_router(processed_videos.router, prefix="/processed-videos", tags=["Processed Videos"])
+api_router.include_router(detection_logs.router, prefix="/detection-logs", tags=["Detection Logs"])
+api_router.include_router(cloudinary_stream.router, prefix="/cloudinary-stream", tags=["Cloudinary Stream"])
+api_router.include_router(video_ai_processing.router, prefix="/video-ai", tags=["Video AI Processing"])

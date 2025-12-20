@@ -13,6 +13,10 @@ Test/
 MODEL/
 
 MODEL/violation_detection.pt
+Test/output.avi
+Test/output2.avi
+Test/test1.mp4
+Test/test2.mp4
 
 .next/
 out/

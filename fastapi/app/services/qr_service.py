@@ -13,8 +13,8 @@ class BankQRService:
             'bank_bin': '970407',  # BIN ngân hàng
             'template': 'Ds5Yf3F'  # Template ID cho VietQR
         }
-        # Base URL cho VietQR API
-        self.vietqr_base_url = 'https://img.vietqr.io/image'
+        # Base URL cho VietQR API (sử dụng api.vietqr.io thay vì img.vietqr.io)
+        self.vietqr_base_url = 'https://api.vietqr.io/image'
     def _emv(self, tag: str, value: str):
         length = f"{len(value):02d}"
         return f"{tag}{length}{value}"
@@ -75,31 +75,42 @@ class BankQRService:
 
         return payload + "63" + "04" + crc
 
-    def create_payment_qr(self, amount: float, user_id: int, description="Thanh toan phat"):
+    def create_payment_qr(self, amount: float, user_id: int, description="Thanh toan phat", violation_id: Optional[int] = None):
         """
         Tạo QR code thanh toán sử dụng VietQR API
         Trả về URL của QR code thay vì base64 image
+        
+        Args:
+            amount: Số tiền thanh toán
+            user_id: ID người dùng
+            description: Mô tả thanh toán (mặc định "Thanh toan phat")
+            violation_id: ID vi phạm (để thêm vào nội dung thanh toán)
         """
         transaction_id = f"QR{secrets.token_hex(8).upper()}"
-        desc = f"{description} {transaction_id}"
+        
+        # Tạo nội dung thanh toán: "thanh toan phat nguoi" + mã vi phạm (nếu có)
+        if violation_id:
+            add_info = f"thanh toan phat nguoi VP{violation_id:06d}"
+        else:
+            add_info = "thanh toan phat nguoi"
 
         # Tạo VietQR URL theo template:
-        # https://img.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.png?amount=<AMOUNT>&addInfo=<DESCRIPTION>&accountName=<ACCOUNT_NAME>
+        # https://api.vietqr.io/image/<BANK_ID>-<ACCOUNT_NO>-<TEMPLATE>.jpg?amount=<AMOUNT>&addInfo=<DESCRIPTION>&accountName=<ACCOUNT_NAME>
         bank_id = self.bank_config["bank_bin"]
         account_no = self.bank_config["account_number"]
         template = self.bank_config["template"]
         account_name = self.bank_config["account_holder"]
 
         # URL encode các tham số
-        encoded_desc = quote(desc)
+        encoded_add_info = quote(add_info)
         encoded_account_name = quote(account_name)
 
-        # Tạo VietQR URL
+        # Tạo VietQR URL (sử dụng .jpg thay vì .png)
         qr_url = (
             f"{self.vietqr_base_url}/"
-            f"{bank_id}-{account_no}-{template}.png"
+            f"{bank_id}-{account_no}-{template}.jpg"
             f"?amount={int(amount)}"
-            f"&addInfo={encoded_desc}"
+            f"&addInfo={encoded_add_info}"
             f"&accountName={encoded_account_name}"
         )
 
@@ -112,5 +123,5 @@ class BankQRService:
             "amount": amount,
             "bank_account": self.bank_config["account_number"],
             "bank_name": self.bank_config["bank_name"],
-            "transfer_content": desc
+            "transfer_content": add_info
         }

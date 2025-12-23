@@ -3,7 +3,7 @@ Video Processing Service for managing video processing queue and background task
 
 This service handles:
 - Queueing videos for processing
-- Processing videos (upload + AI analysis)
+- Processing videos (thumbnail generation)
 - Updating processing status in database
 - Retry logic for failed jobs
 
@@ -20,7 +20,6 @@ from sqlalchemy import and_, or_
 from app.models.CameraVideo import CameraVideo, ProcessingStatus
 from app.models.video_processing_job import VideoProcessingJob, JobType, JobStatus
 from app.services.cloudinary_service import cloudinary_service
-from app.services.ai_detection_service import ai_detection_service
 from app.services.notification_service import NotificationService
 
 logger = logging.getLogger(__name__)
@@ -33,13 +32,12 @@ class VideoProcessingService:
         """Initialize Video Processing Service."""
         self.max_retries = 3
         self.processing_timeout = 600  # 10 minutes
-        self.ai_analysis_timeout = 300  # 5 minutes
         
     def queue_video_processing(
         self,
         db: Session,
         video_id: int,
-        job_type: JobType = JobType.AI_ANALYSIS
+        job_type: JobType = JobType.THUMBNAIL
     ) -> VideoProcessingJob:
         """
         Add video to processing queue.
@@ -49,7 +47,7 @@ class VideoProcessingService:
         Args:
             db: Database session
             video_id: ID of the video to process
-            job_type: Type of processing job (AI_ANALYSIS, UPLOAD, THUMBNAIL)
+            job_type: Type of processing job (THUMBNAIL)
         
         Returns:
             VideoProcessingJob: The created or existing job
@@ -110,14 +108,12 @@ class VideoProcessingService:
         job_id: int
     ) -> Dict[str, Any]:
         """
-        Process video: perform AI analysis and update database.
+        Process video: generate thumbnail and update database.
         
         This method:
         1. Updates job status to PROCESSING
-        2. Downloads video from Cloudinary (if needed)
-        3. Runs AI analysis
-        4. Saves detection results
-        5. Updates job status to COMPLETED or FAILED
+        2. Generates thumbnail
+        3. Updates job status to COMPLETED or FAILED
         
         Args:
             db: Database session
@@ -128,7 +124,7 @@ class VideoProcessingService:
             - success: bool
             - job_id: int
             - video_id: int
-            - results: Analysis results (if successful)
+            - results: Results (if successful)
             - error: Error message (if failed)
         
         Requirements: 5.2
@@ -162,12 +158,13 @@ class VideoProcessingService:
             logger.info(f"Starting video processing for job {job_id}, video {video.id}")
             
             # Process based on job type
-            if job.job_type == JobType.AI_ANALYSIS:
-                result = await self._process_ai_analysis(db, video, job)
-            elif job.job_type == JobType.THUMBNAIL:
+            if job.job_type == JobType.THUMBNAIL:
                 result = await self._process_thumbnail(db, video, job)
             else:
-                raise ValueError(f"Unsupported job type: {job.job_type.value}")
+                # For any other job type, just mark as completed
+                result = {'message': 'Job completed'}
+                video.processing_status = ProcessingStatus.COMPLETED
+                db.commit()
             
             # Update job status to completed
             self.update_processing_status(
@@ -252,48 +249,6 @@ class VideoProcessingService:
                 'error': error_msg
             }
     
-    async def _process_ai_analysis(
-        self,
-        db: Session,
-        video: CameraVideo,
-        job: VideoProcessingJob
-    ) -> Dict[str, Any]:
-        """
-        Process AI analysis for a video.
-        
-        Args:
-            db: Database session
-            video: CameraVideo record
-            job: VideoProcessingJob record
-        
-        Returns:
-            Analysis results
-        """
-        logger.info(f"Running AI analysis for video {video.id}")
-        
-        # Use Cloudinary URL for analysis
-        video_url = video.cloudinary_url
-        
-        # Run AI analysis with timeout
-        analysis_results = await ai_detection_service.analyze_video(
-            video_path=video_url,
-            timeout=self.ai_analysis_timeout
-        )
-        
-        # Save detection results to database
-        saved_counts = ai_detection_service.save_detection_results(
-            db=db,
-            video_id=video.id,
-            analysis_results=analysis_results
-        )
-        
-        logger.info(f"AI analysis completed for video {video.id}: {saved_counts}")
-        
-        return {
-            'analysis_results': analysis_results,
-            'saved_counts': saved_counts
-        }
-    
     async def _process_thumbnail(
         self,
         db: Session,
@@ -321,6 +276,7 @@ class VideoProcessingService:
         
         # Update video record
         video.thumbnail_url = thumbnail_url
+        video.processing_status = ProcessingStatus.COMPLETED
         db.commit()
         
         logger.info(f"Thumbnail generated for video {video.id}: {thumbnail_url}")

@@ -39,7 +39,7 @@ async def deposit_to_wallet(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    valid_methods = {"bank_transfer", "credit_card", "e_wallet"}
+    valid_methods = {PaymentMethod.BANK_TRANSFER.value, PaymentMethod.CREDIT_CARD.value, PaymentMethod.E_WALLET.value}
     if payment_method not in valid_methods:
         raise HTTPException(400, detail="Phương thức thanh toán không hợp lệ")
 

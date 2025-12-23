@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.database import get_db
 from app.api.dependencies import get_current_user, require_roles, require_role
-from app.models.user import User
+from app.models.user import User, Role
 from app.schemas.camera_schema import (
     CameraCreate,
     CameraUpdate,
@@ -52,7 +52,7 @@ def get_camera(
 @router.post("/", response_model=CameraResponse)
 def create_camera(
     payload: CameraCreate,
-    current_user: User = Depends(require_roles(["admin", "officer"])),
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.OFFICER.value])),
     db: Session = Depends(get_db),
 ):
     service = CameraService(db)
@@ -63,7 +63,7 @@ def create_camera(
 def update_camera(
     camera_id: str,
     payload: CameraUpdate,
-    current_user: User = Depends(require_roles(["admin", "officer"])),
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.OFFICER.value])),
     db: Session = Depends(get_db),
 ):
     service = CameraService(db)
@@ -73,7 +73,7 @@ def update_camera(
 @router.delete("/{camera_id}")
 def delete_camera(
     camera_id: str,
-    current_user: User = Depends(require_role("admin")),
+    current_user: User = Depends(require_role(Role.ADMIN.value)),
     db: Session = Depends(get_db),
 ):
     service = CameraService(db)

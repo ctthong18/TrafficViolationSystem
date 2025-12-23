@@ -1,6 +1,8 @@
-from typing import Optional, List
-from pydantic import BaseModel, EmailStr
 from datetime import datetime
+from typing import List, Optional
+
+from pydantic import BaseModel, EmailStr
+
 
 class UserBase(BaseModel):
     username: str
@@ -11,9 +13,11 @@ class UserBase(BaseModel):
     department: Optional[str] = None
     badge_number: Optional[str] = None
 
+
 class UserCreate(UserBase):
     password: str
     role: str = "citizen"
+
 
 class UserUpdate(BaseModel):
     email: Optional[EmailStr] = None
@@ -22,6 +26,7 @@ class UserUpdate(BaseModel):
     department: Optional[str] = None
     badge_number: Optional[str] = None
     is_active: Optional[bool] = None
+
 
 class UserResponse(UserBase):
     id: int
@@ -33,6 +38,7 @@ class UserResponse(UserBase):
 
     class Config:
         from_attributes = True
+
 
 class UserListResponse(BaseModel):
     users: List[UserResponse]

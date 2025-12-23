@@ -16,7 +16,7 @@ class ViolationBase(BaseModel):
 
 class ViolationCreate(ViolationBase):
     detected_at: datetime
-    confidence_score: float
+    confidence_score: Optional[float] = None
     evidence_images: Optional[List[str]] = None
     ai_metadata: Optional[Dict[str, Any]] = None
 
@@ -44,7 +44,7 @@ class VideoEvidenceInfo(BaseModel):
 class ViolationResponse(ViolationBase):
     id: int
     detected_at: datetime
-    confidence_score: float
+    confidence_score: Optional[float] = None
     status: str
     priority: str
     reviewed_by: Optional[int]
@@ -70,18 +70,3 @@ class ViolationListResponse(BaseModel):
     total: int
     page: int
     size: int
-
-# For AI processing
-class AIProcessingRequest(BaseModel):
-    image_data: str  # base64 encoded image
-    camera_id: str
-    timestamp: datetime
-
-class AIProcessingResponse(BaseModel):
-    violation_detected: bool
-    confidence_score: float
-    violation_type: Optional[str] = None
-    license_plate: Optional[str] = None
-    vehicle_type: Optional[str] = None
-    bounding_boxes: Optional[Dict[str, Any]] = None
-    processed_image: Optional[str] = None  # base64

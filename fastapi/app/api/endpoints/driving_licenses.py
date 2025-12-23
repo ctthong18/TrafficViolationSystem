@@ -5,8 +5,8 @@ from datetime import datetime
 
 from app.core.database import get_db
 from app.api.dependencies import get_current_user
-from app.models.user import User
-from app.models.driving_license import DrivingLicense
+from app.models.user import User, Role
+from app.models.driving_license import DrivingLicense, LicenseStatus
 from app.services.driving_license_service import DrivingLicenseService
 from pydantic import BaseModel
 from datetime import date
@@ -99,7 +99,7 @@ def create_driving_license(
         user_id=current_user.id,
         total_points=12,
         current_points=12,
-        status="active"
+        status=LicenseStatus.ACTIVE.value
     )
     
     db.add(new_license)
@@ -140,7 +140,7 @@ def get_driving_license(
         )
     
     # Kiểm tra quyền truy cập
-    if current_user.role not in ["admin", "officer"] and license.user_id != current_user.id:
+    if current_user.role not in [Role.ADMIN.value, Role.OFFICER.value] and license.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền truy cập"
@@ -168,7 +168,7 @@ def update_driving_license(
         )
     
     # Kiểm tra quyền sở hữu
-    if current_user.role not in ["admin", "officer"] and license.user_id != current_user.id:
+    if current_user.role not in [Role.ADMIN.value, Role.OFFICER.value] and license.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền cập nhật"
@@ -202,7 +202,7 @@ def delete_driving_license(
         )
     
     # Chỉ admin hoặc chủ sở hữu mới được xóa
-    if current_user.role != "admin" and license.user_id != current_user.id:
+    if current_user.role != Role.ADMIN.value and license.user_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền xóa"

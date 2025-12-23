@@ -1,25 +1,27 @@
-from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from app.core.database import get_db
+
 from app.api.dependencies import require_roles
-from app.models.user import User
+from app.core.database import get_db
 from app.models.activity import Activity
+from app.models.user import Role, User
+from fastapi import APIRouter, Depends, Query
 
 router = APIRouter()
+
 
 @router.get("/recent")
 def get_recent_activities(
     limit: int = Query(10, le=50),
-    current_user: User = Depends(require_roles(["admin", "officer"])),
-    db: Session = Depends(get_db)
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.OFFICER.value])),
+    db: Session = Depends(get_db),
 ):
     """Lấy danh sách hoạt động gần đây cho dashboard"""
     from datetime import datetime, timedelta
-    
-    activities = db.query(Activity).order_by(
-        Activity.created_at.desc()
-    ).limit(limit).all()
-    
+
+    activities = (
+        db.query(Activity).order_by(Activity.created_at.desc()).limit(limit).all()
+    )
+
     result = []
     for activity in activities:
         # Calculate relative time
@@ -35,11 +37,13 @@ def get_recent_activities(
         else:
             days = time_diff.days
             time_str = f"{days} ngày trước"
-        
-        result.append({
-            "action": activity.description or "Hoạt động hệ thống",
-            "time": time_str,
-            "type": activity.type or "system"
-        })
-    
+
+        result.append(
+            {
+                "action": activity.description or "Hoạt động hệ thống",
+                "time": time_str,
+                "type": activity.type or "system",
+            }
+        )
+
     return result

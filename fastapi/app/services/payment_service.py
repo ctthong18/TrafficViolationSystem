@@ -1,13 +1,15 @@
-from sqlalchemy.orm import Session
-from fastapi import HTTPException, status
+import secrets
 from datetime import datetime, timedelta
 from decimal import Decimal
-from typing import Optional, List, Dict, Any
+from typing import Any, Dict, List, Optional
 
-from app.models.payment import Payment, PaymentStatus, PaymentMethod, PaymentType
-from app.models.violation import Violation
+from sqlalchemy.orm import Session
+
+from app.models.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
 from app.models.user import User
 from app.models.vehicle import Vehicle
+from app.models.violation import Violation
+from fastapi import HTTPException, status
 
 
 class PaymentService:
@@ -27,7 +29,9 @@ class PaymentService:
     # CREATE FINE PAYMENT
     # -------------------------------
     def create_fine_payment(self, violation_id: int, user_id: int) -> Payment:
-        violation = self.db.query(Violation).filter(Violation.id == violation_id).first()
+        violation = (
+            self.db.query(Violation).filter(Violation.id == violation_id).first()
+        )
         if not violation:
             raise HTTPException(404, "Vi phạm không tồn tại")
 
@@ -35,17 +39,23 @@ class PaymentService:
             raise HTTPException(400, "Chỉ có thể thanh toán cho vi phạm đã được duyệt")
 
         # Kiểm tra đã có payment hay chưa
-        existed = self.db.query(Payment).filter(
-            Payment.violation_id == violation_id,
-            Payment.payment_type == PaymentType.FINE_PAYMENT.value
-        ).first()
+        existed = (
+            self.db.query(Payment)
+            .filter(
+                Payment.violation_id == violation_id,
+                Payment.payment_type == PaymentType.FINE_PAYMENT.value,
+            )
+            .first()
+        )
 
         if existed:
             raise HTTPException(400, "Đã tồn tại thanh toán cho vi phạm này")
 
-        vehicle = self.db.query(Vehicle).filter(
-            Vehicle.license_plate == violation.license_plate
-        ).first()
+        vehicle = (
+            self.db.query(Vehicle)
+            .filter(Vehicle.license_plate == violation.license_plate)
+            .first()
+        )
 
         user = self.db.query(User).filter(User.id == user_id).first()
 
@@ -66,7 +76,7 @@ class PaymentService:
             receipt_number=receipt_number,
             payer_name=user.full_name,
             payer_identification=user.identification_number,
-            status=PaymentStatus.CREATED.value  # ✔ Sửa từ PENDING → CREATED
+            status=PaymentStatus.CREATED.value,  # ✔ Sửa từ PENDING → CREATED
         )
 
         self.db.add(payment)
@@ -78,7 +88,9 @@ class PaymentService:
     # -------------------------------
     # GET USER PAYMENTS
     # -------------------------------
-    def get_user_payments(self, user_id: int, status: Optional[str] = None) -> List[Payment]:
+    def get_user_payments(
+        self, user_id: int, status: Optional[str] = None
+    ) -> List[Payment]:
         q = self.db.query(Payment).filter(Payment.user_id == user_id)
         if status:
             q = q.filter(Payment.status == status)
@@ -112,15 +124,21 @@ class PaymentService:
     # STATS
     # -------------------------------
     def get_payment_statistics(self, start_date: datetime, end_date: datetime) -> dict:
-        paid = self.db.query(Payment).filter(
-            Payment.paid_at.between(start_date, end_date),
-            Payment.status == PaymentStatus.PAID.value
-        ).all()
+        paid = (
+            self.db.query(Payment)
+            .filter(
+                Payment.paid_at.between(start_date, end_date),
+                Payment.status == PaymentStatus.PAID.value,
+            )
+            .all()
+        )
 
         total_revenue = sum([p.amount for p in paid])
-        pending = self.db.query(Payment).filter(
-            Payment.status == PaymentStatus.PENDING.value
-        ).count()
+        pending = (
+            self.db.query(Payment)
+            .filter(Payment.status == PaymentStatus.PENDING.value)
+            .count()
+        )
 
         success = len(paid)
 
@@ -128,7 +146,9 @@ class PaymentService:
             "total_revenue": float(total_revenue),
             "pending_payments": pending,
             "successful_payments": success,
-            "collection_rate": success / (success + pending) if (success + pending) else 0
+            "collection_rate": success / (success + pending)
+            if (success + pending)
+            else 0,
         }
 
     # -------------------------------
@@ -137,17 +157,22 @@ class PaymentService:
     def generate_receipt(self, payment_id: int) -> dict:
         payment = self.get_payment_by_id(payment_id)
         violation = (
-            self.db.query(Violation).filter(Violation.id == payment.violation_id).first()
-            if payment.violation_id else None
+            self.db.query(Violation)
+            .filter(Violation.id == payment.violation_id)
+            .first()
+            if payment.violation_id
+            else None
         )
         vehicle = (
             self.db.query(Vehicle).filter(Vehicle.id == payment.vehicle_id).first()
-            if payment.vehicle_id else None
+            if payment.vehicle_id
+            else None
         )
 
         license_plate = (
             vehicle.license_plate
-            if vehicle else getattr(violation, "license_plate", "N/A")
+            if vehicle
+            else getattr(violation, "license_plate", "N/A")
         )
 
         return {
@@ -159,7 +184,9 @@ class PaymentService:
             "amount": float(payment.amount),
             "late_fee": float(payment.late_penalty or 0),
             "total_amount": float(payment.amount + (payment.late_penalty or 0)),
-            "payment_method": payment.payment_method.value if payment.payment_method else None,
+            "payment_method": payment.payment_method.value
+            if payment.payment_method
+            else None,
             "location": getattr(violation, "location_name", "N/A"),
             "violation_time": getattr(violation, "detected_at", "N/A"),
         }
@@ -167,12 +194,16 @@ class PaymentService:
     # -------------------------------
     # WALLET DEPOSIT
     # -------------------------------
-    def deposit_to_wallet(self, user_id: int, amount: Decimal, payment_method: str) -> Payment:
+    def deposit_to_wallet(
+        self, user_id: int, amount: Decimal, payment_method: str
+    ) -> Payment:
         user = self.db.query(User).filter(User.id == user_id).first()
         if not user:
             raise HTTPException(404, "Người dùng không tồn tại")
 
-        receipt_number = f"DEP-{datetime.now().strftime('%Y%m%d')}-{user_id:06d}"
+        receipt_number = (
+            f"DEP-{datetime.now().strftime('%Y%m%d')}-{secrets.token_hex(4).upper()}"
+        )
 
         payment = Payment(
             user_id=user_id,
@@ -186,7 +217,7 @@ class PaymentService:
             payer_identification=user.identification_number,
             status=PaymentStatus.PAID.value,  # Nếu sau này nạp bằng QR → đổi thành CREATED
             paid_at=datetime.now(),
-            description=f"Nạp tiền vào ví - {amount} VNĐ"
+            description=f"Nạp tiền vào ví - {amount} VNĐ",
         )
 
         user.wallet_balance += amount
@@ -246,29 +277,42 @@ class PaymentService:
         if not user:
             raise HTTPException(404, "Người dùng không tồn tại")
 
-        deposits = self.db.query(Payment).filter(
-            Payment.user_id == user_id,
-            Payment.payment_type == PaymentType.WALLET_DEPOSIT.value,
-            Payment.status == PaymentStatus.PAID.value
-        ).all()
+        deposits = (
+            self.db.query(Payment)
+            .filter(
+                Payment.user_id == user_id,
+                Payment.payment_type == PaymentType.WALLET_DEPOSIT.value,
+                Payment.status == PaymentStatus.PAID.value,
+            )
+            .all()
+        )
 
-        fine_payments = self.db.query(Payment).filter(
-            Payment.user_id == user_id,
-            Payment.payment_type == PaymentType.FINE_PAYMENT.value,
-            Payment.status == PaymentStatus.PAID.value
-        ).all()
+        fine_payments = (
+            self.db.query(Payment)
+            .filter(
+                Payment.user_id == user_id,
+                Payment.payment_type == PaymentType.FINE_PAYMENT.value,
+                Payment.status == PaymentStatus.PAID.value,
+            )
+            .all()
+        )
 
         total_deposited = sum([p.amount for p in deposits])
         total_paid_fines = sum([p.amount for p in fine_payments])
 
         # pending fines = tổng các fine payments chưa trả
-        pending_fines = sum([
-            p.amount for p in self.db.query(Payment).filter(
-                Payment.user_id == user_id,
-                Payment.payment_type == PaymentType.FINE_PAYMENT.value,
-                Payment.status != PaymentStatus.PAID.value
-            ).all()
-        ])
+        pending_fines = sum(
+            [
+                p.amount
+                for p in self.db.query(Payment)
+                .filter(
+                    Payment.user_id == user_id,
+                    Payment.payment_type == PaymentType.FINE_PAYMENT.value,
+                    Payment.status != PaymentStatus.PAID.value,
+                )
+                .all()
+            ]
+        )
 
         return {
             "wallet_balance": float(user.wallet_balance),
@@ -276,5 +320,5 @@ class PaymentService:
             "total_paid_fines": float(total_paid_fines),
             "pending_fines": float(pending_fines),
             "available_balance": float(user.wallet_balance - pending_fines),
-            "can_auto_pay": user.wallet_balance >= pending_fines
+            "can_auto_pay": user.wallet_balance >= pending_fines,
         }

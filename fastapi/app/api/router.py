@@ -18,8 +18,6 @@ from app.api.endpoints import (
     statistics,
     videos,
     notifications,
-    ai_config,
-    video_analytics,
 )
 
 api_router = APIRouter()
@@ -46,6 +44,4 @@ api_router.include_router(users.router, prefix="/users", tags=["users"])
 api_router.include_router(activities.router, prefix="/activities", tags=["Activities"])
 api_router.include_router(statistics.router, prefix="/statistics", tags=["Statistics"])
 api_router.include_router(videos.router, prefix="/videos", tags=["Videos"])
-api_router.include_router(video_analytics.router, prefix="/video-analytics", tags=["Video Analytics"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["Notifications"])
-api_router.include_router(ai_config.router, prefix="/ai-config", tags=["AI Configuration"])

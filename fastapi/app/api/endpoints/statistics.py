@@ -4,8 +4,8 @@ from sqlalchemy import func, extract
 from datetime import datetime, timedelta
 from app.core.database import get_db
 from app.api.dependencies import require_roles
-from app.models.user import User
-from app.models.violation import Violation
+from app.models.user import User, Role
+from app.models.violation import Violation, ViolationStatus
 from app.models.payment import Payment, PaymentStatus
 
 router = APIRouter()
@@ -13,7 +13,7 @@ router = APIRouter()
 @router.get("")
 def get_statistics(
     date_range: str = Query("7days", description="Time range: 7days, 30days, 3months, year"),
-    current_user: User = Depends(require_roles(["admin", "officer"])),
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.OFFICER.value])),
     db: Session = Depends(get_db)
 ):
     """Lấy thống kê tổng quan cho dashboard"""
@@ -38,12 +38,12 @@ def get_statistics(
     
     pending_violations = db.query(Violation).filter(
         Violation.detected_at >= start_date,
-        Violation.status == "pending"
+        Violation.status == ViolationStatus.PENDING.value
     ).count()
     
     processed_violations = db.query(Violation).filter(
         Violation.detected_at >= start_date,
-        Violation.status.in_(["approved", "paid"])
+        Violation.status.in_([ViolationStatus.APPROVED.value, ViolationStatus.PAID.value])
     ).count()
     
     total_revenue = db.query(func.sum(Payment.amount)).filter(

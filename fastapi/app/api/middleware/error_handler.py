@@ -35,7 +35,7 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 status_code=500,
                 content={
                     "error": "Lỗi cơ sở dữ liệu",
-                    "details": "Vui lòng thử lại sau"
+                    "details": str(e)  # Return actual error message
                 }
             )
             
@@ -46,6 +46,6 @@ class ErrorHandlerMiddleware(BaseHTTPMiddleware):
                 status_code=500,
                 content={
                     "error": "Lỗi máy chủ nội bộ",
-                    "details": "Đã xảy ra lỗi không mong muốn"
+                    "details": str(e)  # Return actual error message
                 }
             )

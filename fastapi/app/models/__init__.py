@@ -2,7 +2,8 @@ from app.models.base import Base
 from app.models.user import User
 from app.models.vehicle import Vehicle
 from app.models.violation_rule import ViolationRule
-from app.models.violation import Violation
+from app.models.violation import Violation, ViolationStatus
+from app.models.activity import Activity
 from app.models.complaint import Complaint, ComplaintStatus, ComplaintType
 from app.models.complaint_appeal import ComplaintAppeal, AppealStatus
 from app.models.complaint_activity import ComplaintActivity
@@ -25,18 +26,17 @@ from app.models.model_performance import ModelPerformance
 from app.models.violation_forecasts import ViolationForecasts
 from app.models.action_recommendations import ActionRecommendations
 
-# AI Camera System models
+# Camera System models
 from app.models.CameraVideo import CameraVideo, ProcessingStatus
-from app.models.ai_detection import AIDetection, DetectionType, ReviewStatus
 from app.models.video_processing_job import VideoProcessingJob, JobType, JobStatus
-from app.models.ai_model_config import AIModelConfig
 
 __all__ = [
     'Base',
     'User',
     'Vehicle',
     'ViolationRule',
-    'Violation',
+    'Violation', 'ViolationStatus',
+    'Activity',
     'Complaint', 'ComplaintStatus', 'ComplaintType',
     'ComplaintAppeal', 'AppealStatus', 
     'ComplaintActivity',
@@ -57,7 +57,5 @@ __all__ = [
     'ViolationForecasts',
     'ActionRecommendations',
     'CameraVideo', 'ProcessingStatus',
-    'AIDetection', 'DetectionType', 'ReviewStatus',
     'VideoProcessingJob', 'JobType', 'JobStatus',
-    'AIModelConfig'
 ]

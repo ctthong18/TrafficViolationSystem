@@ -1,41 +1,63 @@
-from datetime import datetime, timedelta, date, timezone
+import argparse
+import json
+import sys
+from datetime import date, datetime
 from decimal import Decimal
+
 from sqlalchemy.orm import Session
 
-# Import các model (Giả định đường dẫn đúng)
+# Import models (Assumed paths from your prompt)
 from app.core.database import SessionLocal
+from app.models.camera import Camera
+from app.models.driving_license import DrivingLicense
+from app.models.notification_template import NotificationTemplate, NotificationType
+from app.models.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
+from app.models.system_config import SystemConfig
 from app.models.user import User
 from app.models.vehicle import Vehicle
-from app.models.driving_license import DrivingLicense
 from app.models.violation import Violation
-from app.models.payment import Payment, PaymentStatus, PaymentType, PaymentMethod
-from app.models.notification_template import NotificationTemplate, NotificationType
-from app.models.system_config import SystemConfig
 from app.models.violation_rule import ViolationRule
-# from app.models.camera import Camera  <-- Không cần import để seed, chỉ cần ID string nếu DB lỏng, hoặc query check nếu cần.
 
-# ---------------- HELPER FUNCTIONS ----------------
 
-def get_or_create_user(db: Session, username: str, role: str, **kwargs) -> User:
-    """
-    Get or create user with role as string: 'admin', 'officer', or 'citizen'
-    """
+# ---------------- HELPER: DATE PARSING ----------------
+def parse_datetime(dt_str: str):
+    """Parses ISO 8601 string to datetime. Returns None if invalid."""
+    if not dt_str:
+        return None
+    try:
+        # Handles "2023-10-05T14:30:00" or "2023-10-05"
+        return datetime.fromisoformat(dt_str.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def parse_date(d_str: str):
+    """Parses YYYY-MM-DD string to date object."""
+    dt = parse_datetime(d_str)
+    return dt.date() if dt else None
+
+
+# ---------------- HELPER FUNCTIONS (Refined) ----------------
+
+
+def get_or_create_user(db: Session, data: dict) -> User:
+    username = data.get("username")
     user = db.query(User).filter(User.username == username).first()
     if user:
         return user
+
     user = User(
         username=username,
-        full_name=kwargs.get("full_name", username.title()),
-        email=kwargs.get("email", f"{username}@example.com"),
-        password_hash=kwargs.get("password_hash", "seeded"),  # not for login
-        role=role,  # role is already a string
-        is_active=True,
-        permissions=kwargs.get("permissions"),
-        phone_number=kwargs.get("phone_number"),
-        identification_number=kwargs.get("identification_number"),
-        department=kwargs.get("department"),
-        badge_number=kwargs.get("badge_number"),
-        created_at=datetime.now(timezone.utc),
+        full_name=data.get("full_name"),
+        email=data.get("email"),
+        password_hash=data.get("password_hash", "seeded_hash"),
+        role=data.get("role", "citizen"),
+        is_active=data.get("is_active", True),
+        phone_number=data.get("phone_number"),
+        identification_number=data.get("identification_number"),
+        department=data.get("department"),
+        badge_number=data.get("badge_number"),
+        created_at=datetime.utcnow(),
     )
     db.add(user)
     db.commit()
@@ -43,26 +65,27 @@ def get_or_create_user(db: Session, username: str, role: str, **kwargs) -> User:
     return user
 
 
-def get_or_create_vehicle(db: Session, license_plate: str, owner_id: int, **kwargs) -> Vehicle:
-    vehicle = db.query(Vehicle).filter(Vehicle.license_plate == license_plate).first()
+def get_or_create_vehicle(db: Session, data: dict, owner_id: int) -> Vehicle:
+    plate = data.get("license_plate")
+    vehicle = db.query(Vehicle).filter(Vehicle.license_plate == plate).first()
     if vehicle:
         return vehicle
+
     vehicle = Vehicle(
-        license_plate=license_plate,
-        vehicle_type=kwargs.get("vehicle_type", "car"),
-        vehicle_color=kwargs.get("vehicle_color", "black"),
-        vehicle_brand=kwargs.get("vehicle_brand", "Roll Royce"),
-        vehicle_model=kwargs.get("vehicle_model", "Roll Royce Ghost"),
-        year_of_manufacture=kwargs.get("year_of_manufacture", 2025),
+        license_plate=plate,
+        vehicle_type=data.get("vehicle_type", "car"),
+        vehicle_color=data.get("vehicle_color"),
+        vehicle_brand=data.get("vehicle_brand"),
+        vehicle_model=data.get("vehicle_model"),
+        year_of_manufacture=data.get("year_of_manufacture"),
         owner_id=owner_id,
-        owner_name=kwargs.get("owner_name"),
-        owner_identification=kwargs.get("owner_identification"),
-        owner_address=kwargs.get("owner_address"),
-        owner_phone=kwargs.get("owner_phone"),
-        owner_email=kwargs.get("owner_email"),
-        registration_date=kwargs.get("registration_date", date.today() - timedelta(days=365)),
-        expiration_date=kwargs.get("expiration_date", date.today() + timedelta(days=365 * 2)),
-        status="active",
+        owner_name=data.get("owner_name"),
+        owner_identification=data.get("owner_identification"),
+        owner_phone=data.get("owner_phone"),
+        owner_email=data.get("owner_email"),
+        registration_date=parse_date(data.get("registration_date")),
+        expiration_date=parse_date(data.get("expiration_date")),
+        status=data.get("status", "active"),
     )
     db.add(vehicle)
     db.commit()
@@ -70,22 +93,24 @@ def get_or_create_vehicle(db: Session, license_plate: str, owner_id: int, **kwar
     return vehicle
 
 
-def get_or_create_driving_license(db: Session, license_number: str, user_id: int, **kwargs) -> DrivingLicense:
-    dl = db.query(DrivingLicense).filter(DrivingLicense.license_number == license_number).first()
+def get_or_create_license(db: Session, data: dict, user_id: int) -> DrivingLicense:
+    lnum = data.get("license_number")
+    dl = db.query(DrivingLicense).filter(DrivingLicense.license_number == lnum).first()
     if dl:
         return dl
+
     dl = DrivingLicense(
-        license_number=license_number,
+        license_number=lnum,
         user_id=user_id,
-        license_class=kwargs.get("license_class", "B2"),
-        full_name=kwargs.get("full_name"),
-        date_of_birth=kwargs.get("date_of_birth", date(1990, 1, 1)),
-        address=kwargs.get("address", "Hanoi"),
-        issue_date=kwargs.get("issue_date", date.today() - timedelta(days=365 * 2)),
-        expiry_date=kwargs.get("expiry_date", date.today() + timedelta(days=365 * 3)),
-        issue_place=kwargs.get("issue_place", "Hanoi"),
-        total_points=12,
-        current_points=12,
+        license_class=data.get("license_class", "B2"),
+        full_name=data.get("full_name"),
+        date_of_birth=parse_date(data.get("date_of_birth")),
+        address=data.get("address"),
+        issue_date=parse_date(data.get("issue_date")),
+        expiry_date=parse_date(data.get("expiry_date")),
+        issue_place=data.get("issue_place"),
+        total_points=data.get("total_points", 12),
+        current_points=data.get("current_points", 12),
         status="active",
     )
     db.add(dl)
@@ -94,288 +119,268 @@ def get_or_create_driving_license(db: Session, license_number: str, user_id: int
     return dl
 
 
-def create_violation(db: Session, **kwargs) -> Violation:
-    violation = Violation(
-        license_plate=kwargs["license_plate"],
-        vehicle_type=kwargs.get("vehicle_type", "car"),
-        vehicle_color=kwargs.get("vehicle_color", "black"),
-        vehicle_brand=kwargs.get("vehicle_brand", "Roll Royce"),
-        driving_license_id=kwargs.get("driving_license_id"),
-        violation_type=kwargs.get("violation_type", "overspeed"),
-        violation_description=kwargs.get("violation_description", "Exceeding speed limit"),
-        points_deducted=kwargs.get("points_deducted", 3),
-        fine_amount=kwargs.get("fine_amount", Decimal("500000")),
-        legal_reference=kwargs.get("legal_reference", "168/2024/NĐ-CP"),
-        location_name=kwargs.get("location_name", "Pham Hung"),
-        latitude=kwargs.get("latitude"),
-        longitude=kwargs.get("longitude"),
-        camera_id=kwargs.get("camera_id"), # Giả định Camera ID này đã tồn tại
-        detected_at=kwargs.get("detected_at", datetime.now(timezone.utc) - timedelta(days=1)),
-        confidence_score=kwargs.get("confidence_score", Decimal("0.9321")),
-        ai_metadata=kwargs.get("ai_metadata", {"model": "yolov8", "version": "1.0"}),
-        evidence_images=kwargs.get("evidence_images", ["https://res.cloudinary.com/dxxiercxx/image/upload/v1763965030/Gemini_Generated_Image_p8m9thp8m9thp8m9_um8nqa.png"]),
-        evidence_gif=kwargs.get("evidence_gif"),
-        status=kwargs.get("status", "pending"),
-        priority=kwargs.get("priority", "medium"),
-        reviewed_by=kwargs.get("reviewed_by"),
-        reviewed_at=kwargs.get("reviewed_at"),
-        review_notes=kwargs.get("review_notes"),
+def get_or_create_camera(db: Session, data: dict) -> Camera:
+    cid = data.get("camera_id")
+    cam = db.query(Camera).filter(Camera.camera_id == cid).first()
+    if cam:
+        return cam
+
+    cam = Camera(
+        camera_id=cid,
+        name=data.get("name"),
+        location_name=data.get("location_name"),
+        latitude=Decimal(str(data.get("latitude", 0))),
+        longitude=Decimal(str(data.get("longitude", 0))),
+        address=data.get("address"),
+        camera_type=data.get("camera_type", "fixed"),
+        status=data.get("status", "active"),
+        created_at=datetime.utcnow(),
     )
-    
-    if "violation_rule_id" in kwargs:
-        violation.violation_rule_id = kwargs["violation_rule_id"]
-        
+    db.add(cam)
+    db.commit()
+    db.refresh(cam)
+    return cam
+
+
+def create_violation_transaction(db: Session, data: dict, rules_map: dict):
+    """Creates Violation and optional Payment."""
+
+    # 1. Resolve Relationships
+    rule_code = data.get("rule_code")
+    rule = rules_map.get(rule_code) if rule_code else None
+
+    # Find Vehicle
+    vehicle = (
+        db.query(Vehicle)
+        .filter(Vehicle.license_plate == data.get("license_plate"))
+        .first()
+    )
+    if not vehicle:
+        print(f"⚠️ Vehicle {data.get('license_plate')} not found. Skipping.")
+        return
+
+    # Find Driver License (Optional logic: lookup by number provided in JSON)
+    dl_number = data.get("driving_license_number")
+    dl = (
+        db.query(DrivingLicense)
+        .filter(DrivingLicense.license_number == dl_number)
+        .first()
+        if dl_number
+        else None
+    )
+
+    # Calculate Fine and Points
+    if data.get("fine_amount"):
+        fine = Decimal(str(data.get("fine_amount")))
+    elif rule:
+        fine = rule.fine_min_car
+    else:
+        fine = Decimal("0")
+
+    if data.get("points_deducted") is not None:
+        points = data.get("points_deducted")
+    elif rule:
+        points = rule.points_car
+    else:
+        points = 0
+
+    # Get legal reference
+    legal_ref = data.get("legal_reference") or (rule.law_reference if rule else None)
+
+    # 2. Create Violation
+    violation = Violation(
+        license_plate=vehicle.license_plate,
+        vehicle_type=vehicle.vehicle_type,
+        vehicle_brand=vehicle.vehicle_brand,
+        vehicle_color=vehicle.vehicle_color,
+        driving_license_id=dl.id if dl else None,
+        violation_rule_id=rule.id if rule else None,
+        violation_type=data.get("violation_type"),
+        violation_description=data.get("violation_description"),
+        points_deducted=points,
+        fine_amount=fine,
+        legal_reference=legal_ref,
+        location_name=data.get("location_name"),
+        camera_id=data.get("camera_id"),  # String ID referencing Camera.camera_id
+        detected_at=parse_datetime(data.get("detected_at")),
+        evidence_images=data.get("evidence_images", []),
+        status=data.get("status", "pending"),
+        priority=data.get("priority", "medium"),
+        created_at=datetime.utcnow(),
+    )
     db.add(violation)
     db.commit()
     db.refresh(violation)
-    return violation
 
-
-def create_payment_for_violation(db: Session, violation: Violation, user_id: int, vehicle_id: int, paid: bool) -> Payment:
-    amount = violation.fine_amount or Decimal("500000")
-    payment = Payment(
-        violation_id=violation.id,
-        vehicle_id=vehicle_id,
-        user_id=user_id,
-        payment_type=PaymentType.FINE_PAYMENT,
-        amount=amount,
-        original_fine=amount,
-        status=PaymentStatus.PAID.value if paid else PaymentStatus.PENDING.value,
-        payment_method=PaymentMethod.QR_CODE if paid else PaymentMethod.BANK_TRANSFER,
-        payment_gateway="MockGateway",
-        receipt_number=f"RCPT-{violation.id:06d}",
-        payer_name="Seed Citizen",
-        payer_identification="012345678901",
-        description="Seed payment",
-        due_date=date.today() + timedelta(days=7),
-        paid_at=datetime.now(timezone.utc) if paid else None,
-        is_auto_deduct=False,
-    )
-    db.add(payment)
-    db.commit()
-    db.refresh(payment)
-    return payment
-
-
-def seed_notification_templates(db: Session) -> None:
-    templates = [
-        {
-            "template_code": "TEMP_VIOLATION_ALERT",
-            "name": "Thông báo vi phạm",
-            "notification_type": NotificationType.VIOLATION_ALERT,
-            "subject_template": "[VPH] Thông báo vi phạm #{violation_id}",
-            "sms_template": "Xe {license_plate} vi phạm {violation_type}. Tiền phạt: {amount}đ.",
-            "default_channel": ["sms", "web"],
-            "available_variables": ["violation_id", "license_plate", "violation_type", "amount"],
-            "allowed_entities": ["violation"],
-        },
-        {
-            "template_code": "TEMP_PAYMENT_REMINDER",
-            "name": "Nhắc nhở thanh toán",
-            "notification_type": NotificationType.PAYMENT_REMINDER,
-            "subject_template": "[VPH] Nhắc thanh toán #{violation_id}",
-            "sms_template": "Bạn còn tiền phạt {amount}đ cho vi phạm #{violation_id}, hạn {due_date}.",
-            "default_channel": ["sms", "web"],
-            "available_variables": ["violation_id", "amount", "due_date"],
-            "allowed_entities": ["payment", "violation"],
-        },
-    ]
-    for t in templates:
-        exists = db.query(NotificationTemplate).filter(NotificationTemplate.template_code == t["template_code"]).first()
-        if exists:
-            continue
-        tpl = NotificationTemplate(
-            name=t["name"],
-            template_code=t["template_code"],
-            notification_type=t["notification_type"],
-            subject_template=t.get("subject_template"),
-            email_template=t.get("email_template"),
-            sms_template=t.get("sms_template"),
-            push_template=t.get("push_template"),
-            web_template=t.get("web_template"),
-            default_channel=t.get("default_channel"),
-            available_variables=t.get("available_variables"),
-            allowed_entities=t.get("allowed_entities"),
-            is_active=True,
-            version="1.0",
+    # 3. Handle Payment
+    payment_info = data.get("payment")
+    if payment_info and payment_info.get("is_paid"):
+        payment = Payment(
+            violation_id=violation.id,
+            vehicle_id=vehicle.id,
+            user_id=vehicle.owner_id,  # Assumes owner pays
+            payment_type=PaymentType.FINE_PAYMENT,
+            amount=fine,
+            original_fine=fine,
+            status=PaymentStatus.PAID.value,
+            payment_method=PaymentMethod.QR_CODE,
+            payment_gateway="MockGateway",
+            receipt_number=f"RCPT-{violation.id:06d}",
+            payer_name=vehicle.owner_name,
+            paid_at=datetime.utcnow(),
+            due_date=parse_date(payment_info.get("due_date")) or date.today(),
         )
-        db.add(tpl)
-    db.commit()
+        db.add(payment)
+        db.commit()
+        print(f"   💰 Paid violation {violation.id}")
+
+    print(f"   ✅ Created violation {violation.id} for {vehicle.license_plate}")
 
 
-def seed_system_configs(db: Session) -> None:
-    configs = [
-        ("ai.confidence_threshold", "0.75", "float", "Ngưỡng tin cậy AI mặc định"),
-        ("payment.late_penalty_rate", "0.10", "float", "Phạt chậm nộp 10%"),
-        ("notification.default_language", "vi", "string", "Ngôn ngữ mặc định"),
-    ]
-    for key, value, ctype, desc in configs:
-        exists = db.query(SystemConfig).filter(SystemConfig.config_key == key).first()
-        if exists:
-            continue
-        cfg = SystemConfig(
-            config_key=key,
-            config_value=value,
-            config_type=ctype,
-            description=desc,
-            is_active=1,
-        )
-        db.add(cfg)
-    db.commit()
+# ---------------- MAIN SEEDER LOGIC ----------------
 
 
-# ---------------- MAIN LOGIC ----------------
+def seed_from_json(file_path: str):
+    print(f"📂 Reading data from {file_path}...")
+    try:
+        with open(file_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+    except FileNotFoundError:
+        print("❌ File not found.")
+        sys.exit(1)
+    except json.JSONDecodeError as e:
+        print(f"❌ JSON Error: {e}")
+        sys.exit(1)
 
-def seed_core_data() -> None:
     db = SessionLocal()
     try:
-        # 1. Tạo User (role: 'admin', 'officer', or 'citizen')
-        target_user = get_or_create_user(
-            db, 
-            username="thongcris18", 
-            role="citizen",  # Changed from Role.USER to "citizen"
-            full_name="Chu Thành Thông",
-            identification_number="012345678901"
-        )
-        
-        # 2. Tạo Vehicle
-        vehicle = get_or_create_vehicle(
-            db,
-            license_plate="37A-018.04",
-            owner_id=target_user.id,
-            owner_name=target_user.full_name,
-            owner_phone="0912345678",
-            owner_email=target_user.email,
-        )
+        # 1. System Configs
+        print("--- Seeding Configs ---")
+        for conf in data.get("system_configs", []):
+            if (
+                not db.query(SystemConfig)
+                .filter(SystemConfig.config_key == conf["config_key"])
+                .first()
+            ):
+                db.add(SystemConfig(**conf))
+        db.commit()
 
-        # 3. Tạo Driving License (Quan trọng: Phải tạo trước khi tạo violation)
-        driving_license = get_or_create_driving_license(
-            db, 
-            license_number="NA-1990-000001",
-            user_id=target_user.id,
-            full_name=target_user.full_name
-        )
+        # 2. Notification Templates
+        print("--- Seeding Templates ---")
+        for tpl in data.get("notification_templates", []):
+            if (
+                not db.query(NotificationTemplate)
+                .filter(NotificationTemplate.template_code == tpl["template_code"])
+                .first()
+            ):
+                db.add(NotificationTemplate(**tpl))
+        db.commit()
 
-        # 4. Lấy Rules (Giả định Rules đã được seed ở bước trước)
-        rule_codes = [
-            "RED_LIGHT",
-            "SPEED_10_20",
-            "WRONG_LANE",
-            "STOP_NO_PARKING",
-            "WRONG_DIRECTION",
-        ]
-        rules = {
-            r.code: r
-            for r in db.query(ViolationRule).filter(ViolationRule.code.in_(rule_codes)).all()
-        }
+        # 3. Violation Rules
+        print("--- Seeding Rules ---")
+        for rule_data in data.get("violation_rules", []):
+            if (
+                not db.query(ViolationRule)
+                .filter(ViolationRule.code == rule_data["code"])
+                .first()
+            ):
+                # Convert floats/ints to Decimals where needed
+                for key in [
+                    "fine_min_car",
+                    "fine_max_car",
+                    "fine_min_bike",
+                    "fine_max_bike",
+                ]:
+                    if key in rule_data:
+                        rule_data[key] = Decimal(str(rule_data[key]))
+                db.add(ViolationRule(**rule_data))
+        db.commit()
 
-        # 5. Danh sách vi phạm cần tạo
-        violation_definitions = [
-            {
-                "rule_code": "RED_LIGHT",
-                "violation_type": "red_light",
-                "description": "Vượt đèn đỏ tại ngã tư Trần Phú - Lý Tự Trọng",
-                "camera_id": "CAM_01", 
-                "status": "approved",
-                "priority": "high",
-                "detected_at": datetime.now(timezone.utc) - timedelta(days=5, hours=3),
-                "paid": True,
-            },
-            {
-                "rule_code": "SPEED_10_20",
-                "violation_type": "overspeed",
-                "description": "Chạy quá tốc độ 15km/h trên đường Võ Nguyên Giáp",
-                "camera_id": "CAM_01",
-                "status": "approved",
-                "priority": "medium",
-                "detected_at": datetime.now(timezone.utc) - timedelta(days=3, hours=6),
-                "paid": True,
-            },
-            {
-                "rule_code": "WRONG_LANE",
-                "violation_type": "wrong_lane",
-                "description": "Đi không đúng làn đường trên cầu Rồng",
-                "camera_id": "CAM_01",
-                "status": "pending",
-                "priority": "high",
-                "detected_at": datetime.now(timezone.utc) - timedelta(days=2, hours=1),
-                "paid": False,
-            },
-            {
-                "rule_code": "STOP_NO_PARKING",
-                "violation_type": "illegal_parking",
-                "description": "Dừng đỗ tại khu vực cấm dừng trước bệnh viện",
-                "camera_id": "CAM_01",
-                "status": "reviewing",
-                "priority": "medium",
-                "detected_at": datetime.now(timezone.utc) - timedelta(days=1, hours=2),
-                "paid": False,
-            },
-            {
-                "rule_code": "WRONG_DIRECTION",
-                "violation_type": "wrong_direction",
-                "description": "Đi ngược chiều tại đường một chiều Nguyễn Du",
-                "camera_id": "CAM_01",
-                "status": "pending",
-                "priority": "high",
-                "detected_at": datetime.now(timezone.utc) - timedelta(hours=6),
-                "paid": False,
-            },
-        ]
+        # Cache rules for lookup
+        rules_map = {r.code: r for r in db.query(ViolationRule).all()}
 
-        # 6. Loop tạo vi phạm và thanh toán
-        for definition in violation_definitions:
-            rule = rules.get(definition["rule_code"])
-            if not rule:
-                print(f"⚠️ Không tìm thấy rule {definition['rule_code']} trong DB. Hãy chắc chắn bạn đã seed Rules trước.")
-                continue
+        # 4. Cameras
+        print("--- Seeding Cameras ---")
+        for cam_data in data.get("cameras", []):
+            get_or_create_camera(db, cam_data)
 
-            fine_amount = rule.fine_min_car or Decimal("500000")
-            points = rule.points_car or 0
+        # 5. Users
+        print("--- Seeding Users ---")
+        for user_data in data.get("users", []):
+            user = get_or_create_user(db, user_data)
 
-            violation = create_violation(
-                db,
-                license_plate=vehicle.license_plate,
-                driving_license_id=driving_license.id, 
-                violation_type=definition["violation_type"],
-                violation_description=definition["description"],
-                points_deducted=points,
-                fine_amount=fine_amount,
-                legal_reference=rule.law_reference,
-                detected_at=definition["detected_at"],
-                status=definition["status"],
-                priority=definition["priority"],
-                camera_id=definition["camera_id"],
-                vehicle_type="car",
-                vehicle_color="black",
-                vehicle_brand="Roll Royce",
-                violation_rule_id=rule.id 
-            )
+            # Vehicles nested in User (if any)
+            for v_data in user_data.get("vehicles", []):
+                # Ensure owner info matches user if not provided
+                if "owner_name" not in v_data:
+                    v_data["owner_name"] = user.full_name
+                if "owner_email" not in v_data:
+                    v_data["owner_email"] = user.email
+                get_or_create_vehicle(db, v_data, user.id)
 
-            if not getattr(violation, "violation_rule_id", None):
-                 violation.violation_rule_id = rule.id
-                 db.commit()
+            # Licenses nested in User (if any)
+            for l_data in user_data.get("licenses", []):
+                if "full_name" not in l_data:
+                    l_data["full_name"] = user.full_name
+                get_or_create_license(db, l_data, user.id)
 
-            create_payment_for_violation(
-                db,
-                violation,
-                user_id=target_user.id,
-                vehicle_id=vehicle.id,
-                paid=definition["paid"],
-            )
+        # 6. Root-level Vehicles (linked by owner_identification)
+        print("--- Seeding Vehicles ---")
+        for v_data in data.get("vehicles", []):
+            owner_id_num = v_data.get("owner_identification")
+            if owner_id_num:
+                owner = (
+                    db.query(User)
+                    .filter(User.identification_number == owner_id_num)
+                    .first()
+                )
+                if owner:
+                    get_or_create_vehicle(db, v_data, owner.id)
+                else:
+                    print(
+                        f"⚠️ Owner with ID {owner_id_num} not found for vehicle {v_data.get('license_plate')}. Skipping."
+                    )
+            else:
+                print(
+                    f"⚠️ No owner_identification for vehicle {v_data.get('license_plate')}. Skipping."
+                )
 
-        # 7. Seed notification templates and configs
-        seed_notification_templates(db)
-        seed_system_configs(db)
-        
-        print("✅ Seeding Core Data hoàn tất!")
-        
+        # 7. Root-level Driving Licenses (linked by identification or name)
+        print("--- Seeding Driving Licenses ---")
+        for l_data in data.get("driving_licenses", []):
+            # Try to find user by full_name or identification_number
+            full_name = l_data.get("full_name")
+            user = None
+            if full_name:
+                user = db.query(User).filter(User.full_name == full_name).first()
+
+            if user:
+                get_or_create_license(db, l_data, user.id)
+            else:
+                print(
+                    f"⚠️ User not found for license {l_data.get('license_number')}. Skipping."
+                )
+
+        # 8. Violations (Dependent on Vehicles, Rules, Cameras)
+        print("--- Seeding Violations ---")
+        for v_data in data.get("violations", []):
+            create_violation_transaction(db, v_data, rules_map)
+
+        print("\n✅ SEEDING COMPLETE SUCCESSFULLY!")
+
     except Exception as e:
-        print(f"❌ Lỗi Seeding: {e}")
+        print(f"\n❌ Error during seeding: {e}")
         db.rollback()
+        raise e
     finally:
         db.close()
 
 
 if __name__ == "__main__":
-    seed_core_data()
+    parser = argparse.ArgumentParser(description="Seed database from JSON file")
+    parser.add_argument(
+        "--file", type=str, default="seed_data.json", help="Path to JSON file"
+    )
+    args = parser.parse_args()
+
+    seed_from_json(args.file)

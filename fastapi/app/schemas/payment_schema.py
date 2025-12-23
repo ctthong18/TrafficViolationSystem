@@ -1,28 +1,29 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import Optional, List
-from pydantic import BaseModel
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel
 
 
 class PaymentStatus(str, Enum):
-    CREATED = "created"
-    PENDING = "pending"
-    PAID = "paid"
-    FAILED = "failed"
-    REFUNDED = "refunded"
-    CANCELLED = "cancelled"
+    CREATED = "CREATED"
+    PENDING = "PENDING"
+    PAID = "PAID"
+    FAILED = "FAILED"
+    REFUNDED = "REFUNDED"
+    CANCELLED = "CANCELLED"
 
 
 class PaymentMethod(str, Enum):
-    BANK_TRANSFER = "bank_transfer"
-    WALLET = "wallet"
-    QR_CODE = "qr_code"
+    BANK_TRANSFER = "BANK_TRANSFER"
+    WALLET = "WALLET"
+    QR_CODE = "QR_CODE"
 
 
 class PaymentType(str, Enum):
-    FINE_PAYMENT = "fine_payment"
-    WALLET_DEPOSIT = "wallet_deposit"
+    FINE_PAYMENT = "FINE_PAYMENT"
+    WALLET_DEPOSIT = "WALLET_DEPOSIT"
 
 
 # ========== Base Schema ==========

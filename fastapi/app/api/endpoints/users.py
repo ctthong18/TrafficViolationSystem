@@ -5,7 +5,7 @@ from app.models.user import User
 
 router = APIRouter()
 
-@router.get("/users")
+@router.get("/")
 def list_users(db: Session = Depends(get_db)):
     users = db.query(User).all()
     return [

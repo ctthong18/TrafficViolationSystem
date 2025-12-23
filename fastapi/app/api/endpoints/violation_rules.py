@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 from app.core.database import get_db
 from app.api.dependencies import get_current_user, require_roles, require_role
-from app.models.user import User
+from app.models.user import User, Role
 from app.schemas.violation_rule_schema import (
     ViolationRuleCreate,
     ViolationRuleUpdate,
@@ -46,7 +46,7 @@ def get_violation_rule(
 @router.post("/", response_model=ViolationRuleResponse)
 def create_violation_rule(
     payload: ViolationRuleCreate,
-    current_user: User = Depends(require_roles(["admin", "officer"])),
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.OFFICER.value])),
     db: Session = Depends(get_db),
 ):
     service = ViolationRuleService(db)
@@ -57,7 +57,7 @@ def create_violation_rule(
 def update_violation_rule(
     rule_id: int,
     payload: ViolationRuleUpdate,
-    current_user: User = Depends(require_roles(["admin", "officer"])),
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.OFFICER.value])),
     db: Session = Depends(get_db),
 ):
     service = ViolationRuleService(db)
@@ -67,7 +67,7 @@ def update_violation_rule(
 @router.delete("/{rule_id}")
 def delete_violation_rule(
     rule_id: int,
-    current_user: User = Depends(require_role("admin")),
+    current_user: User = Depends(require_role(Role.ADMIN.value)),
     db: Session = Depends(get_db),
 ):
     service = ViolationRuleService(db)
@@ -79,7 +79,7 @@ def delete_violation_rule(
 def apply_rule_to_violation(
     rule_id: int,
     violation_id: int,
-    current_user: User = Depends(require_roles(["admin", "officer"])),
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.OFFICER.value])),
     db: Session = Depends(get_db),
 ):
     service = ViolationRuleService(db)

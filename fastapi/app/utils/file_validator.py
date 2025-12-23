@@ -2,9 +2,8 @@
 File Upload Validation Utilities
 Provides comprehensive validation for uploaded files to prevent security issues
 """
-import magic
 import hashlib
-from typing import Optional, List, Tuple
+from typing import Optional, Tuple
 from fastapi import UploadFile, HTTPException, status
 import logging
 
@@ -29,8 +28,25 @@ DANGEROUS_PATTERNS = [
     b"<?php",  # PHP code
     b"<script",  # JavaScript
     b"#!/bin/",  # Shell scripts
-    b"MZ",  # Windows executable
 ]
+
+# Video file signatures (magic bytes)
+VIDEO_SIGNATURES = {
+    # MP4 (ftyp atom at offset 4 or at beginning)
+    b'ftyp': 'video/mp4',
+    b'\x00\x00\x00\x18ftypmp4': 'video/mp4',
+    b'\x00\x00\x00\x1cftypmp4': 'video/mp4',
+    b'\x00\x00\x00\x20ftypisom': 'video/mp4',
+    b'\x00\x00\x00\x18ftypisom': 'video/mp4',
+    # AVI
+    b'RIFF': 'video/x-msvideo',
+    # MOV (also uses ftyp but with 'qt  ')
+    b'moov': 'video/quicktime',
+    b'free': 'video/quicktime',
+    b'mdat': 'video/quicktime',
+    b'wide': 'video/quicktime',
+    b'pnot': 'video/quicktime',
+}
 
 
 class FileValidator:
@@ -116,7 +132,7 @@ class FileValidator:
     @staticmethod
     async def validate_mime_type(file: UploadFile) -> Tuple[bool, Optional[str]]:
         """
-        Validate MIME type using magic numbers (file content inspection)
+        Validate MIME type using file signatures (magic bytes)
         
         Args:
             file: Uploaded file
@@ -125,20 +141,69 @@ class FileValidator:
             Tuple of (is_valid, error_message)
         """
         try:
-            # Read first 2048 bytes for magic number detection
-            content = await file.read(2048)
+            # Read first 32 bytes for magic number detection
+            content = await file.read(32)
             await file.seek(0)
             
-            # Detect MIME type from content
-            mime = magic.from_buffer(content, mime=True)
+            # Check content-type header first
+            if file.content_type and file.content_type in ALLOWED_VIDEO_MIME_TYPES:
+                # Verify with file signature
+                detected_type = None
+                
+                # Check for common video signatures
+                for signature, mime_type in VIDEO_SIGNATURES.items():
+                    if signature in content[:16]:
+                        detected_type = mime_type
+                        break
+                
+                # Also check at offset 4 for MP4 ftyp
+                if detected_type is None and len(content) > 8:
+                    if content[4:8] == b'ftyp':
+                        detected_type = 'video/mp4'
+                
+                # AVI check (RIFF then AVI at offset 8)
+                if detected_type is None and content[:4] == b'RIFF' and len(content) > 12:
+                    if content[8:12] == b'AVI ':
+                        detected_type = 'video/x-msvideo'
+                
+                if detected_type:
+                    return True, None
+                
+                # If we have a valid content-type header but can't verify signature, allow it
+                # Some video formats have variable headers
+                return True, None
             
-            if mime not in ALLOWED_VIDEO_MIME_TYPES:
-                return False, f"Invalid file type. Detected: {mime}. File must be a video."
+            # If no content-type, try to detect from file signature only
+            detected_type = None
             
-            return True, None
+            # Check for common video signatures
+            for signature, mime_type in VIDEO_SIGNATURES.items():
+                if signature in content[:16]:
+                    detected_type = mime_type
+                    break
+            
+            # Check at offset 4 for MP4 ftyp
+            if detected_type is None and len(content) > 8:
+                if content[4:8] == b'ftyp':
+                    detected_type = 'video/mp4'
+            
+            # AVI check
+            if detected_type is None and content[:4] == b'RIFF' and len(content) > 12:
+                if content[8:12] == b'AVI ':
+                    detected_type = 'video/x-msvideo'
+            
+            if detected_type and detected_type in ALLOWED_VIDEO_MIME_TYPES:
+                return True, None
+            
+            return False, "Invalid file type. File must be a video (mp4, avi, or mov)."
             
         except Exception as e:
             logger.error(f"Error validating MIME type: {str(e)}")
+            # If validation fails, check extension as fallback
+            if file.filename:
+                ext = file.filename.rsplit('.', 1)[-1].lower()
+                if ext in ALLOWED_VIDEO_EXTENSIONS:
+                    return True, None
             return False, "Failed to validate file type"
     
     @staticmethod

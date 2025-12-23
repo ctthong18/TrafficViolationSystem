@@ -6,7 +6,7 @@ from app.schemas.user_schema import (
 )
 from app.schemas.violation_schema import (
     ViolationBase, ViolationCreate, ViolationUpdate, ViolationResponse,
-    ViolationListResponse, ViolationReview, AIProcessingRequest, AIProcessingResponse
+    ViolationListResponse, ViolationReview
 )
 from app.schemas.complaint_schema import (
     ComplaintBase, ComplaintCreate, ComplaintUpdate, ComplaintResponse,
@@ -23,7 +23,7 @@ __all__ = [
     
     # Violation schemas
     'ViolationBase', 'ViolationCreate', 'ViolationUpdate', 'ViolationResponse',
-    'ViolationListResponse', 'ViolationReview', 'AIProcessingRequest', 'AIProcessingResponse',
+    'ViolationListResponse', 'ViolationReview',
     
     # Complaint schemas
     'ComplaintBase', 'ComplaintCreate', 'ComplaintUpdate', 'ComplaintResponse',

@@ -1,13 +1,13 @@
 from fastapi import FastAPI
-from core.config import settings  
-from core.database import create_tables  
-from api.router import api_router 
+from app.core.config import settings  
+from app.core.database import create_tables  
+from app.api.router import api_router 
 
-from api.middleware.cors_middleware import setup_cors_middleware
-from api.middleware.logging_middleware import LoggingMiddleware
-from api.middleware.rate_limiting import RateLimitingMiddleware
-from api.middleware.error_handler import ErrorHandlerMiddleware
-from api.middleware.security_middleware import SecurityMiddleware
+from app.api.middleware.cors_middleware import setup_cors_middleware
+from app.api.middleware.logging_middleware import LoggingMiddleware
+from app.api.middleware.rate_limiting import RateLimitingMiddleware
+from app.api.middleware.error_handler import ErrorHandlerMiddleware
+from app.api.middleware.security_middleware import SecurityMiddleware
 
 app = FastAPI(
     title=settings.PROJECT_NAME,

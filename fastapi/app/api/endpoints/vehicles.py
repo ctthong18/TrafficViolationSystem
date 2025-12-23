@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 from app.core.database import get_db
 from app.api.dependencies import get_current_user, require_roles
-from app.models.user import User
+from app.models.user import User, Role
 from app.schemas.vehicle_schema import (
         VehicleCreate, VehicleResponse, VehicleUpdate
     )
@@ -27,7 +27,7 @@ async def get_vehicles(
     owner_name: Optional[str] = Query(None),
     skip: int = 0,
     limit: int = 50,
-    current_user: User = Depends(require_roles(["admin", "officer"])),
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.OFFICER.value])),
     db: Session = Depends(get_db)
 ):
     """Tìm kiếm phương tiện (Admin/Officer only)"""
@@ -59,7 +59,7 @@ async def get_vehicle_detail(
     vehicle = vehicle_service.get_vehicle_by_id(vehicle_id)
     
     # Kiểm tra quyền truy cập
-    if current_user.role == "citizen" and vehicle.owner_id != current_user.id:
+    if current_user.role == Role.CITIZEN.value and vehicle.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền xem thông tin phương tiện này"
@@ -79,7 +79,7 @@ async def update_vehicle(
     
     # Kiểm tra quyền sở hữu
     vehicle = vehicle_service.get_vehicle_by_id(vehicle_id)
-    if current_user.role == "citizen" and vehicle.owner_id != current_user.id:
+    if current_user.role == Role.CITIZEN.value and vehicle.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền cập nhật phương tiện này"
@@ -109,7 +109,7 @@ async def get_vehicle_violation_stats(
     
     # Kiểm tra quyền truy cập
     vehicle = vehicle_service.get_vehicle_by_id(vehicle_id)
-    if current_user.role == "citizen" and vehicle.owner_id != current_user.id:
+    if current_user.role == Role.CITIZEN.value and vehicle.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền xem thống kê phương tiện này"
@@ -128,7 +128,7 @@ async def get_vehicle_violations(
     
     # Kiểm tra quyền truy cập
     vehicle = vehicle_service.get_vehicle_by_id(vehicle_id)
-    if current_user.role == "citizen" and vehicle.owner_id != current_user.id:
+    if current_user.role == Role.CITIZEN.value and vehicle.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền xem vi phạm phương tiện này"
@@ -141,7 +141,7 @@ async def get_vehicle_violations(
 @router.get("/license-plate/{license_plate}", response_model=VehicleResponse)
 async def get_vehicle_by_license_plate(
     license_plate: str,
-    current_user: User = Depends(require_roles(["admin", "officer"])),
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.OFFICER.value])),
     db: Session = Depends(get_db)
 ):
     """Tìm phương tiện bằng biển số (Admin/Officer only)"""
@@ -167,7 +167,7 @@ async def get_vehicle_payment_history(
     
     # Kiểm tra quyền truy cập
     vehicle = vehicle_service.get_vehicle_by_id(vehicle_id)
-    if current_user.role == "citizen" and vehicle.owner_id != current_user.id:
+    if current_user.role == Role.CITIZEN.value and vehicle.owner_id != current_user.id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền xem lịch sử thanh toán phương tiện này"

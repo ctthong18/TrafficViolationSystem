@@ -1,23 +1,27 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, List
 from datetime import datetime
 from enum import Enum
+from typing import List, Optional
+
+from pydantic import BaseModel, EmailStr
+
 
 class DenunciationStatus(str, Enum):
-    PENDING = "pending"
-    VERIFYING = "verifying"
-    INVESTIGATING = "investigating"
-    RESOLVED = "resolved"
-    REJECTED = "rejected"
-    TRANSFERRED = "transferred"
+    PENDING = "PENDING"
+    VERIFYING = "VERIFYING"
+    INVESTIGATING = "INVESTIGATING"
+    RESOLVED = "RESOLVED"
+    REJECTED = "REJECTED"
+    TRANSFERRED = "TRANSFERRED"
+
 
 class DenunciationType(str, Enum):
-    CORRUPTION = "corruption"
-    ABUSE_OF_POWER = "abuse_of_power"
-    VIOLATION_COVER_UP = "violation_cover_up"
-    FRAUD = "fraud"
-    SYSTEM_MANIPULATION = "system_manipulation"
-    OTHER_ILLEGAL = "other_illegal"
+    CORRUPTION = "CORRUPTION"
+    ABUSE_OF_POWER = "ABUSE_OF_POWER"
+    VIOLATION_COVER_UP = "VIOLATION_COVER_UP"
+    FRAUD = "FRAUD"
+    SYSTEM_MANIPULATION = "SYSTEM_MANIPULATION"
+    OTHER_ILLEGAL = "OTHER_ILLEGAL"
+
 
 class DenunciationBase(BaseModel):
     title: str
@@ -26,6 +30,7 @@ class DenunciationBase(BaseModel):
     is_anonymous: bool = True
     contact_preference: Optional[str] = None
     can_contact: bool = False
+
 
 class DenunciationCreate(DenunciationBase):
     informant_name: Optional[str] = None
@@ -43,12 +48,14 @@ class DenunciationCreate(DenunciationBase):
     urgency_level: str = "normal"
     is_whistleblower: bool = False
 
+
 class DenunciationUpdate(BaseModel):
     status: Optional[DenunciationStatus] = None
     assigned_investigator_id: Optional[int] = None
     investigation_notes: Optional[str] = None
     resolution: Optional[str] = None
     security_level: Optional[str] = None
+
 
 class DenunciationResponse(DenunciationBase):
     id: int
@@ -80,11 +87,13 @@ class DenunciationResponse(DenunciationBase):
     class Config:
         from_attributes = True
 
+
 class DenunciationListResponse(BaseModel):
     denunciations: List[DenunciationResponse]
     total: int
     page: int
     size: int
+
 
 class DenunciationActivityResponse(BaseModel):
     id: int
@@ -96,6 +105,7 @@ class DenunciationActivityResponse(BaseModel):
     class Config:
         from_attributes = True
 
+
 class DenunciationStatsResponse(BaseModel):
     total_denunciations: int
     by_status: dict
@@ -103,6 +113,7 @@ class DenunciationStatsResponse(BaseModel):
     by_severity: dict
     resolution_rate: float
     average_processing_time: float
+
 
 class DenunciationExportResponse(BaseModel):
     denunciation_code: str

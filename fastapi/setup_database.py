@@ -44,15 +44,8 @@ from app.models.user import Role, User
 
 # --- IMPORT THE NEW SEEDER ---
 # Assuming you saved the previous solution as app/core/seeder.py
-try:
-    from app.core.seeder import seed_from_json
-except ImportError:
-    # Fallback if you overwrote app/seed_data.py
-    try:
-        from app.seed_data import seed_from_json
-    except ImportError:
-        print("❌ Could not find 'seed_from_json'. Please check file structure.")
-        sys.exit(1)
+
+from app.core.seeder import seed_data
 
 
 def create_admin_user(db):

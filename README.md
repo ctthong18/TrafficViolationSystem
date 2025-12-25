@@ -1,3 +1,7 @@
+# Traffic Violation System
+
+A modern, full-stack application for managing and processing traffic violations using AI-assisted detection.
+
 ## 📋 Prerequisites
 
 ### 1. Core Runtimes
@@ -47,13 +51,32 @@ source venv/bin/activate
 
 # Install dependencies
 pip install -r requirements.txt
+```
+### 3. Configure Environment
+Create a `.env` file in the `fastapi` directory and paste the following configuration:
 
-# Configure Environment
-# Copy .env.example to .env (if exists) and update DATABASE_URL and REDIS_URL
-# Example: DATABASE_URL=postgresql://postgres:password@localhost:5432/traffic_db
+```env
+# Database
+DATABASE_URL=postgresql://<postgres_user>:<postgres_password>@localhost:5432/<postgres_db>
+
+# Security
+SECRET_KEY=yoursecretkeyhere_change_this_for_production
+ALGORITHM=HS256
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+
+# Redis & Celery
+REDIS_URL=redis://localhost:6379/0
+CELERY_BROKER_URL=redis://localhost:6379/0
+CELERY_RESULT_BACKEND=redis://localhost:6379/0
+
+# Cloudinary (Optional - for evidence storage)
+cloudinary_cloud_name=your_cloud_name
+cloudinary_api_key=your_api_key
+cloudinary_api_secret=your_api_secret
 ```
 
-Run migrations and seed the database:
+### 4. Database Migrations & Seeding
+Run the following commands in the `fastapi` directory:
 ```bash
 # Apply migrations
 alembic upgrade head
@@ -62,7 +85,7 @@ alembic upgrade head
 python seed_data.py
 ```
 
-### 3. Frontend Setup (Next.js)
+### 5. Frontend Setup (Next.js)
 In a new terminal, navigate to the `frontend` directory:
 
 ```bash
@@ -105,6 +128,13 @@ The web app will be available at `http://localhost:3000`.
 
 ## 🔑 Default Credentials
 After seeding, you can log in with:
-- **Admin:** `admin` / `password123`
-- **Officer:** `officer1` / `password123`
-- **Citizen:** `citizen1` / `password123`
+- **Admin:** `admin` / `admin123`
+
+Then you can create new Officer (inside Admin portal) and Citizen users (Register page).
+
+## API Documentation
+Once the server is running, you can access the interactive documentation at:
+- **Swagger UI:** `http://localhost:8000/docs`
+- **ReDoc:** `http://localhost:8000/redoc`
+
+Or you can checkout the folder **fastapi/app/api/docs**

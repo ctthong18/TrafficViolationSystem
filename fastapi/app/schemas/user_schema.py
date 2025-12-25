@@ -1,7 +1,14 @@
+import enum
 from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel, EmailStr
+
+
+class Role(str, enum.Enum):
+    ADMIN = "ADMIN"
+    OFFICER = "OFFICER"
+    CITIZEN = "CITIZEN"
 
 
 class UserBase(BaseModel):
@@ -16,7 +23,7 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     password: str
-    role: str = "citizen"
+    role: Role = Role.CITIZEN
 
 
 class UserUpdate(BaseModel):
@@ -30,7 +37,7 @@ class UserUpdate(BaseModel):
 
 class UserResponse(UserBase):
     id: int
-    role: str
+    role: Role
     is_active: bool
     last_login: Optional[datetime] = None
     created_at: datetime

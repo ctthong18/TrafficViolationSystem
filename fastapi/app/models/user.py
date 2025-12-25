@@ -6,6 +6,7 @@ from sqlalchemy import (
     Boolean,
     Column,
     DateTime,
+    Enum,
     ForeignKey,
     Integer,
     String,
@@ -16,10 +17,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class Role(str, enum.Enum):
-    ADMIN = "ADMIN"
-    OFFICER = "OFFICER"
-    CITIZEN = "CITIZEN"
+from app.schemas.user_schema import Role
 
 
 class User(Base, TimestampMixin):
@@ -32,7 +30,7 @@ class User(Base, TimestampMixin):
     full_name = Column(String(255), nullable=False)
 
     # Role-based access control
-    role = Column(String(50), nullable=False)
+    role = Column(Enum(Role), nullable=False, default=Role.CITIZEN)
     permissions = Column(JSONB)
 
     # Contact info

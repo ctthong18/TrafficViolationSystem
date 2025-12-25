@@ -19,30 +19,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class PaymentStatus(str, enum.Enum):
-    CREATED = "created"
-    PENDING = "pending"
-    PAID = "paid"
-    FAILED = "failed"
-    REFUNDED = "refunded"
-    CANCELLED = "cancelled"
-
-
-class PaymentMethod(str, enum.Enum):
-    WALLET = "wallet"
-    BANK_TRANSFER = "bank_transfer"
-    CREDIT_CARD = "credit_card"
-    E_WALLET = "e_wallet"
-    CASH = "cash"
-    BANKING = "banking"
-    QR_CODE = "qr_code"
-
-
-class PaymentType(str, enum.Enum):
-    FINE_PAYMENT = "fine_payment"
-    WALLET_DEPOSIT = "wallet_deposit"
-    WALLET_WITHDRAW = "wallet_withdraw"
-    REFUND = "refund"
+from app.schemas.payment_schema import PaymentMethod, PaymentStatus, PaymentType
 
 
 class Payment(Base, TimestampMixin):
@@ -55,12 +32,7 @@ class Payment(Base, TimestampMixin):
     user_id = Column(Integer, ForeignKey("users.id"), index=True)
 
     payment_type = Column(
-        Enum(
-            PaymentType,
-            name="paymenttype",
-            values_callable=lambda x: [e.value for e in x],  # dùng value thay vì name
-            native_enum=False,
-        ),
+        Enum(PaymentType),
         nullable=False,
     )
 
@@ -70,22 +42,12 @@ class Payment(Base, TimestampMixin):
     discount_amount = Column(DECIMAL(15, 2), default=0)
 
     status = Column(
-        Enum(
-            PaymentStatus,
-            name="paymentstatus",
-            values_callable=lambda x: [e.value for e in x],
-            native_enum=False,
-        ),
-        default=PaymentStatus.PENDING.value,
+        Enum(PaymentStatus),
+        default=PaymentStatus.PENDING,
         nullable=False,
     )
     payment_method = Column(
-        Enum(
-            PaymentMethod,
-            name="paymentmethod",
-            values_callable=lambda x: [e.value for e in x],  # dùng value thay vì name
-            native_enum=False,  # optional, đảm bảo SQLAlchemy không ép kiểu name
-        ),
+        Enum(PaymentMethod),
         nullable=True,
     )
     payment_gateway = Column(String(100))

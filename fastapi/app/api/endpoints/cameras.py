@@ -1,21 +1,21 @@
+from datetime import datetime
 from typing import Optional
 
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
+from app.api.dependencies import get_current_user, require_role, require_roles
 from app.core.database import get_db
-from app.api.dependencies import get_current_user, require_roles, require_role
-from app.models.user import User, Role
+from app.models.CameraVideo import CameraVideo
+from app.models.user import Role, User
 from app.schemas.camera_schema import (
     CameraCreate,
-    CameraUpdate,
-    CameraResponse,
     CameraListResponse,
+    CameraResponse,
+    CameraUpdate,
 )
 from app.schemas.video_schema import VideoListResponse, VideoResponse
 from app.services.camera_service import CameraService
-from app.models.CameraVideo import CameraVideo
-from datetime import datetime
 
 router = APIRouter()
 
@@ -30,7 +30,9 @@ def list_cameras(
     db: Session = Depends(get_db),
 ):
     service = CameraService(db)
-    items, total = service.list_cameras(skip=skip, limit=limit, status=status, search=search)
+    items, total = service.list_cameras(
+        skip=skip, limit=limit, status=status, search=search
+    )
     return CameraListResponse(
         items=items,
         total=total,
@@ -94,59 +96,62 @@ def get_camera_videos(
 ):
     """
     Get all videos for a specific camera with filtering and pagination
-    
+
     - **camera_id**: ID of the camera
     - **skip**: Number of records to skip (for pagination)
     - **limit**: Maximum number of records to return
     - **has_violations**: Filter by videos with/without violations
     - **date_from**: Filter videos from this date (ISO format)
     - **date_to**: Filter videos until this date (ISO format)
-    
+
     Returns paginated list of videos
     """
-    from fastapi import HTTPException, status
     import logging
-    
+
+    from fastapi import HTTPException, status
+
     logger = logging.getLogger(__name__)
     logger.info(f"User {current_user.id} fetching videos for camera {camera_id}")
-    
+
     # Get camera using service to verify it exists
     service = CameraService(db)
     camera = service.get_camera(camera_id)
-    
+
     # Build query using the numeric camera.id
     query = db.query(CameraVideo).filter(CameraVideo.camera_id == camera.id)
-    
+
     # Apply filters
     if has_violations is not None:
         query = query.filter(CameraVideo.has_violations == has_violations)
-    
+
     if date_from:
         try:
-            date_from_dt = datetime.fromisoformat(date_from.replace('Z', '+00:00'))
+            date_from_dt = datetime.fromisoformat(date_from.replace("Z", "+00:00"))
             query = query.filter(CameraVideo.created_at >= date_from_dt)
         except ValueError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_from format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"
+                detail="Invalid date_from format. Use ISO format (YYYY-MM-DDTHH:MM:SS)",
             )
-    
+
     if date_to:
         try:
-            date_to_dt = datetime.fromisoformat(date_to.replace('Z', '+00:00'))
+            date_to_dt = datetime.fromisoformat(date_to.replace("Z", "+00:00"))
             query = query.filter(CameraVideo.created_at <= date_to_dt)
         except ValueError:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Invalid date_to format. Use ISO format (YYYY-MM-DDTHH:MM:SS)"
+                detail="Invalid date_to format. Use ISO format (YYYY-MM-DDTHH:MM:SS)",
             )
-    
+
     # Get total count
     total = query.count()
-    
+
     # Apply pagination and ordering
-    videos = query.order_by(CameraVideo.created_at.desc()).offset(skip).limit(limit).all()
-    
+    videos = (
+        query.order_by(CameraVideo.created_at.desc()).offset(skip).limit(limit).all()
+    )
+
     # Convert to response models
     video_responses = [
         VideoResponse(
@@ -163,16 +168,14 @@ def get_camera_videos(
             processed_at=video.processed_at,
             processing_status=video.processing_status,
             has_violations=video.has_violations,
-            violation_count=video.violation_count
+            violation_count=video.violation_count,
         )
         for video in videos
     ]
-    
+
     return VideoListResponse(
         videos=video_responses,
         total=total,
         page=(skip // limit + 1) if limit > 0 else 1,
-        size=limit
+        size=limit,
     )
-
-

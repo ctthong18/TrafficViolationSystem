@@ -144,7 +144,7 @@ class TestAuthentication(unittest.TestCase):
             "full_name": f"Officer {suffix}",
             "identification_number": f"OFF-{suffix}",
             "password": "Officer123",
-            "role": "officer",
+            "role": "OFFICER",
             "badge_number": f"B-{suffix}",
             "department": "Traffic Control",
         }

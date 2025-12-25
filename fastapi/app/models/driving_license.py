@@ -7,6 +7,7 @@ from sqlalchemy import (
     Column,
     Date,
     DateTime,
+    Enum,
     ForeignKey,
     Integer,
     String,
@@ -16,24 +17,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class LicenseStatus(str, enum.Enum):
-    ACTIVE = "active"
-    SUSPENDED = "suspended"
-    REVOKED = "revoked"
-    EXPIRED = "expired"
-
-
-class LicenseClass(enum.Enum):
-    A1 = "A1"  # Xe máy dưới 175cc
-    A2 = "A2"  # Xe máy trên 175cc
-    A3 = "A3"  # Xe máy 3 bánh
-    A4 = "A4"  # Xe máy kéo rơ moóc
-    B1 = "B1"  # Ô tô số tự động
-    B2 = "B2"  # Ô tô dưới 9 chỗ
-    C = "C"  # Ô tô tải
-    D = "D"  # Ô tô khách
-    E = "E"  # Ô tô kéo rơ moóc
-    F = "F"  # Tất cả các hạng
+from app.schemas.driving_license_schema import LicenseClass, LicenseStatus
 
 
 class DrivingLicense(Base, TimestampMixin):
@@ -44,7 +28,7 @@ class DrivingLicense(Base, TimestampMixin):
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
 
     # License information
-    license_class = Column(String(10), nullable=False)  # Hạng GPLX
+    license_class = Column(Enum(LicenseClass), nullable=False)  # Hạng GPLX
     full_name = Column(String(255), nullable=False)
     date_of_birth = Column(Date, nullable=False)
     nationality = Column(String(100), default="Việt Nam")
@@ -61,7 +45,7 @@ class DrivingLicense(Base, TimestampMixin):
     points_reset_date = Column(Date)  # Ngày reset điểm (sau 1 năm)
 
     # Status
-    status = Column(String(50), default=LicenseStatus.ACTIVE.value)
+    status = Column(Enum(LicenseStatus), default=LicenseStatus.ACTIVE)
     suspension_start = Column(Date)  # Ngày bắt đầu tạm giữ
     suspension_end = Column(Date)  # Ngày kết thúc tạm giữ
     revocation_reason = Column(String(500))  # Lý do thu hồi

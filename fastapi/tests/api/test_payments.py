@@ -19,7 +19,7 @@ class TestPayments(unittest.TestCase):
     def test_01_deposit_to_wallet(self):
         name = "Deposit to Wallet"
         url = f"{BASE_URL}/payments/wallet/deposit"
-        params = {"amount": 500000, "payment_method": "bank_transfer"}
+        params = {"amount": 500000, "payment_method": "BANK_TRANSFER"}
         try:
             response = requests.post(
                 url, headers=get_headers(test_data, with_auth=True), params=params

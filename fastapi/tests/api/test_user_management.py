@@ -46,7 +46,7 @@ class TestUserManagement(unittest.TestCase):
     def test_02_filter_users_by_role_officer(self):
         name = "Filter Users by Role=officer"
         url = f"{BASE_URL}/admin/users"
-        params = {"role": "officer", "limit": 5}
+        params = {"role": "OFFICER", "limit": 5}
         try:
             response = requests.get(
                 url, headers=get_headers(test_data, with_auth=True), params=params
@@ -60,7 +60,7 @@ class TestUserManagement(unittest.TestCase):
             )
             for user in response_data:
                 self.assertEqual(
-                    user.get("role"), "officer", "User role is not 'officer'"
+                    user.get("role"), "OFFICER", "User role is not 'officer'"
                 )
             log_test_case(name, "PASS")
         except Exception as e:

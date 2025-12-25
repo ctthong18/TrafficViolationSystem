@@ -1,5 +1,6 @@
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user, require_roles
@@ -13,7 +14,6 @@ from app.schemas.violation_schema import (
     ViolationResponse,
 )
 from app.services.violation_service import ViolationService
-from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 router = APIRouter()
 
@@ -34,7 +34,7 @@ def get_violations(
     violations: List[Violation] = []
     total: int = 0
 
-    if current_user.role == Role.CITIZEN.value:
+    if current_user.role == Role.CITIZEN:
         # Citizen chỉ xem được vi phạm của mình
         from app.services.vehicle_service import VehicleService
 

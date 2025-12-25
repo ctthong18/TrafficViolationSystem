@@ -1,0 +1,44 @@
+# CameraUpdate
+
+
+## Properties
+
+Name | Type | Description | Notes
+------------ | ------------- | ------------- | -------------
+**name** | **string** |  | [optional] [default to undefined]
+**location_name** | **string** |  | [optional] [default to undefined]
+**latitude** | **number** |  | [optional] [default to undefined]
+**longitude** | **number** |  | [optional] [default to undefined]
+**address** | **string** |  | [optional] [default to undefined]
+**camera_type** | **string** |  | [optional] [default to undefined]
+**resolution** | **string** |  | [optional] [default to undefined]
+**status** | **string** |  | [optional] [default to undefined]
+**enabled_detections** | **{ [key: string]: any; }** |  | [optional] [default to undefined]
+**ai_model_version** | **string** |  | [optional] [default to undefined]
+**confidence_threshold** | **number** |  | [optional] [default to undefined]
+**last_maintenance** | **string** |  | [optional] [default to undefined]
+**next_maintenance** | **string** |  | [optional] [default to undefined]
+
+## Example
+
+```typescript
+import { CameraUpdate } from './api';
+
+const instance: CameraUpdate = {
+    name,
+    location_name,
+    latitude,
+    longitude,
+    address,
+    camera_type,
+    resolution,
+    status,
+    enabled_detections,
+    ai_model_version,
+    confidence_threshold,
+    last_maintenance,
+    next_maintenance,
+};
+```
+
+[[Back to Model list]](../README.md#documentation-for-models) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to README]](../README.md)

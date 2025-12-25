@@ -16,14 +16,20 @@ class PaymentStatus(str, Enum):
 
 
 class PaymentMethod(str, Enum):
-    BANK_TRANSFER = "BANK_TRANSFER"
     WALLET = "WALLET"
+    BANK_TRANSFER = "BANK_TRANSFER"
+    CREDIT_CARD = "CREDIT_CARD"
+    E_WALLET = "E_WALLET"
+    CASH = "CASH"
+    BANKING = "BANKING"
     QR_CODE = "QR_CODE"
 
 
 class PaymentType(str, Enum):
     FINE_PAYMENT = "FINE_PAYMENT"
     WALLET_DEPOSIT = "WALLET_DEPOSIT"
+    WALLET_WITHDRAW = "WALLET_WITHDRAW"
+    REFUND = "REFUND"
 
 
 # ========== Base Schema ==========

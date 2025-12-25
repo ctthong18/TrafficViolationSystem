@@ -2,8 +2,10 @@ from typing import List, Optional
 
 from sqlalchemy.orm import Session
 
+from app.models.payment import PaymentStatus
 from app.models.user import User
 from app.models.vehicle import Vehicle
+from app.models.violation import ViolationStatus
 from app.schemas.vehicle_schema import VehicleCreate, VehicleUpdate
 from app.utils.validators import validate_license_plate
 from fastapi import HTTPException, status
@@ -131,7 +133,7 @@ class VehicleService:
             self.db.query(Violation)
             .filter(
                 Violation.license_plate == vehicle.license_plate,
-                Violation.status == "approved",
+                Violation.status == ViolationStatus.APPROVED.value,
             )
             .count()
         )
@@ -141,7 +143,7 @@ class VehicleService:
             .join(Violation)
             .filter(
                 Violation.license_plate == vehicle.license_plate,
-                Payment.status == "paid",
+                Payment.status == PaymentStatus.PAID.value,
             )
             .with_entities(Payment.amount)
             .all()

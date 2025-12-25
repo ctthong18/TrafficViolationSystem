@@ -44,8 +44,8 @@ class DenunciationCreate(DenunciationBase):
     related_violation_id: Optional[int] = None
     related_user_id: Optional[int] = None
     evidence_urls: Optional[List[str]] = None
-    severity_level: str = "medium"
-    urgency_level: str = "normal"
+    severity_level: str = "MEDIUM"
+    urgency_level: str = "NORMAL"
     is_whistleblower: bool = False
 
 

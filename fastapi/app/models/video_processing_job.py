@@ -7,16 +7,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class JobType(enum.Enum):
-    UPLOAD = "UPLOAD"
-    THUMBNAIL = "THUMBNAIL"
-
-
-class JobStatus(enum.Enum):
-    PENDING = "PENDING"
-    PROCESSING = "PROCESSING"
-    COMPLETED = "COMPLETED"
-    FAILED = "FAILED"
+from app.schemas.video_schema import JobStatus, JobType
 
 
 class VideoProcessingJob(Base, TimestampMixin):

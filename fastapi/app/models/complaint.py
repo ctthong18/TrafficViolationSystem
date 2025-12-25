@@ -17,21 +17,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class ComplaintStatus(enum.Enum):
-    PENDING = "PENDING"
-    UNDER_REVIEW = "UNDER_REVIEW"
-    RESOLVED = "RESOLVED"
-    REJECTED = "REJECTED"
-    CANCELLED = "CANCELLED"
-
-
-class ComplaintType(enum.Enum):
-    VIOLATION_DISPUTE = "VIOLATION_DISPUTE"  # Khiếu nại vi phạm
-    FALSE_POSITIVE = "FALSE_POSITIVE"  # Báo cáo sai
-    MISSING_VIOLATION = "MISSING_VIOLATION"  # Thiếu vi phạm
-    OFFICER_BEHAVIOR = "OFFICER_BEHAVIOR"  # Hành vi cán bộ
-    SYSTEM_ERROR = "SYSTEM_ERROR"  # Lỗi hệ thống
-    OTHER = "OTHER"
+from app.schemas.complaint_schema import ComplaintStatus, ComplaintType
 
 
 class Complaint(Base, TimestampMixin):

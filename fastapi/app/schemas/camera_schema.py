@@ -1,5 +1,6 @@
-from typing import Optional, List
-from datetime import datetime, date
+from datetime import date, datetime
+from typing import List, Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -12,7 +13,7 @@ class CameraBase(BaseModel):
     address: Optional[str] = None
     camera_type: Optional[str] = None
     resolution: Optional[str] = None
-    status: Optional[str] = "online"
+    status: Optional[str] = "ONLINE"
     enabled_detections: Optional[dict] = None
     ai_model_version: Optional[str] = None
     confidence_threshold: Optional[float] = None
@@ -56,5 +57,3 @@ class CameraListResponse(BaseModel):
     total: int
     page: int
     size: int
-
-

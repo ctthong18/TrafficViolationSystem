@@ -1,0 +1,52 @@
+(node:29788) ExperimentalWarning: CommonJS module C:\Users\Asus\AppData\Roaming\nvm\v23.1.0\node_modules\npm\node_modules\debug\src\node.js is loading ES Module C:\Users\Asus\AppData\Roaming\nvm\v23.1.0\node_modules\npm\node_modules\supports-color\index.js using require().
+Support for loading ES Module in require() is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+src/app/admin/(protected)/users/page.tsx(51,5): error TS2820: Type '"citizen"' is not assignable to type 'Role | undefined'. Did you mean '"CITIZEN"'?
+src/app/admin/(protected)/users/page.tsx(78,21): error TS2339: Property 'items' does not exist on type 'UserListResponse'.
+src/app/admin/(protected)/users/page.tsx(103,9): error TS2820: Type '"citizen"' is not assignable to type 'Role | undefined'. Did you mean '"CITIZEN"'?
+src/app/admin/(protected)/users/page.tsx(189,19): error TS2322: Type 'string | null | undefined' is not assignable to type 'string | number | readonly string[] | undefined'.
+  Type 'null' is not assignable to type 'string | number | readonly string[] | undefined'.
+src/app/citizen/(protected)/vehicles/page.tsx(47,5): error TS2353: Object literal may only specify known properties, and 'brand' does not exist in type 'VehicleCreate | (() => VehicleCreate)'.
+src/app/citizen/(protected)/vehicles/page.tsx(88,9): error TS2353: Object literal may only specify known properties, and 'brand' does not exist in type 'SetStateAction<VehicleCreate>'.
+src/app/citizen/(protected)/vehicles/page.tsx(173,37): error TS2339: Property 'brand' does not exist on type 'VehicleCreate'.
+src/app/citizen/(protected)/vehicles/page.tsx(174,67): error TS2353: Object literal may only specify known properties, and 'brand' does not exist in type 'SetStateAction<VehicleCreate>'.
+src/app/citizen/(protected)/vehicles/page.tsx(182,37): error TS2339: Property 'model' does not exist on type 'VehicleCreate'.
+src/app/citizen/(protected)/vehicles/page.tsx(183,67): error TS2353: Object literal may only specify known properties, and 'model' does not exist in type 'SetStateAction<VehicleCreate>'.
+src/app/citizen/(protected)/vehicles/page.tsx(191,37): error TS2339: Property 'color' does not exist on type 'VehicleCreate'.
+src/app/citizen/(protected)/vehicles/page.tsx(192,67): error TS2353: Object literal may only specify known properties, and 'color' does not exist in type 'SetStateAction<VehicleCreate>'.
+src/app/citizen/(protected)/vehicles/page.tsx(203,37): error TS2339: Property 'year' does not exist on type 'VehicleCreate'.
+src/app/citizen/(protected)/vehicles/page.tsx(204,67): error TS2353: Object literal may only specify known properties, and 'year' does not exist in type 'SetStateAction<VehicleCreate>'.
+src/app/citizen/(protected)/vehicles/page.tsx(282,32): error TS2339: Property 'brand' does not exist on type 'VehicleResponse'.
+src/app/citizen/(protected)/vehicles/page.tsx(282,48): error TS2339: Property 'model' does not exist on type 'VehicleResponse'.
+src/app/citizen/(protected)/vehicles/page.tsx(284,41): error TS2339: Property 'color' does not exist on type 'VehicleResponse'.
+src/app/citizen/(protected)/vehicles/page.tsx(285,41): error TS2339: Property 'year' does not exist on type 'VehicleResponse'.
+src/app/citizen/(protected)/vehicles/page.tsx(287,32): error TS2339: Property 'created_at' does not exist on type 'VehicleResponse'.
+src/app/citizen/(protected)/vehicles/page.tsx(288,44): error TS2339: Property 'created_at' does not exist on type 'VehicleResponse'.
+src/app/officer/(protected)/citizens/CitizenDetailDialog.tsx(289,77): error TS2339: Property 'brand' does not exist on type 'VehicleResponse'.
+src/app/officer/(protected)/citizens/CitizenDetailDialog.tsx(289,93): error TS2339: Property 'model' does not exist on type 'VehicleResponse'.
+src/app/officer/(protected)/citizens/CitizenDetailDialog.tsx(290,77): error TS2339: Property 'color' does not exist on type 'VehicleResponse'.
+src/app/officer/(protected)/citizens/page.tsx(75,24): error TS2339: Property 'items' does not exist on type 'UserListResponse'.
+src/app/officer/(protected)/complaints/ComplaintDetailDialog.tsx(135,82): error TS2339: Property 'InReview' does not exist on type '{ readonly Pending: "PENDING"; readonly UnderReview: "UNDER_REVIEW"; readonly Resolved: "RESOLVED"; readonly Rejected: "REJECTED"; readonly Cancelled: "CANCELLED"; }'.
+src/app/officer/(protected)/complaints/page.tsx(97,34): error TS2339: Property 'InReview' does not exist on type '{ readonly Pending: "PENDING"; readonly UnderReview: "UNDER_REVIEW"; readonly Resolved: "RESOLVED"; readonly Rejected: "REJECTED"; readonly Cancelled: "CANCELLED"; }'.
+src/app/officer/(protected)/complaints/page.tsx(159,135): error TS2339: Property 'InReview' does not exist on type '{ readonly Pending: "PENDING"; readonly UnderReview: "UNDER_REVIEW"; readonly Resolved: "RESOLVED"; readonly Rejected: "REJECTED"; readonly Cancelled: "CANCELLED"; }'.
+src/app/officer/(protected)/complaints/page.tsx(193,61): error TS2339: Property 'InReview' does not exist on type '{ readonly Pending: "PENDING"; readonly UnderReview: "UNDER_REVIEW"; readonly Resolved: "RESOLVED"; readonly Rejected: "REJECTED"; readonly Cancelled: "CANCELLED"; }'.
+src/app/officer/(protected)/dashboard/page.tsx(52,23): error TS2345: Argument of type 'RecentActivityResponse[]' is not assignable to parameter of type 'SetStateAction<RecentActivity[]>'.
+  Type 'RecentActivityResponse[]' is not assignable to type 'RecentActivity[]'.
+    Type 'RecentActivityResponse' is missing the following properties from type 'RecentActivity': action, description, timestamp
+src/app/officer/(protected)/patrol/page.tsx(74,19): error TS2339: Property 'owner_id' does not exist on type 'VehicleResponse'.
+src/app/officer/(protected)/patrol/page.tsx(140,29): error TS2304: Cannot find name 'RefreshCw'.
+src/app/officer/(protected)/patrol/page.tsx(174,72): error TS2339: Property 'brand' does not exist on type 'VehicleResponse'.
+src/app/officer/(protected)/patrol/page.tsx(174,88): error TS2339: Property 'model' does not exist on type 'VehicleResponse'.
+src/app/officer/(protected)/patrol/page.tsx(296,36): error TS2304: Cannot find name 'Calendar'.
+src/app/officer/(protected)/patrol/page.tsx(304,49): error TS2367: This comparison appears to be unintentional because the types 'ViolationStatus' and '"paid"' have no overlap.
+src/app/officer/(protected)/record/page.tsx(57,21): error TS2345: Argument of type 'RecentActivityResponse[]' is not assignable to parameter of type 'SetStateAction<OfficerActivity[]>'.
+  Type 'RecentActivityResponse[]' is not assignable to type 'OfficerActivity[]'.
+    Type 'RecentActivityResponse' is missing the following properties from type 'OfficerActivity': activity_type, description, timestamp
+src/app/officer/(protected)/violations/ViolationDetailDialog.tsx(254,68): error TS2769: No overload matches this call.
+  Overload 1 of 4, '(value: string | number | Date): Date', gave the following error.
+    Argument of type 'string | null' is not assignable to parameter of type 'string | number | Date'.
+      Type 'null' is not assignable to type 'string | number | Date'.
+  Overload 2 of 4, '(value: string | number): Date', gave the following error.
+    Argument of type 'string | null' is not assignable to parameter of type 'string | number'.
+      Type 'null' is not assignable to type 'string | number'.
+src/components/theme-provider.tsx(5,41): error TS2307: Cannot find module 'next-themes/dist/types' or its corresponding type declarations.

@@ -16,11 +16,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class ProcessingStatus(enum.Enum):
-    PENDING = "PENDING"
-    PROCESSING = "PROCESSING"
-    COMPLETED = "COMPLETED"
-    FAILED = "FAILED"
+from app.schemas.video_schema import ProcessingStatus
 
 
 class CameraVideo(Base, TimestampMixin):

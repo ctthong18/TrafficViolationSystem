@@ -17,20 +17,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class NotificationStatus(enum.Enum):
-    PENDING = "PENDING"
-    SENT = "SENT"
-    DELIVERED = "DELIVERED"
-    FAILED = "FAILED"
-    READ = "READ"
-
-
-class NotificationChannel(enum.Enum):
-    EMAIL = "EMAIL"
-    SMS = "SMS"
-    APP_PUSH = "APP_PUSH"
-    WEB_PUSH = "WEB_PUSH"
-    SYSTEM = "SYSTEM"  # Thông báo trong hệ thống
+from app.schemas.notification_schema import NotificationChannel, NotificationStatus
 
 
 class Notification(Base, TimestampMixin):

@@ -7,10 +7,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class AppealStatus(enum.Enum):
-    PENDING = "PENDING"
-    APPROVED = "APPROVED"
-    REJECTED = "REJECTED"
+from app.schemas.complaint_schema import AppealStatus
 
 
 class ComplaintAppeal(Base, TimestampMixin):

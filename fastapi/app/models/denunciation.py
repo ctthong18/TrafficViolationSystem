@@ -8,22 +8,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class DenunciationType(enum.Enum):
-    CORRUPTION = "CORRUPTION"  # Tham nhũng, hối lộ
-    ABUSE_OF_POWER = "ABUSE_OF_POWER"  # Lạm quyền
-    VIOLATION_COVER_UP = "VIOLATION_COVER_UP"  # Bỏ lọt vi phạm
-    FRAUD = "FRAUD"  # Gian lận
-    SYSTEM_MANIPULATION = "SYSTEM_MANIPULATION"  # Thao túng hệ thống
-    OTHER_ILLEGAL = "OTHER_ILLEGAL"  # Hành vi phạm pháp khác
-
-
-class DenunciationStatus(enum.Enum):
-    PENDING = "PENDING"
-    VERIFYING = "VERIFYING"  # Đang xác minh
-    INVESTIGATING = "INVESTIGATING"  # Đang điều tra
-    RESOLVED = "RESOLVED"  # Đã xử lý
-    REJECTED = "REJECTED"  # Từ chối xử lý
-    TRANSFERRED = "TRANSFERRED"  # Chuyển cơ quan khác
+from app.schemas.denuciation_schema import DenunciationStatus, DenunciationType
 
 
 class Denunciation(Base, TimestampMixin):

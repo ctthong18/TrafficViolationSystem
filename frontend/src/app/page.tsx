@@ -1,132 +1,134 @@
-import { BarChart3, ShieldAlert, TrendingUp, Users } from "lucide-react"
+"use client";
 
+import Link from "next/link";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Shield, User, UserCog, LogOut } from "lucide-react";
+import { ThemeToggle } from "@/components/theme-toggle";
+import { useAuth } from "@/contexts/AuthContext";
+import { useRouter } from "next/navigation";
 
-import { DashboardChart } from "@/components/dashboard-chart"
+export default function HomePage() {
+  const { isAuthenticated, user, logout } = useAuth();
+  const router = useRouter();
 
-export default function DashboardPage() {
+  const handleLogout = () => {
+    logout();
+    router.refresh();
+  };
+  const roles = [
+    {
+      title: "Citizen Portal",
+      description: "View and pay traffic violations, check your driving record",
+      icon: User,
+      href: "/citizen",
+      loginHref: "/citizen/login",
+      color: "bg-info hover:bg-info/90",
+    },
+    {
+      title: "Officer Portal",
+      description: "Record violations, manage cases, and patrol assignments",
+      icon: Shield,
+      href: "/officer",
+      loginHref: "/officer/login",
+      color: "bg-success hover:bg-success/90",
+    },
+    {
+      title: "Admin Portal",
+      description: "System administration, reports, and user management",
+      icon: UserCog,
+      href: "/admin",
+      loginHref: "/admin/login",
+      color: "bg-primary hover:bg-primary/90",
+    },
+  ];
+
   return (
-    <div className="space-y-6 pt-6 text-foreground">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Overview of traffic enforcement and system status.
-        </p>
-      </div>
+    <div className="min-h-screen">
+      <div className="container mx-auto px-4 py-16">
+        {/* Theme Toggle and Logout */}
+        <div className="flex justify-end items-center gap-4 mb-8">
+          {isAuthenticated && (
+            <div className="flex items-center gap-3">
+              <span className="text-sm text-muted-foreground">
+                Logged in as:{" "}
+                <span className="font-medium">{user?.username}</span>
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleLogout}
+                className="gap-2"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </Button>
+            </div>
+          )}
+          <ThemeToggle />
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-background/60 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Violations</CardTitle>
-            <ShieldAlert className="h-4 w-4 text-destructive" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">1,284</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-background/60 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Approval Rate</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">94.2%</div>
-            <p className="text-xs text-muted-foreground">+2.5% improvement</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-background/60 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Cameras</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">48</div>
-            <p className="text-xs text-muted-foreground">Across 12 zones</p>
-          </CardContent>
-        </Card>
-        <Card className="bg-background/60 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">System Users</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">128</div>
-            <p className="text-xs text-muted-foreground">Active officers & admins</p>
-          </CardContent>
-        </Card>
-      </div>
+        {/* Header */}
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-bold text-foreground mb-4">
+            Traffic Violation System
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Manage traffic violations efficiently and transparently
+          </p>
+        </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="lg:col-span-4 bg-background/60 backdrop-blur-sm">
-          <CardHeader>
-            <CardTitle>Violations Trend</CardTitle>
-            <CardDescription>
-              Daily violations detected across all active cameras.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="px-2 sm:p-6">
-            <DashboardChart />
-          </CardContent>
-        </Card>
-        <Card className="lg:col-span-3 bg-background/60 backdrop-blur-sm text-foreground">
-          <CardHeader>
-            <CardTitle>Recent Violations</CardTitle>
-            <CardDescription>
-              Latest incidents requiring review.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Plate</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead className="text-right">Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {[
-                  { plate: "ABC-1234", type: "Speeding", status: "Pending" },
-                  { plate: "XYZ-5678", type: "Red Light", status: "Approved" },
-                  { plate: "LMN-9012", type: "Wrong Lane", status: "Rejected" },
-                  { plate: "PQR-3456", type: "No Helmet", status: "Pending" },
-                ].map((violation) => (
-                  <TableRow key={violation.plate}>
-                    <TableCell className="font-medium text-foreground">{violation.plate}</TableCell>
-                    <TableCell className="text-foreground">{violation.type}</TableCell>
-                    <TableCell className="text-right">
-                      <Badge
-                        variant={
-                          violation.status === "Approved" ? "default" :
-                            violation.status === "Pending" ? "secondary" : "destructive"
-                        }
-                      >
-                        {violation.status}
-                      </Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
+        {/* Role Cards */}
+        <div className="grid md:grid-cols-3 gap-8 max-w-6xl mx-auto">
+          {roles.map((role) => {
+            const Icon = role.icon;
+            return (
+              <Card
+                key={role.href}
+                className="hover:shadow-xl transition-shadow duration-300"
+              >
+                <CardHeader className="text-center">
+                  <div
+                    className={`w-16 h-16 ${role.color} rounded-full flex items-center justify-center mx-auto mb-4 transition-colors duration-300`}
+                  >
+                    <Icon className="w-8 h-8 text-foreground" />
+                  </div>
+                  <CardTitle className="text-2xl">{role.title}</CardTitle>
+                  <CardDescription className="text-base">
+                    {role.description}
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center space-y-3">
+                  <Link href={role.href}>
+                    <Button className="w-full" size="lg">
+                      Enter Portal
+                    </Button>
+                  </Link>
+                  <Link href={role.loginHref}>
+                    <Button className="w-full" size="lg" variant="outline">
+                      Login
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+
+        {/* Footer */}
+        <div className="text-center mt-16 text-muted-foreground">
+          <p className="text-sm">
+            © {new Date().getFullYear()} Traffic Violation System. All rights
+            reserved.
+          </p>
+        </div>
       </div>
     </div>
-  )
+  );
 }

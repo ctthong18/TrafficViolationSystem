@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 from app.models.complaint import Complaint, ComplaintStatus, ComplaintType
 from app.models.complaint_activity import ComplaintActivity
 from app.models.complaint_appeal import AppealStatus, ComplaintAppeal
-from app.models.user import User
+from app.models.user import Role, User
 from app.utils.validators import sanitize_input
 from fastapi import HTTPException, status
 
@@ -109,7 +109,7 @@ class ComplaintService:
 
         # Check if officer exists
         officer = self.db.query(User).filter(User.id == officer_id).first()
-        if not officer or officer.role not in ["admin", "officer"]:
+        if not officer or officer.role not in [Role.ADMIN.value, Role.OFFICER.value]:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST, detail="Officer không tồn tại"
             )

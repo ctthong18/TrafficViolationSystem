@@ -9,19 +9,19 @@ from typing import List, Optional
 from pydantic import BaseModel, Field
 
 
-class ProcessingStatusEnum(str, Enum):
+class ProcessingStatus(str, Enum):
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
     COMPLETED = "COMPLETED"
     FAILED = "FAILED"
 
 
-class JobTypeEnum(str, Enum):
+class JobType(str, Enum):
     UPLOAD = "UPLOAD"
     THUMBNAIL = "THUMBNAIL"
 
 
-class JobStatusEnum(str, Enum):
+class JobStatus(str, Enum):
     PENDING = "PENDING"
     PROCESSING = "PROCESSING"
     COMPLETED = "COMPLETED"
@@ -35,7 +35,7 @@ class VideoUploadResponse(BaseModel):
     cloudinary_url: str
     thumbnail_url: Optional[str] = None
     processing_job_id: Optional[int] = None
-    status: ProcessingStatusEnum
+    status: ProcessingStatus
 
     class Config:
         from_attributes = True
@@ -55,7 +55,7 @@ class VideoResponse(BaseModel):
     uploaded_by: int
     uploaded_at: datetime  # Maps to created_at from model
     processed_at: Optional[datetime] = None
-    processing_status: ProcessingStatusEnum
+    processing_status: ProcessingStatus
     has_violations: bool
     violation_count: int
 
@@ -78,8 +78,8 @@ class ProcessingJobResponse(BaseModel):
 
     id: int
     video_id: int
-    job_type: JobTypeEnum
-    status: JobStatusEnum
+    job_type: JobType
+    status: JobStatus
     started_at: Optional[datetime] = None
     completed_at: Optional[datetime] = None
     error_message: Optional[str] = None

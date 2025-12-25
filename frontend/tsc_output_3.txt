@@ -1,0 +1,4 @@
+(node:13664) ExperimentalWarning: CommonJS module C:\Users\Asus\AppData\Roaming\nvm\v23.1.0\node_modules\npm\node_modules\debug\src\node.js is loading ES Module C:\Users\Asus\AppData\Roaming\nvm\v23.1.0\node_modules\npm\node_modules\supports-color\index.js using require().
+Support for loading ES Module in require() is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+src/components/theme-provider.tsx(5,41): error TS2307: Cannot find module 'next-themes/dist/types' or its corresponding type declarations.

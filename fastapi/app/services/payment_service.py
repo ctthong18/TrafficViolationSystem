@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.models.payment import Payment, PaymentMethod, PaymentStatus, PaymentType
 from app.models.user import User
 from app.models.vehicle import Vehicle
-from app.models.violation import Violation
+from app.models.violation import Violation, ViolationStatus
 from fastapi import HTTPException, status
 
 
@@ -35,7 +35,7 @@ class PaymentService:
         if not violation:
             raise HTTPException(404, "Vi phạm không tồn tại")
 
-        if violation.status != "approved":
+        if violation.status != ViolationStatus.APPROVED.value:
             raise HTTPException(400, "Chỉ có thể thanh toán cho vi phạm đã được duyệt")
 
         # Kiểm tra đã có payment hay chưa

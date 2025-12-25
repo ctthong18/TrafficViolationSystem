@@ -46,8 +46,7 @@
   "notification_templates": [
     {
       "name": "Thông báo vi phạm giao thông",
-      "template_code": "VIOLATION_ALERT",
-      "notification_type": "VIOLATION_ALERT",
+      "notification_code": "VIOLATION_ALERT",
       "language": "vi",
       "subject_template": "Thông báo vi phạm giao thông - Biển số {{license_plate}}",
       "email_template": "Kính gửi {{owner_name}},\n\nHệ thống phát hiện phương tiện {{license_plate}} của quý khách có hành vi vi phạm:\n\nLoại vi phạm: {{violation_type}}\nThời gian: {{detected_at}}\nĐịa điểm: {{location_name}}\nMức phạt: {{fine_amount}} VND\nĐiểm trừ: {{points_deducted}} điểm\n\nVui lòng thanh toán trước {{due_date}}.\n\nTrân trọng,\nHệ thống quản lý vi phạm giao thông",
@@ -86,8 +85,7 @@
     },
     {
       "name": "Nhắc nhở thanh toán phạt",
-      "template_code": "PAYMENT_REMINDER",
-      "notification_type": "PAYMENT_REMINDER",
+      "notification_code": "PAYMENT_REMINDER",
       "language": "vi",
       "subject_template": "Nhắc nhở thanh toán phạt vi phạm - {{violation_code}}",
       "email_template": "Kính gửi {{owner_name}},\n\nQuý khách còn {{days_remaining}} ngày để thanh toán khoản phạt vi phạm giao thông:\n\nMã vi phạm: {{violation_code}}\nBiển số: {{license_plate}}\nSố tiền: {{amount}} VND\nHạn cuối: {{due_date}}\n\nVui lòng thanh toán để tránh các biện pháp xử lý tiếp theo.\n\nTrân trọng.",
@@ -109,8 +107,7 @@
     },
     {
       "name": "Xác nhận thanh toán",
-      "template_code": "PAYMENT_CONFIRMATION",
-      "notification_type": "PAYMENT_CONFIRMATION",
+      "notification_code": "PAYMENT_CONFIRMATION",
       "language": "vi",
       "subject_template": "Xác nhận thanh toán thành công - {{receipt_number}}",
       "email_template": "Kính gửi {{payer_name}},\n\nChúng tôi xác nhận đã nhận được khoản thanh toán:\n\nSố biên lai: {{receipt_number}}\nSố tiền: {{amount}} VND\nPhương thức: {{payment_method}}\nThời gian: {{paid_at}}\n\nCảm ơn quý khách đã thanh toán đúng hạn.\n\nTrân trọng.",

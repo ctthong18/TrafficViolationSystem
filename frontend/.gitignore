@@ -13,18 +13,12 @@
 # testing
 /coverage
 
-/Test 
-
-/MODEL
 # next.js
 /.next/
 /out/
 
 # production
 /build
-
-# model
-/MODEL/violation_detection.pt
 
 # misc
 .DS_Store
@@ -45,3 +39,15 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+
+#jest
+coverage/
+jest.config.js
+jest.setup.js
+__tests__/
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+.swc/

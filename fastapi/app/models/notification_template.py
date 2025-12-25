@@ -8,14 +8,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class NotificationType(enum.Enum):
-    VIOLATION_ALERT = "VIOLATION_ALERT"  # Thông báo vi phạm
-    PAYMENT_REMINDER = "PAYMENT_REMINDER"  # Nhắc nhở thanh toán
-    PAYMENT_CONFIRMATION = "PAYMENT_CONFIRMATION"  # Xác nhận thanh toán
-    COMPLAINT_UPDATE = "COMPLAINT_UPDATE"  # Cập nhật khiếu nại
-    APPEAL_RESULT = "APPEAL_RESULT"  # Kết quả kháng cáo
-    SYSTEM_ANNOUNCEMENT = "SYSTEM_ANNOUNCEMENT"  # Thông báo hệ thống
-    SECURITY_ALERT = "SECURITY_ALERT"  # Cảnh báo bảo mật
+from app.schemas.notification_schema import NotificationType
 
 
 class NotificationTemplate(Base, TimestampMixin):

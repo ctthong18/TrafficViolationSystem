@@ -1,13 +1,13 @@
 from typing import Optional
 
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
-from app.api.dependencies import get_current_user, require_role
+from app.api.dependencies import get_current_user, require_role, require_roles
 from app.core.database import get_db
 from app.models.user import Role, User
 from app.schemas.user_schema import UserCreate, UserListResponse, UserResponse
 from app.services.user_service import UserService
-from fastapi import APIRouter, Depends, Query
 
 router = APIRouter()
 
@@ -16,9 +16,9 @@ router = APIRouter()
 def get_all_users(
     skip: int = 0,
     limit: int = 100,
-    role: Optional[str] = Query(None),
+    role: Optional[Role] = Query(None),
     is_active: Optional[bool] = Query(None),
-    current_user: User = Depends(require_role(Role.ADMIN.value)),
+    current_user: User = Depends(require_roles([Role.ADMIN, Role.OFFICER])),
     db: Session = Depends(get_db),
 ):
     user_service = UserService(db)
@@ -33,7 +33,7 @@ def get_all_users(
 @router.post("/users/officers", response_model=UserResponse)
 def create_officer_account(
     officer_data: UserCreate,
-    current_user: User = Depends(require_role(Role.ADMIN.value)),
+    current_user: User = Depends(require_role(Role.ADMIN)),
     db: Session = Depends(get_db),
 ):
     user_service = UserService(db)
@@ -43,7 +43,7 @@ def create_officer_account(
 @router.post("/users", response_model=UserResponse)
 def create_user(
     user_data: UserCreate,
-    current_user: User = Depends(require_role(Role.ADMIN.value)),
+    current_user: User = Depends(require_role(Role.ADMIN)),
     db: Session = Depends(get_db),
 ):
     user_service = UserService(db)
@@ -52,17 +52,17 @@ def create_user(
 
 @router.get("/dashboard/stats")
 def get_admin_dashboard(
-    current_user: User = Depends(require_role(Role.ADMIN.value)),
+    current_user: User = Depends(require_roles([Role.ADMIN, Role.OFFICER])),
     db: Session = Depends(get_db),
 ):
     # Thống kê tổng quan cho admin
     user_service = UserService(db)
     total_users = user_service.get_users_count()
     total_officers = (
-        user_service.db.query(User).filter(User.role == Role.OFFICER.value).count()
+        user_service.db.query(User).filter(User.role == Role.OFFICER).count()
     )
     total_citizens = (
-        user_service.db.query(User).filter(User.role == Role.CITIZEN.value).count()
+        user_service.db.query(User).filter(User.role == Role.CITIZEN).count()
     )
 
     return {

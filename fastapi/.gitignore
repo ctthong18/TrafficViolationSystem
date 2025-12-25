@@ -7,7 +7,7 @@ __pycache__/
 *.pyc
 *.pyo
 
-/Test 
+/Test
 
 /MODEL
 
@@ -24,3 +24,4 @@ build/
 *.log
 
 .venv/
+.zed/

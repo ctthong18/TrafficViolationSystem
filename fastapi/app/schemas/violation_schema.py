@@ -1,7 +1,17 @@
+import enum
 from pydantic import BaseModel
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from decimal import Decimal
+
+class ViolationStatus(str, enum.Enum):
+    PENDING = "PENDING"
+    REVIEWING = "REVIEWING"
+    VERIFIED = "VERIFIED"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+    PAID = "PAID"
+    PROCESSED = "PROCESSED"
 
 class ViolationBase(BaseModel):
     license_plate: str
@@ -21,7 +31,7 @@ class ViolationCreate(ViolationBase):
     ai_metadata: Optional[Dict[str, Any]] = None
 
 class ViolationUpdate(BaseModel):
-    status: Optional[str] = None
+    status: Optional[ViolationStatus] = None
     reviewed_by: Optional[int] = None
     review_notes: Optional[str] = None
     priority: Optional[str] = None
@@ -45,7 +55,7 @@ class ViolationResponse(ViolationBase):
     id: int
     detected_at: datetime
     confidence_score: Optional[float] = None
-    status: str
+    status: ViolationStatus
     priority: str
     reviewed_by: Optional[int]
     reviewed_at: Optional[datetime]

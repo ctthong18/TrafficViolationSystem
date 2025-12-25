@@ -1,15 +1,18 @@
 import enum
+
 from sqlalchemy import (
     DECIMAL,
     JSON,
     Boolean,
     Column,
     DateTime,
-    Enum as ENUM,
     ForeignKey,
     Integer,
     String,
     Text,
+)
+from sqlalchemy import (
+    Enum as ENUM,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
@@ -17,12 +20,7 @@ from sqlalchemy.orm import relationship
 from .base import Base, TimestampMixin
 
 
-class ViolationStatus(str, enum.Enum):
-    PENDING = "pending"
-    APPROVED = "approved"
-    REJECTED = "rejected"
-    PAID = "paid"
-    PROCESSED = "processed"
+from app.schemas.violation_schema import ViolationStatus
 
 
 class Violation(Base, TimestampMixin):
@@ -67,7 +65,7 @@ class Violation(Base, TimestampMixin):
     )
 
     # Trạng thái xử lý
-    status = Column(String(50), default=ViolationStatus.PENDING.value)
+    status = Column(ENUM(ViolationStatus), default=ViolationStatus.PENDING)
     priority = Column(String(20), default="medium")
 
     # Officer review

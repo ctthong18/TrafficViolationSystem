@@ -2,19 +2,20 @@ import asyncio
 import base64
 import secrets
 from datetime import datetime
-from sqlalchemy.orm import Session
-from sqlalchemy import create_engine
 from typing import Optional
 
+from sqlalchemy import create_engine
+from sqlalchemy.orm import Session
+
+from app.core.database import SessionLocal  # để tạo session mới cho async loop
 from app.models.payment import (
     Payment,
+    PaymentMethod,
     PaymentStatus,
     PaymentType,
-    PaymentMethod,
 )
-from app.models.violation import Violation
+from app.models.violation import Violation, ViolationStatus
 from app.services.qr_service import BankQRService
-from app.core.database import SessionLocal  # để tạo session mới cho async loop
 
 
 class PaymentProcessor:
@@ -25,14 +26,16 @@ class PaymentProcessor:
     # ---------------------------------------------------------
     # CREATE QR PAYMENT
     # ---------------------------------------------------------
-    async def create_qr_payment(self, user_id: int, amount: float, violation_id: Optional[int] = None) -> Payment:
+    async def create_qr_payment(
+        self, user_id: int, amount: float, violation_id: Optional[int] = None
+    ) -> Payment:
         """
         Tạo payment với QR code (trạng thái CREATED)
         """
         qr_info = self.qr_service.create_payment_qr(
             amount=amount,
             user_id=user_id,
-            description=f"Thanh toán phạt - user:{user_id}"
+            description=f"Thanh toán phạt - user:{user_id}",
         )
 
         payment = Payment(
@@ -42,7 +45,6 @@ class PaymentProcessor:
             amount=amount,
             status=PaymentStatus.CREATED.value,  # ✔ QR mới tạo => CREATED
             payment_method=PaymentMethod.QR_CODE.value,
-
             qr_code_data=qr_info["qr_url"],  # Lưu QR URL vào qr_code_data
             qr_code_image=None,  # Không cần lưu image nữa
             qr_transaction_id=qr_info["qr_transaction_id"],
@@ -50,9 +52,8 @@ class PaymentProcessor:
             bank_account_number=qr_info["bank_account"],
             bank_name=qr_info["bank_name"],
             transfer_content=qr_info["transfer_content"],
-
             receipt_number=f"INV{datetime.now().strftime('%Y%m%d')}{secrets.token_hex(4).upper()}",
-            description=f"Thanh toán phạt qua QR - {qr_info['qr_transaction_id']}"
+            description=f"Thanh toán phạt qua QR - {qr_info['qr_transaction_id']}",
         )
 
         self.db.add(payment)
@@ -95,17 +96,18 @@ class PaymentProcessor:
 
             # mô phỏng kiểm tra giao dịch
             if await self.check_bank_transaction(payment.qr_transaction_id):
-
                 payment.status = PaymentStatus.PAID.value
                 payment.paid_at = datetime.now()
 
                 # cập nhật trạng thái violation nếu có
                 if payment.violation_id:
-                    violation = db.query(Violation).filter(
-                        Violation.id == payment.violation_id
-                    ).first()
+                    violation = (
+                        db.query(Violation)
+                        .filter(Violation.id == payment.violation_id)
+                        .first()
+                    )
                     if violation:
-                        violation.status = "paid"
+                        violation.status = ViolationStatus.PAID.value
 
                 db.commit()
                 db.close()
@@ -122,6 +124,7 @@ class PaymentProcessor:
         30% khả năng thành công trong 20–60 giây.
         """
         import random
+
         await asyncio.sleep(random.randint(15, 50))
         return random.random() < 0.3
 
@@ -134,10 +137,14 @@ class PaymentProcessor:
         """
         from sqlalchemy import func
 
-        total = self.db.query(func.sum(Payment.amount)).filter(
-            Payment.user_id == user_id,
-            Payment.payment_type == PaymentType.FINE_PAYMENT.value,
-            Payment.status != PaymentStatus.PAID.value
-        ).scalar()
+        total = (
+            self.db.query(func.sum(Payment.amount))
+            .filter(
+                Payment.user_id == user_id,
+                Payment.payment_type == PaymentType.FINE_PAYMENT.value,
+                Payment.status != PaymentStatus.PAID.value,
+            )
+            .scalar()
+        )
 
         return float(total or 0.0)

@@ -1,5 +1,6 @@
 fastapi
 uvicorn
+alembic
 annotated-types==0.7.0
 bcrypt==4.0.1
 certifi==2025.10.5
@@ -32,3 +33,11 @@ flower==2.0.1
 reportlab==4.0.7
 python-multipart
 coloredlogs
+
+# Testing dependencies
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+pytest-mock==3.12.0
+pytest-timeout==2.2.0
+httpx==0.25.2

@@ -16,7 +16,7 @@ from app.models import (
     denunciation, denunciation_activity, payment, evidence, camera,
     notification, notification_template, audit_log, system_config,
     daily_stats, location_hotspots, time_series_trends, confidence_analytics,
-    model_performance, violation_forecasts, action_recommendations
+    model_performance, violation_forecasts
 )
 
 __all__ = [

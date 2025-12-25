@@ -13,33 +13,7 @@ from sqlalchemy.orm import relationship
 from app.core.database import Base
 
 
-class AuditAction(str, enum.Enum):
-    """Types of auditable actions"""
-
-    CREATE = "CREATE"
-    READ = "READ"
-    UPDATE = "UPDATE"
-    DELETE = "DELETE"
-    UPLOAD = "UPLOAD"
-    DOWNLOAD = "DOWNLOAD"
-    REVIEW = "REVIEW"
-    APPROVE = "APPROVE"
-    REJECT = "REJECT"
-    LOGIN = "LOGIN"
-    LOGOUT = "LOGOUT"
-    FAILED_LOGIN = "FAILED_LOGIN"
-
-
-class AuditResource(str, enum.Enum):
-    """Types of resources that can be audited"""
-
-    VIDEO = "VIDEO"
-    DETECTION = "DETECTION"
-    VIOLATION = "VIOLATION"
-    USER = "USER"
-    CAMERA = "CAMERA"
-    AI_CONFIG = "AI_CONFIG"
-    SYSTEM = "SYSTEM"
+from app.schemas.audit_log_schema import AuditAction, AuditResource
 
 
 class AuditLog(Base):

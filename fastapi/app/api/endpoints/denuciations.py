@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user, require_roles
@@ -18,7 +19,6 @@ from app.schemas.denuciation_schema import (
     DenunciationUpdate,
 )
 from app.services.denuciation_service import DenunciationService
-from fastapi import APIRouter, Depends, HTTPException, Query, status
 
 router = APIRouter()
 
@@ -33,7 +33,7 @@ async def create_denunciation(
 ):
     """Tạo tố cáo mới (có thể ẩn danh)"""
     denunciation_service = DenunciationService(db)
-    data = denunciation_data.dict()
+    data = denunciation_data.model_dump()
 
     # Nếu user đăng nhập, tự động điền thông tin
     if current_user and not data.get("is_anonymous"):
@@ -63,10 +63,10 @@ async def get_denunciations(
     denunciation_service = DenunciationService(db)
 
     # Citizen chỉ xem được tố cáo của mình
-    if current_user.role == Role.CITIZEN.value:
+    if current_user.role == Role.CITIZEN:  # type: ignore
         denunciations = denunciation_service.get_user_denunciations(
-            user_identification=current_user.identification_number,
-            user_email=current_user.email,
+            user_identification=current_user.identification_number,  # type: ignore
+            user_email=current_user.email,  # type: ignore
         )
         total = len(denunciations)
         # Apply pagination
@@ -83,7 +83,7 @@ async def get_denunciations(
         total = denunciation_service.db.query(Denunciation).count()
 
     return DenunciationListResponse(
-        denunciations=denunciations,
+        denunciations=[DenunciationResponse.model_validate(d) for d in denunciations],
         total=total,
         page=skip // limit + 1 if limit > 0 else 1,
         size=limit,
@@ -97,10 +97,10 @@ async def get_assigned_denunciations(
 ):
     """Lấy tố cáo được phân công cho điều tra viên"""
     denunciation_service = DenunciationService(db)
-    denunciations = denunciation_service.get_assigned_denunciations(current_user.id)
+    denunciations = denunciation_service.get_assigned_denunciations(current_user.id)  # type: ignore
 
     return DenunciationListResponse(
-        denunciations=denunciations,
+        denunciations=[DenunciationResponse.model_validate(d) for d in denunciations],
         total=len(denunciations),
         page=1,
         size=len(denunciations),
@@ -118,6 +118,3 @@ async def get_denunciation_stats(
     denunciation_service = DenunciationService(db)
     stats = denunciation_service.get_denunciation_statistics(start_date, end_date)
     return DenunciationStatsResponse(**stats)
-
-
-# Thêm các endpoints khác...

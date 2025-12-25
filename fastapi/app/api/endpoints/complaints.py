@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
+from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 from sqlalchemy.orm import Session
 
 from app.api.dependencies import get_current_user, require_roles
@@ -18,7 +19,6 @@ from app.schemas.complaint_schema import (
     ComplaintUpdate,
 )
 from app.services.complaint_service import ComplaintService
-from fastapi import APIRouter, Depends, HTTPException, Query, Request, status
 
 router = APIRouter()
 
@@ -44,10 +44,12 @@ async def create_complaint(
         time = form.get("time")
         date = form.get("date")
         license_plate = form.get("license_plate")
-        description = form.get("description")
+        description_raw = form.get("description")
         # evidence = form.get("evidence")  # UploadFile, not persisted here
 
         title = f"Báo cáo vi phạm {license_plate or ''}".strip()
+        # Convert to string if needed
+        description = str(description_raw) if description_raw else ""
         composed_description = (
             description
             or f"{violation_type or ''} tại {location or ''} vào {date or ''} {time or ''}".strip()
@@ -63,7 +65,8 @@ async def create_complaint(
             vehicle_id=None,
             evidence_urls=None,
         )
-        return complaint_service.create_complaint(payload.dict(), current_user.id)
+        complaint = complaint_service.create_complaint(payload.dict(), current_user.id)  # type: ignore
+        return ComplaintResponse.from_orm(complaint)
 
     # Mặc định: JSON
     body = await request.json()
@@ -73,7 +76,8 @@ async def create_complaint(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid complaint payload"
         )
-    return complaint_service.create_complaint(payload.dict(), current_user.id)
+    complaint = complaint_service.create_complaint(payload.dict(), current_user.id)  # type: ignore
+    return ComplaintResponse.from_orm(complaint)
 
 
 @router.get("/", response_model=ComplaintListResponse)
@@ -89,8 +93,8 @@ async def get_complaints(
     complaint_service = ComplaintService(db)
 
     # Citizen chỉ xem được khiếu nại của mình
-    if current_user.role == Role.CITIZEN.value:
-        complaints = complaint_service.get_user_complaints(current_user.id)
+    if current_user.role == Role.CITIZEN.value:  # type: ignore
+        complaints = complaint_service.get_user_complaints(current_user.id)  # type: ignore
         total = len(complaints)
         complaints = complaints[skip : skip + limit]
     else:
@@ -101,7 +105,10 @@ async def get_complaints(
         total = complaint_service.get_complaints_count()
 
     return ComplaintListResponse(
-        complaints=complaints, total=total, page=skip // limit + 1, size=limit
+        complaints=[ComplaintResponse.from_orm(c) for c in complaints],
+        total=total,
+        page=skip // limit + 1,
+        size=limit,
     )
 
 
@@ -111,10 +118,13 @@ async def get_my_complaints(
 ):
     """Lấy khiếu nại của người dùng hiện tại"""
     complaint_service = ComplaintService(db)
-    complaints = complaint_service.get_user_complaints(current_user.id)
+    complaints = complaint_service.get_user_complaints(current_user.id)  # type: ignore
 
     return ComplaintListResponse(
-        complaints=complaints, total=len(complaints), page=1, size=len(complaints)
+        complaints=[ComplaintResponse.from_orm(c) for c in complaints],
+        total=len(complaints),
+        page=1,
+        size=len(complaints),
     )
 
 
@@ -125,10 +135,13 @@ async def get_assigned_complaints(
 ):
     """Lấy khiếu nại được phân công cho officer"""
     complaint_service = ComplaintService(db)
-    complaints = complaint_service.get_assigned_complaints(current_user.id)
+    complaints = complaint_service.get_assigned_complaints(current_user.id)  # type: ignore
 
     return ComplaintListResponse(
-        complaints=complaints, total=len(complaints), page=1, size=len(complaints)
+        complaints=[ComplaintResponse.from_orm(c) for c in complaints],
+        total=len(complaints),
+        page=1,
+        size=len(complaints),
     )
 
 
@@ -144,15 +157,15 @@ async def get_complaint_detail(
 
     # Kiểm tra quyền truy cập
     if (
-        current_user.role == Role.CITIZEN.value
-        and complaint.complainant_id != current_user.id
+        current_user.role == Role.CITIZEN.value  # type: ignore
+        and complaint.complainant_id != current_user.id  # type: ignore
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền xem khiếu nại này",
         )
 
-    return complaint
+    return ComplaintResponse.from_orm(complaint)
 
 
 @router.put("/{complaint_id}", response_model=ComplaintResponse)
@@ -164,7 +177,8 @@ async def update_complaint(
 ):
     """Cập nhật khiếu nại (Officer/Admin only)"""
     complaint_service = ComplaintService(db)
-    return complaint_service.update_complaint(complaint_id, complaint_data.dict())
+    complaint = complaint_service.update_complaint(complaint_id, complaint_data.dict())
+    return ComplaintResponse.from_orm(complaint)
 
 
 @router.post("/{complaint_id}/assign")
@@ -176,7 +190,12 @@ async def assign_complaint(
 ):
     """Phân công khiếu nại cho officer"""
     complaint_service = ComplaintService(db)
-    return complaint_service.assign_complaint(complaint_id, officer_id, current_user.id)
+    complaint = complaint_service.assign_complaint(
+        complaint_id,
+        officer_id,
+        current_user.id,  # type: ignore
+    )
+    return {"message": "Phân công thành công", "complaint_id": complaint.id}  # type: ignore
 
 
 @router.post("/{complaint_id}/resolve", response_model=ComplaintResponse)
@@ -188,9 +207,12 @@ async def resolve_complaint(
 ):
     """Giải quyết khiếu nại"""
     complaint_service = ComplaintService(db)
-    return complaint_service.resolve_complaint(
-        complaint_id, resolution, current_user.id
+    complaint = complaint_service.resolve_complaint(
+        complaint_id,
+        resolution,
+        current_user.id,  # type: ignore
     )
+    return ComplaintResponse.from_orm(complaint)
 
 
 @router.post("/{complaint_id}/appeals", response_model=AppealResponse)
@@ -206,15 +228,16 @@ async def create_appeal(
     # Kiểm tra quyền tạo kháng cáo
     complaint = complaint_service.get_complaint_by_id(complaint_id)
     if (
-        current_user.role == Role.CITIZEN.value
-        and complaint.complainant_id != current_user.id
+        current_user.role == Role.CITIZEN.value  # type: ignore
+        and complaint.complainant_id != current_user.id  # type: ignore
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền tạo kháng cáo cho khiếu nại này",
         )
 
-    return complaint_service.create_appeal(complaint_id, appeal_data.dict())
+    appeal = complaint_service.create_appeal(complaint_id, appeal_data.dict())
+    return AppealResponse.from_orm(appeal)
 
 
 @router.get(
@@ -231,15 +254,16 @@ async def get_complaint_activities(
     # Kiểm tra quyền truy cập
     complaint = complaint_service.get_complaint_by_id(complaint_id)
     if (
-        current_user.role == Role.CITIZEN.value
-        and complaint.complainant_id != current_user.id
+        current_user.role == Role.CITIZEN.value  # type: ignore
+        and complaint.complainant_id != current_user.id  # type: ignore
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền xem hoạt động khiếu nại này",
         )
 
-    return complaint_service.get_complaint_activities(complaint_id)
+    activities = complaint_service.get_complaint_activities(complaint_id)
+    return [ComplaintActivityResponse.from_orm(a) for a in activities]
 
 
 @router.get("/stats/summary")
@@ -268,18 +292,19 @@ async def rate_complaint_resolution(
     # Kiểm tra quyền đánh giá
     complaint = complaint_service.get_complaint_by_id(complaint_id)
     if (
-        current_user.role == Role.CITIZEN.value
-        and complaint.complainant_id != current_user.id
+        current_user.role == Role.CITIZEN.value  # type: ignore
+        and complaint.complainant_id != current_user.id  # type: ignore
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Không có quyền đánh giá khiếu nại này",
         )
 
-    if complaint.status != ComplaintStatus.RESOLVED:
+    if complaint.status != ComplaintStatus.RESOLVED:  # type: ignore
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Chỉ có thể đánh giá khiếu nại đã được giải quyết",
         )
 
-    return complaint_service.rate_complaint(complaint_id, rating, feedback)
+    complaint_service.rate_complaint(complaint_id, rating, feedback)
+    return {"message": "Đánh giá thành công", "rating": rating}

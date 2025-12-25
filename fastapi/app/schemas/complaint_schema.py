@@ -74,9 +74,9 @@ class ComplaintListResponse(BaseModel):
 
 # Appeal Schemas
 class AppealStatus(str, Enum):
-    PENDING = "pending"
-    APPROVED = "approved"
-    REJECTED = "rejected"
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
 
 
 class AppealBase(BaseModel):

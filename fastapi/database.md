@@ -1,468 +1,512 @@
 ```bash
-Table: action_recommendations
-  - id (integer) nullable=False
-  - recommendation_type (character varying(100)) nullable=False
-  - priority_level (character varying(20)) nullable=False
-  - title (character varying(255)) nullable=False
-  - description (text) nullable=True
-  - rationale (jsonb) nullable=True
-  - expected_impact (character varying(100)) nullable=True
-  - implementation_cost (numeric) nullable=True
-  - status (character varying(50)) nullable=True
-  - assigned_to (integer) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: action_recommendations                                       
+  - id (integer) nullable=False                                     
+  - recommendation_type (character varying(100)) nullable=False     
+  - priority_level (character varying(20)) nullable=False           
+  - title (character varying(255)) nullable=False                   
+  - description (text) nullable=True                                
+  - rationale (jsonb) nullable=True                                 
+  - expected_impact (character varying(100)) nullable=True          
+  - implementation_cost (numeric) nullable=True                     
+  - status (character varying(50)) nullable=True                    
+  - assigned_to (integer) nullable=True                             
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: activities
-  - id (integer) nullable=False
-  - user_id (integer) nullable=True
-  - description (character varying) nullable=True
-  - type (character varying) nullable=True
+Table: activities                                                   
+  - id (integer) nullable=False                                     
+  - user_id (integer) nullable=True                                 
+  - description (character varying) nullable=True                   
+  - type (character varying) nullable=True                          
   - created_at (timestamp with time zone) nullable=True
-Table: audit_logs
-  - id (integer) nullable=False
-  - user_id (integer) nullable=True
-  - action (USER-DEFINED) nullable=False
-  - resource (USER-DEFINED) nullable=False
-  - resource_id (integer) nullable=True
-  - details (json) nullable=True
-  - ip_address (character varying(45)) nullable=True
-  - user_agent (character varying(500)) nullable=True
-  - status (character varying(20)) nullable=False
+Table: alembic_version                                              
+  - version_num (character varying(32)) nullable=False
+Table: audit_logs                                                   
+  - id (integer) nullable=False                                     
+  - user_id (integer) nullable=True                                 
+  - action (USER-DEFINED) nullable=False                            
+  - resource (USER-DEFINED) nullable=False                          
+  - resource_id (integer) nullable=True                             
+  - details (json) nullable=True                                    
+  - ip_address (character varying(45)) nullable=True                
+  - user_agent (character varying(500)) nullable=True               
+  - status (character varying(20)) nullable=False                   
   - timestamp (timestamp without time zone) nullable=False
-Table: camera_videos
-  - id (integer) nullable=False
-  - camera_id (integer) nullable=False
-  - cloudinary_public_id (character varying(255)) nullable=False
-  - cloudinary_url (character varying(500)) nullable=False
-  - thumbnail_url (character varying(500)) nullable=True
-  - duration (integer) nullable=True
-  - file_size (integer) nullable=True
-  - format (character varying(20)) nullable=True
-  - uploaded_by (integer) nullable=False
-  - processed_at (timestamp without time zone) nullable=True
-  - processing_status (USER-DEFINED) nullable=False
-  - has_violations (boolean) nullable=True
-  - violation_count (integer) nullable=True
-  - video_metadata (jsonb) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: camera_videos                                                
+  - id (integer) nullable=False                                     
+  - camera_id (integer) nullable=False                              
+  - cloudinary_public_id (character varying(255)) nullable=False    
+  - cloudinary_url (character varying(500)) nullable=False          
+  - thumbnail_url (character varying(500)) nullable=True            
+  - duration (integer) nullable=True                                
+  - file_size (integer) nullable=True                               
+  - format (character varying(20)) nullable=True                    
+  - uploaded_by (integer) nullable=False                            
+  - processed_at (timestamp without time zone) nullable=True        
+  - processing_status (USER-DEFINED) nullable=False                 
+  - has_violations (boolean) nullable=True                          
+  - violation_count (integer) nullable=True                         
+  - video_metadata (jsonb) nullable=True                            
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: cameras
-  - id (integer) nullable=False
-  - camera_id (character varying(100)) nullable=False
-  - name (character varying(255)) nullable=False
-  - location_name (character varying(255)) nullable=True
-  - latitude (numeric) nullable=True
-  - longitude (numeric) nullable=True
-  - address (text) nullable=True
-  - camera_type (character varying(100)) nullable=True
-  - resolution (character varying(50)) nullable=True
-  - status (character varying(50)) nullable=True
-  - enabled_detections (jsonb) nullable=True
-  - ai_model_version (character varying(100)) nullable=True
-  - confidence_threshold (numeric) nullable=True
-  - last_maintenance (date) nullable=True
-  - next_maintenance (date) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: cameras                                                      
+  - id (integer) nullable=False                                     
+  - camera_id (character varying(100)) nullable=False               
+  - name (character varying(255)) nullable=False                    
+  - location_name (character varying(255)) nullable=True            
+  - latitude (numeric) nullable=True                                
+  - longitude (numeric) nullable=True                               
+  - address (text) nullable=True                                    
+  - camera_type (character varying(100)) nullable=True              
+  - resolution (character varying(50)) nullable=True                
+  - status (character varying(50)) nullable=True                    
+  - enabled_detections (jsonb) nullable=True                        
+  - ai_model_version (character varying(100)) nullable=True         
+  - confidence_threshold (numeric) nullable=True                    
+  - last_maintenance (date) nullable=True                           
+  - next_maintenance (date) nullable=True                           
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: complaint_activities
-  - id (integer) nullable=False
-  - complaint_id (integer) nullable=False
-  - activity_type (character varying(100)) nullable=False
-  - description (text) nullable=False
-  - activity_metadata (json) nullable=True
-  - performed_by (integer) nullable=True
+Table: complaint_activities                                         
+  - id (integer) nullable=False                                     
+  - complaint_id (integer) nullable=False                           
+  - activity_type (character varying(100)) nullable=False           
+  - description (text) nullable=False                               
+  - activity_metadata (json) nullable=True                          
+  - performed_by (integer) nullable=True                            
   - performed_at (timestamp without time zone) nullable=False
-Table: complaint_appeals
-  - id (integer) nullable=False
-  - complaint_id (integer) nullable=False
-  - appeal_code (character varying(50)) nullable=True
-  - appeal_reason (text) nullable=False
-  - new_evidence_urls (json) nullable=True
-  - status (USER-DEFINED) nullable=True
-  - reviewed_by (integer) nullable=True
-  - reviewed_at (timestamp without time zone) nullable=True
-  - review_notes (text) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: complaint_appeals                                            
+  - id (integer) nullable=False                                     
+  - complaint_id (integer) nullable=False                           
+  - appeal_code (character varying(50)) nullable=True               
+  - appeal_reason (text) nullable=False                             
+  - new_evidence_urls (json) nullable=True                          
+  - status (USER-DEFINED) nullable=True                             
+  - reviewed_by (integer) nullable=True                             
+  - reviewed_at (timestamp without time zone) nullable=True         
+  - review_notes (text) nullable=True                               
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: complaints
-  - id (integer) nullable=False
-  - complaint_code (character varying(50)) nullable=True
-  - complainant_name (character varying(255)) nullable=False
-  - complainant_phone (character varying(20)) nullable=True
-  - complainant_email (character varying(255)) nullable=True
+Table: complaints                                                   
+  - id (integer) nullable=False                                     
+  - complaint_code (character varying(50)) nullable=True            
+  - complainant_name (character varying(255)) nullable=False        
+  - complainant_phone (character varying(20)) nullable=True         
+  - complainant_email (character varying(255)) nullable=True        
   - complainant_identification (character varying(50)) nullable=True
-  - complainant_address (text) nullable=True
-  - complaint_type (USER-DEFINED) nullable=False
-  - status (USER-DEFINED) nullable=True
-  - priority (character varying(20)) nullable=True
-  - violation_id (integer) nullable=True
-  - vehicle_id (integer) nullable=True
-  - title (character varying(500)) nullable=False
-  - description (text) nullable=False
-  - desired_resolution (text) nullable=True
-  - evidence_urls (json) nullable=True
-  - supporting_documents (json) nullable=True
-  - assigned_officer_id (integer) nullable=True
-  - assigned_at (timestamp without time zone) nullable=True
-  - resolution (text) nullable=True
-  - resolved_at (timestamp without time zone) nullable=True
-  - resolution_notes (text) nullable=True
-  - user_rating (integer) nullable=True
-  - user_feedback (text) nullable=True
-  - source (character varying(50)) nullable=True
-  - is_anonymous (boolean) nullable=True
-  - complainant_id (integer) nullable=False
-  - created_at (timestamp without time zone) nullable=False
+  - complainant_address (text) nullable=True                        
+  - complaint_type (USER-DEFINED) nullable=False                    
+  - status (USER-DEFINED) nullable=True                             
+  - priority (character varying(20)) nullable=True                  
+  - violation_id (integer) nullable=True                            
+  - vehicle_id (integer) nullable=True                              
+  - title (character varying(500)) nullable=False                   
+  - description (text) nullable=False                               
+  - desired_resolution (text) nullable=True                         
+  - evidence_urls (json) nullable=True                              
+  - supporting_documents (json) nullable=True                       
+  - assigned_officer_id (integer) nullable=True                     
+  - assigned_at (timestamp without time zone) nullable=True         
+  - resolution (text) nullable=True                                 
+  - resolved_at (timestamp without time zone) nullable=True         
+  - resolution_notes (text) nullable=True                           
+  - user_rating (integer) nullable=True                             
+  - user_feedback (text) nullable=True                              
+  - source (character varying(50)) nullable=True                    
+  - is_anonymous (boolean) nullable=True                            
+  - complainant_id (integer) nullable=False                         
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: confidence_analytics
-  - id (integer) nullable=False
-  - analysis_date (date) nullable=False
-  - score_range (character varying(20)) nullable=False
-  - violation_count (integer) nullable=True
-  - approval_rate (numeric) nullable=True
-  - avg_processing_time (integer) nullable=True
-  - false_positive_rate (numeric) nullable=True
-  - true_positive_rate (numeric) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: confidence_analytics                                         
+  - id (integer) nullable=False                                     
+  - analysis_date (date) nullable=False                             
+  - score_range (character varying(20)) nullable=False              
+  - violation_count (integer) nullable=True                         
+  - approval_rate (numeric) nullable=True                           
+  - avg_processing_time (integer) nullable=True                     
+  - false_positive_rate (numeric) nullable=True                     
+  - true_positive_rate (numeric) nullable=True                      
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: daily_stats
-  - id (integer) nullable=False
-  - stat_date (date) nullable=False
-  - total_violations (integer) nullable=True
-  - approved_violations (integer) nullable=True
-  - rejected_violations (integer) nullable=True
-  - pending_violations (integer) nullable=True
-  - violation_type_counts (jsonb) nullable=True
-  - confidence_score_avg (numeric) nullable=True
-  - total_revenue (numeric) nullable=True
-  - collected_revenue (numeric) nullable=True
-  - pending_revenue (numeric) nullable=True
-  - new_users (integer) nullable=True
-  - total_complaints (integer) nullable=True
-  - resolved_complaints (integer) nullable=True
-  - approval_rate (numeric) nullable=True
-  - collection_rate (numeric) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: daily_stats                                                  
+  - id (integer) nullable=False                                     
+  - stat_date (date) nullable=False                                 
+  - total_violations (integer) nullable=True                        
+  - approved_violations (integer) nullable=True                     
+  - rejected_violations (integer) nullable=True                     
+  - pending_violations (integer) nullable=True                      
+  - violation_type_counts (jsonb) nullable=True                     
+  - confidence_score_avg (numeric) nullable=True                    
+  - total_revenue (numeric) nullable=True                           
+  - collected_revenue (numeric) nullable=True                       
+  - pending_revenue (numeric) nullable=True                         
+  - new_users (integer) nullable=True                               
+  - total_complaints (integer) nullable=True                        
+  - resolved_complaints (integer) nullable=True                     
+  - approval_rate (numeric) nullable=True                           
+  - collection_rate (numeric) nullable=True                         
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: denunciation_activities
-  - id (integer) nullable=False
-  - denunciation_id (integer) nullable=False
-  - activity_type (character varying(100)) nullable=False
-  - description (text) nullable=False
-  - activity_metadata (json) nullable=True
-  - performed_by (integer) nullable=True
+Table: denunciation_activities                                      
+  - id (integer) nullable=False                                     
+  - denunciation_id (integer) nullable=False                        
+  - activity_type (character varying(100)) nullable=False           
+  - description (text) nullable=False                               
+  - activity_metadata (json) nullable=True                          
+  - performed_by (integer) nullable=True                            
   - performed_at (timestamp without time zone) nullable=False
-Table: denunciations
-  - id (integer) nullable=False
-  - denunciation_code (character varying(50)) nullable=True
-  - is_anonymous (boolean) nullable=True
-  - informant_name (character varying(255)) nullable=True
-  - informant_phone (character varying(20)) nullable=True
-  - informant_email (character varying(255)) nullable=True
-  - informant_identification (character varying(50)) nullable=True
-  - informant_address (text) nullable=True
-  - contact_preference (character varying(50)) nullable=True
-  - can_contact (boolean) nullable=True
-  - denunciation_type (USER-DEFINED) nullable=False
-  - severity_level (character varying(20)) nullable=True
-  - urgency_level (character varying(20)) nullable=True
-  - title (character varying(500)) nullable=False
-  - description (text) nullable=False
-  - accused_person_name (character varying(255)) nullable=True
-  - accused_person_position (character varying(255)) nullable=True
-  - accused_department (character varying(255)) nullable=True
-  - related_violation_id (integer) nullable=True
-  - related_user_id (integer) nullable=True
-  - evidence_urls (json) nullable=True
-  - evidence_descriptions (jsonb) nullable=True
-  - status (USER-DEFINED) nullable=True
-  - assigned_investigator_id (integer) nullable=True
-  - assigned_at (timestamp without time zone) nullable=True
-  - investigation_notes (text) nullable=True
-  - investigation_result (text) nullable=True
-  - resolution (text) nullable=True
-  - resolved_at (timestamp without time zone) nullable=True
-  - security_level (character varying(50)) nullable=True
-  - is_whistleblower (boolean) nullable=True
-  - transferred_to (character varying(255)) nullable=True
-  - transfer_reason (text) nullable=True
-  - transferred_at (timestamp without time zone) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: denunciations                                                
+  - id (integer) nullable=False                                     
+  - denunciation_code (character varying(50)) nullable=True         
+  - is_anonymous (boolean) nullable=True                            
+  - informant_name (character varying(255)) nullable=True           
+  - informant_phone (character varying(20)) nullable=True           
+  - informant_email (character varying(255)) nullable=True          
+  - informant_identification (character varying(50)) nullable=True  
+  - informant_address (text) nullable=True                          
+  - contact_preference (character varying(50)) nullable=True        
+  - can_contact (boolean) nullable=True                             
+  - denunciation_type (USER-DEFINED) nullable=False                 
+  - severity_level (character varying(20)) nullable=True            
+  - urgency_level (character varying(20)) nullable=True             
+  - title (character varying(500)) nullable=False                   
+  - description (text) nullable=False                               
+  - accused_person_name (character varying(255)) nullable=True      
+  - accused_person_position (character varying(255)) nullable=True  
+  - accused_department (character varying(255)) nullable=True       
+  - related_violation_id (integer) nullable=True                    
+  - related_user_id (integer) nullable=True                         
+  - evidence_urls (json) nullable=True                              
+  - evidence_descriptions (jsonb) nullable=True                     
+  - status (USER-DEFINED) nullable=True                             
+  - assigned_investigator_id (integer) nullable=True                
+  - assigned_at (timestamp without time zone) nullable=True         
+  - investigation_notes (text) nullable=True                        
+  - investigation_result (text) nullable=True                       
+  - resolution (text) nullable=True                                 
+  - resolved_at (timestamp without time zone) nullable=True         
+  - security_level (character varying(50)) nullable=True            
+  - is_whistleblower (boolean) nullable=True                        
+  - transferred_to (character varying(255)) nullable=True           
+  - transfer_reason (text) nullable=True                            
+  - transferred_at (timestamp without time zone) nullable=True      
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: driving_licenses
-  - id (integer) nullable=False
-  - license_number (character varying(50)) nullable=False
-  - user_id (integer) nullable=False
-  - license_class (character varying(10)) nullable=False
-  - full_name (character varying(255)) nullable=False
-  - date_of_birth (date) nullable=False
-  - nationality (character varying(100)) nullable=True
-  - address (character varying(500)) nullable=True
-  - issue_date (date) nullable=False
-  - expiry_date (date) nullable=False
-  - issue_place (character varying(255)) nullable=True
-  - total_points (integer) nullable=True
-  - current_points (integer) nullable=True
-  - points_reset_date (date) nullable=True
-  - status (character varying(50)) nullable=True
-  - suspension_start (date) nullable=True
-  - suspension_end (date) nullable=True
-  - revocation_reason (character varying(500)) nullable=True
-  - total_violations (integer) nullable=True
-  - serious_violations (integer) nullable=True
-  - points_deduction_history (json) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: driving_licenses                                             
+  - id (integer) nullable=False                                     
+  - license_number (character varying(50)) nullable=False           
+  - user_id (integer) nullable=False                                
+  - license_class (USER-DEFINED) nullable=False                     
+  - full_name (character varying(255)) nullable=False               
+  - date_of_birth (date) nullable=False                             
+  - nationality (character varying(100)) nullable=True              
+  - address (character varying(500)) nullable=True                  
+  - issue_date (date) nullable=False                                
+  - expiry_date (date) nullable=False                               
+  - issue_place (character varying(255)) nullable=True              
+  - total_points (integer) nullable=True                            
+  - current_points (integer) nullable=True                          
+  - points_reset_date (date) nullable=True                          
+  - status (USER-DEFINED) nullable=True                             
+  - suspension_start (date) nullable=True                           
+  - suspension_end (date) nullable=True                             
+  - revocation_reason (character varying(500)) nullable=True        
+  - total_violations (integer) nullable=True                        
+  - serious_violations (integer) nullable=True                      
+  - points_deduction_history (json) nullable=True                   
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: evidence
-  - id (integer) nullable=False
-  - violation_id (integer) nullable=True
-  - image_urls (json) nullable=True
-  - video_url (character varying(500)) nullable=True
-  - gif_url (character varying(500)) nullable=True
-  - raw_detection_data (jsonb) nullable=True
-  - processed_data (jsonb) nullable=True
-  - file_sizes (json) nullable=True
-  - storage_location (character varying(100)) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: evidence                                                     
+  - id (integer) nullable=False                                     
+  - violation_id (integer) nullable=True                            
+  - image_urls (json) nullable=True                                 
+  - video_url (character varying(500)) nullable=True                
+  - gif_url (character varying(500)) nullable=True                  
+  - raw_detection_data (jsonb) nullable=True                        
+  - processed_data (jsonb) nullable=True                            
+  - file_sizes (json) nullable=True                                 
+  - storage_location (character varying(100)) nullable=True         
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: location_hotspots
-  - id (integer) nullable=False
-  - location_name (character varying(255)) nullable=False
-  - latitude (numeric) nullable=True
-  - longitude (numeric) nullable=True
-  - period_type (character varying(20)) nullable=False
-  - period_date (date) nullable=False
-  - total_violations (integer) nullable=True
-  - violation_breakdown (jsonb) nullable=True
-  - revenue_generated (numeric) nullable=True
-  - risk_score (numeric) nullable=True
-  - trend_direction (character varying(10)) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: location_hotspots                                            
+  - id (integer) nullable=False                                     
+  - location_name (character varying(255)) nullable=False           
+  - latitude (numeric) nullable=True                                
+  - longitude (numeric) nullable=True                               
+  - period_type (character varying(20)) nullable=False              
+  - period_date (date) nullable=False                               
+  - total_violations (integer) nullable=True                        
+  - violation_breakdown (jsonb) nullable=True                       
+  - revenue_generated (numeric) nullable=True                       
+  - risk_score (numeric) nullable=True                              
+  - trend_direction (character varying(10)) nullable=True           
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: model_performance
-  - id (integer) nullable=False
-  - model_name (character varying(100)) nullable=False
-  - evaluation_date (date) nullable=False
-  - precision_score (numeric) nullable=True
-  - recall_score (numeric) nullable=True
-  - f1_score (numeric) nullable=True
-  - accuracy (numeric) nullable=True
-  - avg_processing_time_ms (integer) nullable=True
-  - total_predictions (integer) nullable=True
-  - performance_by_type (jsonb) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: model_performance                                            
+  - id (integer) nullable=False                                     
+  - model_name (character varying(100)) nullable=False              
+  - evaluation_date (date) nullable=False                           
+  - precision_score (numeric) nullable=True                         
+  - recall_score (numeric) nullable=True                            
+  - f1_score (numeric) nullable=True                                
+  - accuracy (numeric) nullable=True                                
+  - avg_processing_time_ms (integer) nullable=True                  
+  - total_predictions (integer) nullable=True                       
+  - performance_by_type (jsonb) nullable=True                       
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: notification_templates
-  - id (integer) nullable=False
-  - name (character varying(255)) nullable=False
-  - template_code (character varying(100)) nullable=True
-  - notification_type (USER-DEFINED) nullable=False
-  - language (character varying(10)) nullable=True
-  - subject_template (character varying(500)) nullable=True
-  - email_template (text) nullable=True
-  - sms_template (text) nullable=True
-  - push_template (text) nullable=True
-  - web_template (text) nullable=True
-  - default_channel (json) nullable=True
-  - is_auto_send (boolean) nullable=True
-  - available_variables (json) nullable=True
-  - variable_description (jsonb) nullable=True
-  - trigger_condition (jsonb) nullable=True
-  - allowed_entities (json) nullable=True
-  - is_active (boolean) nullable=True
-  - version (character varying(20)) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: notification_templates                                       
+  - id (integer) nullable=False                                     
+  - name (character varying(255)) nullable=False                    
+  - template_code (character varying(100)) nullable=True            
+  - notification_type (USER-DEFINED) nullable=False                 
+  - language (character varying(10)) nullable=True                  
+  - subject_template (character varying(500)) nullable=True         
+  - email_template (text) nullable=True                             
+  - sms_template (text) nullable=True                               
+  - push_template (text) nullable=True                              
+  - web_template (text) nullable=True                               
+  - default_channel (json) nullable=True                            
+  - is_auto_send (boolean) nullable=True                            
+  - available_variables (json) nullable=True                        
+  - variable_description (jsonb) nullable=True                      
+  - trigger_condition (jsonb) nullable=True                         
+  - allowed_entities (json) nullable=True                           
+  - is_active (boolean) nullable=True                               
+  - version (character varying(20)) nullable=True                   
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: notifications
-  - id (integer) nullable=False
-  - notification_code (character varying(100)) nullable=True
-  - template_id (integer) nullable=True
-  - recipient_id (integer) nullable=True
-  - recipient_name (character varying(255)) nullable=True
-  - recipient_email (character varying(255)) nullable=True
-  - recipient_phone (character varying(20)) nullable=True
-  - title (character varying(500)) nullable=False
-  - message (text) nullable=False
-  - short_message (character varying(500)) nullable=True
-  - channel (USER-DEFINED) nullable=False
-  - status (USER-DEFINED) nullable=True
-  - priority (character varying(20)) nullable=True
-  - violation_id (integer) nullable=True
-  - payment_id (integer) nullable=True
-  - complaint_id (integer) nullable=True
-  - scheduled_at (timestamp without time zone) nullable=True
-  - sent_at (timestamp without time zone) nullable=True
-  - read_at (timestamp without time zone) nullable=True
-  - gateway_message_id (character varying(255)) nullable=True
-  - gateway_response (jsonb) nullable=True
-  - delivery_attempts (integer) nullable=True
-  - last_attempt_at (timestamp without time zone) nullable=True
-  - error_message (text) nullable=True
-  - template_variables (jsonb) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: notifications                                                
+  - id (integer) nullable=False                                     
+  - notification_code (character varying(100)) nullable=True        
+  - template_id (integer) nullable=True                             
+  - recipient_id (integer) nullable=True                            
+  - recipient_name (character varying(255)) nullable=True           
+  - recipient_email (character varying(255)) nullable=True          
+  - recipient_phone (character varying(20)) nullable=True           
+  - title (character varying(500)) nullable=False                   
+  - message (text) nullable=False                                   
+  - short_message (character varying(500)) nullable=True            
+  - channel (USER-DEFINED) nullable=False                           
+  - status (USER-DEFINED) nullable=True                             
+  - priority (character varying(20)) nullable=True                  
+  - violation_id (integer) nullable=True                            
+  - payment_id (integer) nullable=True                              
+  - complaint_id (integer) nullable=True                            
+  - scheduled_at (timestamp without time zone) nullable=True        
+  - sent_at (timestamp without time zone) nullable=True             
+  - read_at (timestamp without time zone) nullable=True             
+  - gateway_message_id (character varying(255)) nullable=True       
+  - gateway_response (jsonb) nullable=True                          
+  - delivery_attempts (integer) nullable=True                       
+  - last_attempt_at (timestamp without time zone) nullable=True     
+  - error_message (text) nullable=True                              
+  - template_variables (jsonb) nullable=True                        
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: payments
-  - id (integer) nullable=False
-  - violation_id (integer) nullable=True
-  - vehicle_id (integer) nullable=True
-  - user_id (integer) nullable=True
-  - payment_type (character varying(15)) nullable=False
-  - amount (numeric) nullable=False
-  - original_fine (numeric) nullable=True
-  - late_penalty (numeric) nullable=True
-  - discount_amount (numeric) nullable=True
-  - status (character varying(9)) nullable=False
-  - payment_method (character varying(13)) nullable=True
-  - payment_gateway (character varying(100)) nullable=True
-  - gateway_transaction_id (character varying(255)) nullable=True
-  - qr_code_data (character varying) nullable=True
-  - qr_code_image (bytea) nullable=True
-  - qr_transaction_id (character varying) nullable=True
-  - qr_expiry_time (timestamp without time zone) nullable=True
-  - bank_account_number (character varying) nullable=True
-  - bank_name (character varying) nullable=True
-  - transfer_content (character varying) nullable=True
-  - wallet_balance_before (numeric) nullable=True
-  - wallet_balance_after (numeric) nullable=True
-  - due_date (date) nullable=True
-  - paid_at (timestamp without time zone) nullable=True
-  - receipt_number (character varying(100)) nullable=True
-  - payer_name (character varying(255)) nullable=True
-  - payer_identification (character varying(50)) nullable=True
-  - description (text) nullable=True
-  - is_auto_deduct (boolean) nullable=True
-  - refund_reason (text) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: payments                                                     
+  - id (integer) nullable=False                                     
+  - violation_id (integer) nullable=True                            
+  - vehicle_id (integer) nullable=True                              
+  - user_id (integer) nullable=True                                 
+  - payment_type (USER-DEFINED) nullable=False                      
+  - amount (numeric) nullable=False                                 
+  - original_fine (numeric) nullable=True                           
+  - late_penalty (numeric) nullable=True                            
+  - discount_amount (numeric) nullable=True                         
+  - status (USER-DEFINED) nullable=False                            
+  - payment_method (USER-DEFINED) nullable=True                     
+  - payment_gateway (character varying(100)) nullable=True          
+  - gateway_transaction_id (character varying(255)) nullable=True   
+  - qr_code_data (character varying) nullable=True                  
+  - qr_code_image (bytea) nullable=True                             
+  - qr_transaction_id (character varying) nullable=True             
+  - qr_expiry_time (timestamp without time zone) nullable=True      
+  - bank_account_number (character varying) nullable=True           
+  - bank_name (character varying) nullable=True                     
+  - transfer_content (character varying) nullable=True              
+  - wallet_balance_before (numeric) nullable=True                   
+  - wallet_balance_after (numeric) nullable=True                    
+  - due_date (date) nullable=True                                   
+  - paid_at (timestamp without time zone) nullable=True             
+  - receipt_number (character varying(100)) nullable=True           
+  - payer_name (character varying(255)) nullable=True               
+  - payer_identification (character varying(50)) nullable=True      
+  - description (text) nullable=True                                
+  - is_auto_deduct (boolean) nullable=True                          
+  - refund_reason (text) nullable=True                              
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: system_configs
-  - id (integer) nullable=False
-  - config_key (character varying(100)) nullable=False
-  - config_value (text) nullable=True
-  - config_type (character varying(50)) nullable=True
-  - description (text) nullable=True
-  - is_active (integer) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: system_configs                                               
+  - id (integer) nullable=False                                     
+  - config_key (character varying(100)) nullable=False              
+  - config_value (text) nullable=True                               
+  - config_type (character varying(50)) nullable=True               
+  - description (text) nullable=True                                
+  - is_active (integer) nullable=True                               
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: time_series_trends
-  - id (integer) nullable=False
-  - trend_type (character varying(50)) nullable=False
-  - period_date (date) nullable=False
-  - period_value (integer) nullable=True
-  - metric_name (character varying(100)) nullable=False
-  - metric_value (numeric) nullable=True
-  - previous_value (numeric) nullable=True
-  - growth_rate (numeric) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: time_series_trends                                           
+  - id (integer) nullable=False                                     
+  - trend_type (character varying(50)) nullable=False               
+  - period_date (date) nullable=False                               
+  - period_value (integer) nullable=True                            
+  - metric_name (character varying(100)) nullable=False             
+  - metric_value (numeric) nullable=True                            
+  - previous_value (numeric) nullable=True                          
+  - growth_rate (numeric) nullable=True                             
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: users
-  - id (integer) nullable=False
-  - username (character varying(100)) nullable=False
-  - email (character varying(255)) nullable=False
-  - password_hash (character varying(255)) nullable=False
-  - full_name (character varying(255)) nullable=False
-  - role (character varying(50)) nullable=False
-  - permissions (jsonb) nullable=True
-  - phone_number (character varying(20)) nullable=True
-  - department (character varying(100)) nullable=True
-  - badge_number (character varying(50)) nullable=True
-  - identification_number (character varying(100)) nullable=False
-  - date_of_birth (timestamp without time zone) nullable=True
-  - address (character varying(500)) nullable=True
-  - wallet_balance (numeric) nullable=True
-  - total_deposited (numeric) nullable=True
-  - total_paid_fines (numeric) nullable=True
-  - pending_fines (numeric) nullable=True
-  - is_active (boolean) nullable=True
-  - last_login (timestamp without time zone) nullable=True
-  - created_by (integer) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: users                                                        
+  - id (integer) nullable=False                                     
+  - username (character varying(100)) nullable=False                
+  - email (character varying(255)) nullable=False                   
+  - password_hash (character varying(255)) nullable=False           
+  - full_name (character varying(255)) nullable=False               
+  - role (USER-DEFINED) nullable=False                              
+  - permissions (jsonb) nullable=True                               
+  - phone_number (character varying(20)) nullable=True              
+  - department (character varying(100)) nullable=True               
+  - badge_number (character varying(50)) nullable=True              
+  - identification_number (character varying(100)) nullable=False   
+  - date_of_birth (timestamp without time zone) nullable=True       
+  - address (character varying(500)) nullable=True                  
+  - wallet_balance (numeric) nullable=True                          
+  - total_deposited (numeric) nullable=True                         
+  - total_paid_fines (numeric) nullable=True                        
+  - pending_fines (numeric) nullable=True                           
+  - is_active (boolean) nullable=True                               
+  - last_login (timestamp without time zone) nullable=True          
+  - created_by (integer) nullable=True                              
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: vehicles
-  - id (integer) nullable=False
-  - license_plate (character varying(20)) nullable=False
-  - vehicle_type (character varying(50)) nullable=False
-  - vehicle_color (character varying(50)) nullable=True
-  - vehicle_brand (character varying(100)) nullable=True
-  - vehicle_model (character varying(100)) nullable=True
-  - year_of_manufacture (integer) nullable=True
-  - owner_id (integer) nullable=False
-  - owner_name (character varying(255)) nullable=True
-  - owner_identification (character varying(50)) nullable=True
-  - owner_address (text) nullable=True
-  - owner_phone (character varying(20)) nullable=True
-  - owner_email (character varying(255)) nullable=True
-  - registration_date (date) nullable=True
-  - expiration_date (date) nullable=True
-  - total_violations (integer) nullable=True
-  - unpaid_violations (integer) nullable=True
-  - total_fines (numeric) nullable=True
-  - status (character varying(50)) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: vehicles                                                     
+  - id (integer) nullable=False                                     
+  - license_plate (character varying(20)) nullable=False            
+  - vehicle_type (character varying(50)) nullable=False             
+  - vehicle_color (character varying(50)) nullable=True             
+  - vehicle_brand (character varying(100)) nullable=True            
+  - vehicle_model (character varying(100)) nullable=True            
+  - year_of_manufacture (integer) nullable=True                     
+  - owner_id (integer) nullable=False                               
+  - owner_name (character varying(255)) nullable=True               
+  - owner_identification (character varying(50)) nullable=True      
+  - owner_address (text) nullable=True                              
+  - owner_phone (character varying(20)) nullable=True               
+  - owner_email (character varying(255)) nullable=True              
+  - registration_date (date) nullable=True                          
+  - expiration_date (date) nullable=True                            
+  - total_violations (integer) nullable=True                        
+  - unpaid_violations (integer) nullable=True                       
+  - total_fines (numeric) nullable=True                             
+  - status (character varying(50)) nullable=True                    
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: video_processing_jobs
-  - id (integer) nullable=False
-  - video_id (integer) nullable=False
-  - job_type (USER-DEFINED) nullable=False
-  - status (USER-DEFINED) nullable=False
-  - started_at (timestamp without time zone) nullable=True
-  - completed_at (timestamp without time zone) nullable=True
-  - error_message (character varying(1000)) nullable=True
-  - retry_count (integer) nullable=True
-  - result_data (jsonb) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: video_processing_jobs                                        
+  - id (integer) nullable=False                                     
+  - video_id (integer) nullable=False                               
+  - job_type (USER-DEFINED) nullable=False                          
+  - status (USER-DEFINED) nullable=False                            
+  - started_at (timestamp without time zone) nullable=True          
+  - completed_at (timestamp without time zone) nullable=True        
+  - error_message (character varying(1000)) nullable=True           
+  - retry_count (integer) nullable=True                             
+  - result_data (jsonb) nullable=True                               
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: violation_forecasts
-  - id (integer) nullable=False
-  - forecast_date (date) nullable=False
-  - forecast_type (character varying(50)) nullable=False
-  - predicted_violations (integer) nullable=True
-  - prediction_confidence (numeric) nullable=True
-  - upper_bound (integer) nullable=True
-  - lower_bound (integer) nullable=True
-  - influencing_factors (jsonb) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: violation_forecasts                                          
+  - id (integer) nullable=False                                     
+  - forecast_date (date) nullable=False                             
+  - forecast_type (character varying(50)) nullable=False            
+  - predicted_violations (integer) nullable=True                    
+  - prediction_confidence (numeric) nullable=True                   
+  - upper_bound (integer) nullable=True                             
+  - lower_bound (integer) nullable=True                             
+  - influencing_factors (jsonb) nullable=True                       
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
-Table: violation_rules
-  - id (integer) nullable=False
-  - code (character varying(50)) nullable=False
-  - description (text) nullable=False
-  - law_reference (character varying(255)) nullable=True
-  - fine_min_car (numeric) nullable=True
-  - fine_max_car (numeric) nullable=True
-  - points_car (integer) nullable=True
-  - fine_min_bike (numeric) nullable=True
-  - fine_max_bike (numeric) nullable=True
-  - points_bike (integer) nullable=True
-  - created_at (timestamp without time zone) nullable=True
+Table: violation_rules                                              
+  - id (integer) nullable=False                                     
+  - code (character varying(50)) nullable=False                     
+  - description (text) nullable=False                               
+  - law_reference (character varying(255)) nullable=True            
+  - fine_min_car (numeric) nullable=True                            
+  - fine_max_car (numeric) nullable=True                            
+  - points_car (integer) nullable=True                              
+  - fine_min_bike (numeric) nullable=True                           
+  - fine_max_bike (numeric) nullable=True                           
+  - points_bike (integer) nullable=True                             
+  - created_at (timestamp without time zone) nullable=True          
   - updated_at (timestamp without time zone) nullable=True
-Table: violations
-  - id (integer) nullable=False
-  - license_plate (character varying(20)) nullable=False
-  - vehicle_type (character varying(50)) nullable=True
-  - vehicle_color (character varying(50)) nullable=True
-  - vehicle_brand (character varying(100)) nullable=True
-  - driving_license_id (integer) nullable=True
-  - violation_type (character varying(100)) nullable=False
-  - violation_description (text) nullable=True
-  - violation_rule_id (integer) nullable=True
-  - points_deducted (integer) nullable=True
-  - fine_amount (numeric) nullable=True
-  - legal_reference (character varying(500)) nullable=True
-  - location_name (character varying(255)) nullable=True
-  - latitude (numeric) nullable=True
-  - longitude (numeric) nullable=True
-  - camera_id (character varying(100)) nullable=True
-  - detected_at (timestamp without time zone) nullable=False
-  - confidence_score (numeric) nullable=True
-  - ai_metadata (jsonb) nullable=True
-  - evidence_images (json) nullable=True
-  - evidence_gif (character varying(500)) nullable=True
-  - video_id (integer) nullable=True
-  - status (character varying(50)) nullable=True
-  - priority (character varying(20)) nullable=True
-  - reviewed_by (integer) nullable=True
-  - reviewed_at (timestamp without time zone) nullable=True
-  - review_notes (text) nullable=True
-  - created_at (timestamp without time zone) nullable=False
+Table: violations                                                   
+  - id (integer) nullable=False                                     
+  - license_plate (character varying(20)) nullable=False            
+  - vehicle_type (character varying(50)) nullable=True              
+  - vehicle_color (character varying(50)) nullable=True             
+  - vehicle_brand (character varying(100)) nullable=True            
+  - driving_license_id (integer) nullable=True                      
+  - violation_type (character varying(100)) nullable=False          
+  - violation_description (text) nullable=True                      
+  - violation_rule_id (integer) nullable=True                       
+  - points_deducted (integer) nullable=True                         
+  - fine_amount (numeric) nullable=True                             
+  - legal_reference (character varying(500)) nullable=True          
+  - location_name (character varying(255)) nullable=True            
+  - latitude (numeric) nullable=True                                
+  - longitude (numeric) nullable=True                               
+  - camera_id (character varying(100)) nullable=True                
+  - detected_at (timestamp without time zone) nullable=False        
+  - confidence_score (numeric) nullable=True                        
+  - ai_metadata (jsonb) nullable=True                               
+  - evidence_images (json) nullable=True                            
+  - evidence_gif (character varying(500)) nullable=True             
+  - video_id (integer) nullable=True                                
+  - status (USER-DEFINED) nullable=True                             
+  - priority (character varying(20)) nullable=True                  
+  - reviewed_by (integer) nullable=True                             
+  - reviewed_at (timestamp without time zone) nullable=True         
+  - review_notes (text) nullable=True                               
+  - created_at (timestamp without time zone) nullable=False         
   - updated_at (timestamp without time zone) nullable=False
+
+                                                                                                                                                     
+Enum: appealstatus: PENDING, APPROVED, REJECTED
+                                                                                                                                                     
+Enum: auditaction: CREATE, READ, UPDATE, DELETE, UPLOAD, DOWNLOAD, REVIEW, APPROVE, REJECT, LOGIN, LOGOUT, FAILED_LOGIN
+                                                                                                                                                     
+Enum: auditresource: VIDEO, DETECTION, VIOLATION, USER, CAMERA, AI_CONFIG, SYSTEM
+                                                                                                                                                     
+Enum: complaintstatus: PENDING, UNDER_REVIEW, RESOLVED, REJECTED, CANCELLED
+                                                                                                                                                     
+Enum: complainttype: VIOLATION_DISPUTE, FALSE_POSITIVE, MISSING_VIOLATION, OFFICER_BEHAVIOR, SYSTEM_ERROR, OTHER
+                                                                                                                                                     
+Enum: denunciationstatus: PENDING, VERIFYING, INVESTIGATING, RESOLVED, REJECTED, TRANSFERRED
+                                                                                                                                                     
+Enum: denunciationtype: CORRUPTION, ABUSE_OF_POWER, VIOLATION_COVER_UP, FRAUD, SYSTEM_MANIPULATION, OTHER_ILLEGAL
+                                                                                                                                                     
+Enum: jobstatus: PENDING, PROCESSING, COMPLETED, FAILED
+                                                                                                                                                     
+Enum: jobtype: UPLOAD, THUMBNAIL
+                                                                                                                                                     
+Enum: licenseclass: A1, A2, A3, A4, B1, B2, C, D, E, F
+                                                                                                                                                     
+Enum: licensestatus: ACTIVE, SUSPENDED, REVOKED, EXPIRED
+                                                                                                                                                     
+Enum: notificationchannel: EMAIL, SMS, APP_PUSH, WEB_PUSH, SYSTEM
+                                                                                                                                                     
+Enum: notificationstatus: PENDING, SENT, DELIVERED, FAILED, READ
+                                                                                                                                                     
+Enum: notificationtype: VIOLATION_ALERT, PAYMENT_REMINDER, PAYMENT_CONFIRMATION, COMPLAINT_UPDATE, APPEAL_RESULT, SYSTEM_ANNOUNCEMENT, SECURITY_ALERT
+                                                                                                                                                     
+Enum: paymentmethod: WALLET, BANK_TRANSFER, CREDIT_CARD, E_WALLET, CASH, BANKING, QR_CODE
+                                                                                                                                                     
+Enum: paymentstatus: CREATED, PENDING, PAID, FAILED, REFUNDED, CANCELLED
+                                                                                                                                                     
+Enum: paymenttype: FINE_PAYMENT, WALLET_DEPOSIT, WALLET_WITHDRAW, REFUND
+                                                                                                                                                     
+Enum: processingstatus: PENDING, PROCESSING, COMPLETED, FAILED
+                                                                                                                                                     
+Enum: role: ADMIN, OFFICER, CITIZEN
+                                                                                                                                                     
+Enum: violationstatus: PENDING, REVIEWING, VERIFIED, APPROVED, REJECTED, PAID, PROCESSED
+
 ```

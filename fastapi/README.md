@@ -34,6 +34,39 @@ Powerful and scalable Backend API built with FastAPI.
    uvicorn app.main:app --reload
    ```
 
+## 🧪 Testing
+
+We use `pytest` for running tests. The configuration is available in `pytest.ini`.
+
+### Running Tests Locally
+
+1. **Run all tests:**
+   ```bash
+   pytest
+   ```
+
+2. **Run with coverage report:**
+   ```bash
+   pytest --cov=app --cov-report=term-missing
+   ```
+
+3. **Run specific tests:**
+   ```bash
+   # Run only unit tests
+   pytest -m unit
+
+   # Run a specific test file
+   pytest tests/api/test_auth.py
+   ```
+
+### Running Tests with Docker
+
+If you are running the application using Docker, you can run tests inside the container:
+
+```bash
+docker-compose exec backend pytest
+```
+
 ## 📖 API Documentation
 Once the server is running, you can access the interactive documentation at:
 - **Swagger UI:** `http://localhost:8000/docs`

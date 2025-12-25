@@ -509,4 +509,5 @@ Enum: role: ADMIN, OFFICER, CITIZEN
                                                                                                                                                      
 Enum: violationstatus: PENDING, REVIEWING, VERIFIED, APPROVED, REJECTED, PAID, PROCESSED
 
+
 ```

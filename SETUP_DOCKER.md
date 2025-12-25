@@ -57,6 +57,14 @@ docker-compose exec backend python app/seed_data.py
 docker-compose exec backend python seed_data.py
 ```
 
+## 🧪 Running Tests
+
+You can run the backend test suite inside the container:
+
+```bash
+docker-compose exec backend pytest
+```
+
 ## Troubleshooting
 
 -   **Frontend can't connect to Backend:** Ensure `NEXT_PUBLIC_API_URL` is correct. If you are accessing from another device, you might need to change `localhost` to your machine's IP.

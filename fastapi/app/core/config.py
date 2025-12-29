@@ -46,9 +46,9 @@ class Settings(BaseSettings):
     mongo_db: str = "ai_logs"
 
     # Cloudinary
-    cloudinary_cloud_name: str = "your_cloud_name"
-    cloudinary_api_key: str = "753927628427979"
-    cloudinary_api_secret: str = "mvjCCHu33schCthNzZqSuYmaP5Y"
+    cloudinary_cloud_name: str = "dyrigfgzs"
+    cloudinary_api_key: str = "953764128631811"
+    cloudinary_api_secret: str = "517TzKJh2DNYCZ9ZWbvECCBGK9U"
 
     # Celery
     CELERY_BROKER_URL: str = "redis://localhost:6379/0"

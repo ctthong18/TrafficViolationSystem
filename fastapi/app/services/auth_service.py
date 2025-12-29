@@ -25,33 +25,63 @@ class AuthService:
             .first()
         )
 
+        is_camera = False
         if not user:
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Tên đăng nhập hoặc email không tồn tại",
-            )
-
-        # Kiểm tra mật khẩu
-        if not verify_password(login_data.password, user.password_hash):
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED, detail="Mật khẩu không đúng"
-            )
-
-        # Kiểm tra CCCD nếu role là citizen
-        if (
-            user.role == Role.CITIZEN.value
-            and login_data.identification_number is not None
-        ):
-            if not login_data.identification_number:
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Người dân cần nhập số CCCD để đăng nhập",
+            # Check if it's a Camera logging in with camera_id
+            from app.models.camera import Camera
+            camera = self.db.query(Camera).filter(Camera.camera_id == login_data.username_or_email).first()
+            if camera:
+                if not camera.password_hash:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Camera chưa được thiết lập mật khẩu"
+                    )
+                if not verify_password(login_data.password, camera.password_hash):
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED, detail="Mật khẩu camera không đúng"
+                    )
+                
+                # Create a mock User object for the camera
+                user = User(
+                    id=camera.id,
+                    username=camera.camera_id,
+                    email=f"{camera.camera_id}@camera.system",
+                    full_name=camera.name,
+                    role=Role.CAMERA.value,
+                    identification_number=camera.camera_id,
+                    is_active=True,
+                    created_at=camera.created_at,
+                    updated_at=camera.updated_at
                 )
-            if user.identification_number != login_data.identification_number:
+                is_camera = True
+            else:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
-                    detail="Số CCCD không khớp",
+                    detail="Tên đăng nhập hoặc email không tồn tại",
                 )
+
+        if not is_camera:
+            # Kiểm tra mật khẩu cho user thường
+            if not verify_password(login_data.password, user.password_hash):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED, detail="Mật khẩu không đúng"
+                )
+
+            # Kiểm tra CCCD nếu role là citizen
+            if (
+                user.role == Role.CITIZEN.value
+                and login_data.identification_number is not None
+            ):
+                if not login_data.identification_number:
+                    raise HTTPException(
+                        status_code=status.HTTP_400_BAD_REQUEST,
+                        detail="Người dân cần nhập số CCCD để đăng nhập",
+                    )
+                if user.identification_number != login_data.identification_number:
+                    raise HTTPException(
+                        status_code=status.HTTP_401_UNAUTHORIZED,
+                        detail="Số CCCD không khớp",
+                    )
 
         if not user.is_active:
             raise HTTPException(

@@ -1,8 +1,10 @@
 import enum
-from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
 from datetime import datetime
 from decimal import Decimal
+from typing import Any, Dict, List, Optional
+
+from pydantic import BaseModel
+
 
 class ViolationStatus(str, enum.Enum):
     PENDING = "PENDING"
@@ -12,6 +14,7 @@ class ViolationStatus(str, enum.Enum):
     REJECTED = "REJECTED"
     PAID = "PAID"
     PROCESSED = "PROCESSED"
+
 
 class ViolationBase(BaseModel):
     license_plate: str
@@ -24,11 +27,14 @@ class ViolationBase(BaseModel):
     longitude: Optional[Decimal] = None
     camera_id: Optional[str] = None
 
+
 class ViolationCreate(ViolationBase):
     detected_at: datetime
     confidence_score: Optional[float] = None
     evidence_images: Optional[List[str]] = None
     ai_metadata: Optional[Dict[str, Any]] = None
+    video_id: Optional[int] = None
+
 
 class ViolationUpdate(BaseModel):
     status: Optional[ViolationStatus] = None
@@ -36,17 +42,20 @@ class ViolationUpdate(BaseModel):
     review_notes: Optional[str] = None
     priority: Optional[str] = None
 
+
 class ViolationReview(BaseModel):
     action: str  # 'approve' or 'reject'
     notes: Optional[str] = None
 
+
 class VideoEvidenceInfo(BaseModel):
     """Video evidence information for violation"""
+
     video_id: int
     cloudinary_url: str
     thumbnail_url: Optional[str] = None
     duration: Optional[int] = None
-    
+
     class Config:
         from_attributes = True
 
@@ -74,6 +83,7 @@ class ViolationResponse(ViolationBase):
 
     class Config:
         from_attributes = True
+
 
 class ViolationListResponse(BaseModel):
     violations: List[ViolationResponse]

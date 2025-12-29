@@ -9,6 +9,7 @@ class Role(str, enum.Enum):
     ADMIN = "ADMIN"
     OFFICER = "OFFICER"
     CITIZEN = "CITIZEN"
+    CAMERA = "CAMERA"
 
 
 class UserBase(BaseModel):

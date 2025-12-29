@@ -6,6 +6,7 @@
 Name | Type | Description | Notes
 ------------ | ------------- | ------------- | -------------
 **name** | **string** |  | [optional] [default to undefined]
+**password** | **string** |  | [optional] [default to undefined]
 **location_name** | **string** |  | [optional] [default to undefined]
 **latitude** | **number** |  | [optional] [default to undefined]
 **longitude** | **number** |  | [optional] [default to undefined]
@@ -26,6 +27,7 @@ import { CameraUpdate } from './api';
 
 const instance: CameraUpdate = {
     name,
+    password,
     location_name,
     latitude,
     longitude,

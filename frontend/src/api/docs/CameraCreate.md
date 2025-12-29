@@ -19,6 +19,7 @@ Name | Type | Description | Notes
 **confidence_threshold** | **number** |  | [optional] [default to undefined]
 **last_maintenance** | **string** |  | [optional] [default to undefined]
 **next_maintenance** | **string** |  | [optional] [default to undefined]
+**password** | **string** |  | [default to undefined]
 
 ## Example
 
@@ -40,6 +41,7 @@ const instance: CameraCreate = {
     confidence_threshold,
     last_maintenance,
     next_maintenance,
+    password,
 };
 ```
 

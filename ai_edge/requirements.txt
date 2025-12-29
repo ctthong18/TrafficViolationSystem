@@ -1,0 +1,5 @@
+requests==2.31.0
+python-dotenv==1.0.0
+rich==13.7.0
+opencv-python
+pynput==1.7.6

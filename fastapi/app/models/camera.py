@@ -19,6 +19,7 @@ class Camera(Base, TimestampMixin):
     camera_type = Column(String(100))
     resolution = Column(String(50))
     status = Column(String(50), default="online")
+    password_hash = Column(String(255)) # Only for camera self-auth if needed later
     
     # AI Configuration
     enabled_detections = Column(JSONB)

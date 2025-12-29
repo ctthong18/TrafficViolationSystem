@@ -29,16 +29,26 @@ class ViolationService:
         return violation
 
     def create_violation(self, violation_data: ViolationCreate) -> Violation:
-        # Check if vehicle exists
+        # Check if vehicle exists to enrich the data
         vehicle = (
             self.db.query(Vehicle)
             .filter(Vehicle.license_plate == violation_data.license_plate)
             .first()
         )
 
-        violation = Violation(
-            **violation_data.dict(), vehicle_id=vehicle.id if vehicle else None
-        )
+        # Create violation object
+        v_dict = violation_data.dict()
+        
+        # Enrichment: if vehicle exists and request fields are empty, fill them
+        if vehicle:
+            if not v_dict.get("vehicle_type"):
+                v_dict["vehicle_type"] = vehicle.vehicle_type
+            if not v_dict.get("vehicle_color"):
+                v_dict["vehicle_color"] = vehicle.vehicle_color
+            if not v_dict.get("vehicle_brand"):
+                v_dict["vehicle_brand"] = vehicle.vehicle_brand
+
+        violation = Violation(**v_dict)
 
         self.db.add(violation)
         self.db.commit()

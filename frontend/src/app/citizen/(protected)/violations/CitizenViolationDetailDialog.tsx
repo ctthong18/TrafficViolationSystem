@@ -20,37 +20,35 @@ import {
   DollarSign,
   Image as ImageIcon,
   Camera,
-  User,
-  History,
   Video,
 } from "lucide-react";
 import { getStatusBadgeVariant } from "@/lib/violation-utils";
 
-interface ViolationDetailDialogProps {
+interface CitizenViolationDetailDialogProps {
   violation: ViolationResponse | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-export default function ViolationDetailDialog({
+export default function CitizenViolationDetailDialog({
   violation,
   open,
   onOpenChange,
-}: ViolationDetailDialogProps) {
+}: CitizenViolationDetailDialogProps) {
   if (!violation) return null;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto backdrop-blur-xl bg-slate-950/90 border-white/10 text-white shadow-2xl">
+      <DialogContent className="sm:max-w-4xl max-h-[90vh] overflow-y-auto backdrop-blur-xl bg-gradient-to-br from-slate-950 to-slate-900 border-white/10 text-white shadow-2xl">
         <DialogHeader className="border-b border-white/5 pb-4">
           <DialogTitle className="text-xl sm:text-2xl flex items-center gap-3 font-bold tracking-tight">
             <div className="p-2 rounded-full bg-amber-500/10 text-amber-500 border border-amber-500/20">
               <AlertTriangle className="h-5 w-5 sm:h-6 sm:w-6" />
             </div>
-            <span>Violation Record #{violation.id}</span>
+            <span>Violation #{violation.id}</span>
           </DialogTitle>
           <DialogDescription className="text-slate-400">
-            Official record of traffic law violation
+            View details and evidence for this traffic violation
           </DialogDescription>
         </DialogHeader>
 
@@ -135,7 +133,7 @@ export default function ViolationDetailDialog({
               <Card className="border-rose-500/20 bg-rose-500/5 shadow-2xl rounded-2xl overflow-hidden">
                 <CardHeader className="pb-3 bg-rose-500/5 border-b border-rose-500/10">
                   <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 text-rose-300">
-                    <FileText className="h-4 w-4 text-rose-500" /> Offense
+                    <FileText className="h-4 w-4 text-rose-500" /> Violation
                     Details
                   </CardTitle>
                 </CardHeader>
@@ -151,7 +149,7 @@ export default function ViolationDetailDialog({
                   {violation.violation_description && (
                     <div>
                       <Label className="text-[10px] uppercase font-bold tracking-[0.2em] text-rose-500/60 mb-1 block">
-                        Legal Statement
+                        Description
                       </Label>
                       <div className="bg-white/5 border-l-4 border-rose-500 p-3 rounded-r-lg">
                         <p className="text-sm text-slate-300 leading-relaxed italic">
@@ -171,25 +169,14 @@ export default function ViolationDetailDialog({
                     </div>
                     <div className="bg-white/5 p-4 rounded-xl border border-white/5 shadow-inner">
                       <Label className="text-[10px] uppercase font-bold tracking-widest text-slate-500 mb-2 block">
-                        AI Confidence
+                        Fine Amount
                       </Label>
-                      <div className="flex items-end gap-2">
-                        <p className="text-3xl font-black text-blue-500">
-                          {(violation.confidence_score
-                            ? violation.confidence_score * 100
-                            : 0
-                          ).toFixed(0)}
-                          %
-                        </p>
-                        <div className="h-2 w-full bg-white/10 rounded-full mb-2 overflow-hidden">
-                          <div
-                            className="h-full bg-blue-500 rounded-full"
-                            style={{
-                              width: `${(violation.confidence_score || 0) * 100}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
+                      <p className="text-2xl font-black text-rose-500">
+                        {violation.fine_amount
+                          ? `${parseFloat(violation.fine_amount).toLocaleString()}`
+                          : "0"}
+                      </p>
+                      <p className="text-[10px] text-slate-500 mt-1">VND</p>
                     </div>
                   </div>
                 </CardContent>
@@ -198,8 +185,7 @@ export default function ViolationDetailDialog({
               <Card className="border-white/5 bg-white/5 shadow-2xl rounded-2xl overflow-hidden">
                 <CardHeader className="pb-3 bg-white/5 border-b border-white/5">
                   <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 text-slate-300">
-                    <MapPin className="h-4 w-4 text-emerald-400" /> Incident
-                    Scene
+                    <MapPin className="h-4 w-4 text-emerald-400" /> Location
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-3 pt-4">
@@ -230,11 +216,11 @@ export default function ViolationDetailDialog({
               </Card>
             </div>
 
-            {/* Right Column: Evidence & History */}
+            {/* Right Column: Evidence */}
             <div className="space-y-6">
               <div className="space-y-4">
                 <h3 className="text-xs font-black uppercase tracking-[0.3em] flex items-center gap-2 text-slate-500">
-                  <ImageIcon className="h-4 w-4" /> Digital Evidence
+                  <ImageIcon className="h-4 w-4" /> Evidence
                 </h3>
                 <div className="grid grid-cols-1 gap-4">
                   {/* Video Evidence */}
@@ -264,6 +250,11 @@ export default function ViolationDetailDialog({
                           </div>
                         </div>
                       </div>
+                      {violation.video_evidence.duration && (
+                        <p className="text-xs text-slate-400 text-center">
+                          Duration: {violation.video_evidence.duration} seconds
+                        </p>
+                      )}
                     </div>
                   ) : violation.evidence_images &&
                     violation.evidence_images.length > 0 ? (
@@ -279,7 +270,7 @@ export default function ViolationDetailDialog({
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4">
                           <p className="text-white font-bold text-xs uppercase tracking-widest">
-                            Capture Point {idx + 1}
+                            Evidence Photo {idx + 1}
                           </p>
                           <p className="text-slate-400 text-[10px]">
                             {new Date(violation.detected_at).toLocaleString()}
@@ -291,64 +282,78 @@ export default function ViolationDetailDialog({
                     <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
                       <img
                         src={violation.evidence_gif}
-                        alt="Evidence Record"
+                        alt="Evidence GIF"
                         className="w-full h-auto"
                       />
                     </div>
                   ) : (
-                    <div className="h-64 bg-white/5 rounded-2xl flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-white/5 group hover:border-white/10 transition-colors">
+                    <div className="h-64 bg-white/5 rounded-2xl flex flex-col items-center justify-center text-slate-500 border-2 border-dashed border-white/5">
                       <Camera className="h-10 w-10 mb-2 opacity-20" />
                       <p className="text-xs font-bold uppercase tracking-widest">
-                        No evidence found
+                        No evidence available
                       </p>
                     </div>
                   )}
                 </div>
               </div>
 
-              {violation.reviewed_by && (
-                <Card className="border-white/10 bg-white/5 shadow-2xl rounded-2xl overflow-hidden">
-                  <CardHeader className="pb-3 bg-white/5 border-b border-white/10">
-                    <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 text-slate-300">
-                      <History className="h-4 w-4 text-amber-400" />{" "}
-                      Administrative Action
+              {/* Additional Info */}
+              {violation.legal_reference && (
+                <Card className="border-amber-500/20 bg-amber-500/5 shadow-2xl rounded-2xl overflow-hidden">
+                  <CardHeader className="pb-3 bg-amber-500/5 border-b border-amber-500/10">
+                    <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 text-amber-300">
+                      <FileText className="h-4 w-4 text-amber-500" /> Legal
+                      Reference
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-5 pt-4">
-                    <div className="flex items-center gap-4">
-                      <div className="h-12 w-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center text-amber-400 shadow-inner">
-                        <User className="h-6 w-6" />
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase font-black tracking-widest text-slate-500 mb-0.5">
-                          Reviewed By
-                        </p>
-                        <p className="text-sm font-bold text-slate-200">
-                          Officer ID #{violation.reviewed_by}
-                        </p>
-                      </div>
-                    </div>
-                    {violation.review_notes && (
-                      <div className="bg-white/5 p-4 rounded-xl border-l-4 border-amber-500/50">
-                        <p className="text-[10px] uppercase font-black text-amber-500/60 mb-2 tracking-widest">
-                          Administrative Notes
-                        </p>
-                        <p className="text-sm text-slate-400 leading-relaxed italic">
-                          &ldquo;{violation.review_notes}&rdquo;
-                        </p>
-                      </div>
-                    )}
-                    {violation.reviewed_at && (
-                      <div className="text-[10px] text-right font-mono text-slate-600 italic">
-                        PROCESSED{" "}
-                        {new Date(violation.reviewed_at)
-                          .toLocaleString()
-                          .toUpperCase()}
-                      </div>
-                    )}
+                  <CardContent className="pt-4">
+                    <p className="text-sm text-slate-300 leading-relaxed">
+                      {violation.legal_reference}
+                    </p>
                   </CardContent>
                 </Card>
               )}
+
+              <Card className="border-white/5 bg-white/5 shadow-2xl rounded-2xl overflow-hidden">
+                <CardHeader className="pb-3 bg-white/5 border-b border-white/5">
+                  <CardTitle className="text-sm font-bold uppercase tracking-widest flex items-center gap-2 text-slate-300">
+                    <AlertTriangle className="h-4 w-4 text-blue-400" /> Next
+                    Steps
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="pt-4">
+                  <div className="space-y-3 text-sm text-slate-300">
+                    {violation.status === "PENDING" && (
+                      <p>
+                        This violation is currently under review. You will be
+                        notified once it has been processed.
+                      </p>
+                    )}
+                    {violation.status === "APPROVED" && (
+                      <div className="space-y-2">
+                        <p className="font-semibold text-amber-400">
+                          Payment Required
+                        </p>
+                        <p>
+                          This violation has been approved. Please proceed to
+                          payment to avoid additional penalties.
+                        </p>
+                      </div>
+                    )}
+                    {violation.status === "PAID" && (
+                      <p className="text-green-400 font-semibold">
+                        ✓ Payment received. This violation has been settled.
+                      </p>
+                    )}
+                    {violation.status === "REJECTED" && (
+                      <p className="text-slate-400">
+                        This violation has been rejected and no payment is
+                        required.
+                      </p>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
           </div>
         </div>

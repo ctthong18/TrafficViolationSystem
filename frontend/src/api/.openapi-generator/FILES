@@ -43,7 +43,9 @@ docs/FineMaxCar.md
 docs/FineMinBike.md
 docs/FineMinCar.md
 docs/HTTPValidationError.md
+docs/Latitude.md
 docs/LoginRequest.md
+docs/Longitude.md
 docs/NotificationChannel.md
 docs/NotificationListResponse.md
 docs/NotificationResponse.md
@@ -78,6 +80,7 @@ docs/VideoStatsByDate.md
 docs/VideoStatsResponse.md
 docs/VideoUploadResponse.md
 docs/VideosApi.md
+docs/ViolationCreate.md
 docs/ViolationListResponse.md
 docs/ViolationResponse.md
 docs/ViolationReview.md

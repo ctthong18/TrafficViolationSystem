@@ -17,7 +17,7 @@ class RateLimitingMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         try:
             self.redis_client = redis.from_url(
-                redis_url or os.getenv("REDIS_URL", "redis://redis:6379"),
+                redis_url or settings.REDIS_URL,
                 socket_connect_timeout=5
             )
             # Test connection

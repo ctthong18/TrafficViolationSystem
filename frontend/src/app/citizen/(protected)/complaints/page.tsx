@@ -36,6 +36,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Link from "next/link";
+import { ComplaintStatusBadge } from "./ComplaintStatusBadge";
 
 export default function CitizenComplaintsPage() {
     const { token } = useAuth();
@@ -69,18 +70,6 @@ export default function CitizenComplaintsPage() {
         return matchesSearch && matchesStatus;
     });
 
-    const getStatusBadge = (status: string) => {
-        switch (status) {
-            case ComplaintStatus.Resolved:
-                return <Badge className="bg-success text-success-foreground rounded-full font-bold">Resolved</Badge>;
-            case ComplaintStatus.UnderReview:
-                return <Badge className="bg-info text-info-foreground rounded-full font-bold">In Review</Badge>;
-            case ComplaintStatus.Pending:
-                return <Badge className="bg-warning text-warning-foreground rounded-full font-bold">Pending</Badge>;
-            default:
-                return <Badge variant="secondary" className="rounded-full">{status}</Badge>;
-        }
-    };
 
     return (
         <div className="space-y-6 p-6">
@@ -221,7 +210,7 @@ export default function CitizenComplaintsPage() {
                                             </div>
                                         </TableCell>
                                         <TableCell>
-                                            {getStatusBadge(complaint.status || "")}
+                                            <ComplaintStatusBadge status={complaint.status || ""} />
                                         </TableCell>
                                         <TableCell>
                                             <div className="flex flex-col text-[10px] font-bold">

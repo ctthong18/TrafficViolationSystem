@@ -1,3 +1,4 @@
+import asyncio
 from fastapi import FastAPI
 from app.core.config import settings  
 from app.core.database import create_tables  
@@ -43,6 +44,10 @@ def health_check():
 @app.on_event("startup")
 async def startup_event():
     create_tables()
+    
+    # Start UDP receiver for camera streams
+    from app.core.udp_stream import start_udp_receiver
+    asyncio.create_task(start_udp_receiver(port=9999))
 
 if __name__ == "__main__":
     import uvicorn

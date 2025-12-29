@@ -21,12 +21,14 @@ class CameraBase(BaseModel):
     next_maintenance: Optional[date] = None
 
 
+
 class CameraCreate(CameraBase):
-    pass
+    password: str
 
 
 class CameraUpdate(BaseModel):
     name: Optional[str] = None
+    password: Optional[str] = None
     location_name: Optional[str] = None
     latitude: Optional[float] = None
     longitude: Optional[float] = None

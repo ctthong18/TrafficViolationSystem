@@ -110,6 +110,7 @@ export default function CamerasManagementPage() {
     enabled_detections: {},
     ai_model_version: "1.0",
     confidence_threshold: 0.8,
+    password: "",
   });
 
   const [editCamera, setEditCamera] = useState<CameraUpdate>({});
@@ -264,6 +265,7 @@ export default function CamerasManagementPage() {
       enabled_detections: {},
       ai_model_version: "1.0",
       confidence_threshold: 0.8,
+      password: "",
     });
   };
 
@@ -434,6 +436,19 @@ export default function CamerasManagementPage() {
                       }
                     />
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="password">Camera Password *</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="Set camera password for AI connection"
+                    value={newCamera.password}
+                    onChange={(e) =>
+                      setNewCamera({ ...newCamera, password: e.target.value })
+                    }
+                  />
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
@@ -895,8 +910,8 @@ export default function CamerasManagementPage() {
                     <span className="font-medium">Last Violation:</span>{" "}
                     {selectedCamera.last_violation_at
                       ? new Date(
-                          selectedCamera.last_violation_at,
-                        ).toLocaleString()
+                        selectedCamera.last_violation_at,
+                      ).toLocaleString()
                       : "No violations"}
                   </div>
                 </div>
@@ -990,6 +1005,20 @@ export default function CamerasManagementPage() {
                   }
                 />
               </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="edit_password">
+                Change Password (leave blank to keep current)
+              </Label>
+              <Input
+                id="edit_password"
+                type="password"
+                value={editCamera.password || ""}
+                onChange={(e) =>
+                  setEditCamera({ ...editCamera, password: e.target.value })
+                }
+              />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
@@ -1101,7 +1130,7 @@ export default function CamerasManagementPage() {
                   type="date"
                   value={
                     editCamera.last_maintenance &&
-                    editCamera.last_maintenance !== ""
+                      editCamera.last_maintenance !== ""
                       ? editCamera.last_maintenance.split("T")[0]
                       : ""
                   }
@@ -1122,7 +1151,7 @@ export default function CamerasManagementPage() {
                   type="date"
                   value={
                     editCamera.next_maintenance &&
-                    editCamera.next_maintenance !== ""
+                      editCamera.next_maintenance !== ""
                       ? editCamera.next_maintenance.split("T")[0]
                       : ""
                   }

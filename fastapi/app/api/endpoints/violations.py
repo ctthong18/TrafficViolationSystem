@@ -12,10 +12,25 @@ from app.schemas.violation_schema import (
     VideoEvidenceInfo,
     ViolationListResponse,
     ViolationResponse,
+    ViolationCreate,
 )
 from app.services.violation_service import ViolationService
 
 router = APIRouter()
+
+
+@router.post("/", response_model=ViolationResponse)
+def create_violation(
+    payload: ViolationCreate,
+    current_user: User = Depends(require_roles([Role.ADMIN.value, Role.CAMERA.value, Role.OFFICER.value])),
+    db: Session = Depends(get_db),
+):
+    """
+    Create a new violation.
+    Accessible by ADMIN, CAMERA, and OFFICER.
+    """
+    violation_service = ViolationService(db)
+    return violation_service.create_violation(payload)
 
 
 @router.get("/", response_model=ViolationListResponse)

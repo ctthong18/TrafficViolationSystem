@@ -27,12 +27,26 @@ async def get_current_user(
         )
 
     user_service = UserService(db)
-    user = user_service.get_user_by_username(username)
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED, detail="Người dùng không tồn tại"
-        )
+    try:
+        user = user_service.get_user_by_username(username)
+    except HTTPException:
+        # Check if it's a camera
+        from app.models.camera import Camera
+        camera = db.query(Camera).filter(Camera.camera_id == username).first()
+        if camera:
+            user = User(
+                id=camera.id,
+                username=camera.camera_id,
+                email=f"{camera.camera_id}@camera.system",
+                full_name=camera.name,
+                role=Role.CAMERA.value,
+                identification_number=camera.camera_id,
+                is_active=True
+            )
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Người dùng không tồn tại"
+            )
 
     if not user.is_active:
         raise HTTPException(

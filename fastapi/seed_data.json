@@ -137,7 +137,8 @@
       "address": "Số 234 Láng Hạ, Đống Đa, Hà Nội",
       "camera_type": "FIXED",
       "resolution": "4K",
-      "status": "ONLINE"
+      "status": "ONLINE",
+      "password": "camera123"
     },
     {
       "camera_id": "CAM-HN-002",
@@ -148,7 +149,8 @@
       "address": "Ngã tư Cầu Giấy, Cầu Giấy, Hà Nội",
       "camera_type": "FIXED",
       "resolution": "4K",
-      "status": "ONLINE"
+      "status": "ONLINE",
+      "password": "camera123"
     },
     {
       "camera_id": "CAM-HN-003",
@@ -159,7 +161,8 @@
       "address": "Ngã Tư Sở, Đống Đa, Hà Nội",
       "camera_type": "FIXED",
       "resolution": "4K",
-      "status": "ONLINE"
+      "status": "ONLINE",
+      "password": "camera123"
     },
     {
       "camera_id": "CAM-HCM-001",
@@ -170,7 +173,8 @@
       "address": "Ngã tư Hàng Xanh, Bình Thạnh, TP.HCM",
       "camera_type": "FIXED",
       "resolution": "4K",
-      "status": "ONLINE"
+      "status": "ONLINE",
+      "password": "camera123"
     },
     {
       "camera_id": "CAM-HCM-002",
@@ -181,7 +185,8 @@
       "address": "Cộng Hòa, Tân Bình, TP.HCM",
       "camera_type": "FIXED",
       "resolution": "4K",
-      "status": "ONLINE"
+      "status": "ONLINE",
+      "password": "camera123"
     },
     {
       "camera_id": "CAM-DN-001",
@@ -192,10 +197,20 @@
       "address": "Cầu Rồng, Hải Châu, Đà Nẵng",
       "camera_type": "FIXED",
       "resolution": "4K",
-      "status": "ONLINE"
+      "status": "ONLINE",
+      "password": "camera123"
     }
   ],
   "users": [
+    {
+      "username": "camera_agent_01",
+      "email": "cam01@system.local",
+      "password_hash": "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewY5GyYILXw3O3qm",
+      "full_name": "AI Camera Unit 01",
+      "role": "CAMERA",
+      "identification_number": "CAM01-SYS-ID",
+      "is_active": true
+    },
     {
       "username": "officer_nguyen",
       "email": "nguyen.vana@csgt.gov.vn",

@@ -26,11 +26,18 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { CitizenApi, Configuration } from "@/api";
+import {
+  CitizenApi,
+  Configuration,
+  ViolationResponse,
+  ViolationsApi,
+} from "@/api";
 import { useAuth } from "@/contexts/AuthContext";
 import { AlertTriangle, Eye, CreditCard, Filter } from "lucide-react";
 import { toast } from "sonner";
 import Link from "next/link";
+import { CitizenStatusBadge } from "./CitizenStatusBadge";
+import CitizenViolationDetailDialog from "./CitizenViolationDetailDialog";
 
 interface Violation {
   id: number;
@@ -49,6 +56,9 @@ export default function MyViolationsPage() {
   const [violations, setViolations] = useState<Violation[]>([]);
   const [loading, setLoading] = useState(true);
   const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [selectedViolation, setSelectedViolation] =
+    useState<ViolationResponse | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   useEffect(() => {
     fetchViolations();
@@ -78,36 +88,6 @@ export default function MyViolationsPage() {
     return violation.status?.toLowerCase() === statusFilter.toLowerCase();
   });
 
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "pending":
-        return "secondary";
-      case "approved":
-        return "default";
-      case "rejected":
-        return "destructive";
-      case "paid":
-        return "outline";
-      default:
-        return "secondary";
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status?.toLowerCase()) {
-      case "pending":
-        return "text-yellow-600";
-      case "approved":
-        return "text-green-600";
-      case "rejected":
-        return "text-red-600";
-      case "paid":
-        return "text-blue-600";
-      default:
-        return "text-gray-600";
-    }
-  };
-
   const totalAmountDue = filteredViolations
     .filter(
       (v) =>
@@ -119,6 +99,25 @@ export default function MyViolationsPage() {
   const totalAmountPaid = filteredViolations
     .filter((v) => v.status?.toLowerCase() === "paid")
     .reduce((sum, v) => sum + (v.fine_amount || 0), 0);
+
+  const handleViewViolation = async (violationId: number) => {
+    try {
+      const config = new Configuration({
+        basePath: process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000",
+        accessToken: token || undefined,
+      });
+      const violationsApi = new ViolationsApi(config);
+      const { data } =
+        await violationsApi.getViolationDetailApiV1ViolationsViolationIdGet(
+          violationId,
+        );
+      setSelectedViolation(data);
+      setDialogOpen(true);
+    } catch (error) {
+      console.error("Failed to fetch violation details:", error);
+      toast.error("Failed to load violation details");
+    }
+  };
 
   return (
     <div className="space-y-6 p-6">
@@ -265,14 +264,7 @@ export default function MyViolationsPage() {
                           : "N/A"}
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          variant={getStatusBadgeVariant(
-                            violation.status || "",
-                          )}
-                          className={getStatusColor(violation.status || "")}
-                        >
-                          {violation.status || "Unknown"}
-                        </Badge>
+                        <CitizenStatusBadge status={violation.status || ""} />
                       </TableCell>
                       <TableCell>
                         {violation.detected_at
@@ -281,12 +273,14 @@ export default function MyViolationsPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
-                          <Link href={`/citizen/violations/${violation.id}`}>
-                            <Button variant="ghost" size="sm">
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Button>
-                          </Link>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleViewViolation(violation.id)}
+                          >
+                            <Eye className="h-4 w-4 mr-1" />
+                            View
+                          </Button>
                           {violation.status?.toLowerCase() === "approved" && (
                             <Link
                               href={`/citizen/payments/pay/${violation.id}`}
@@ -307,6 +301,12 @@ export default function MyViolationsPage() {
           )}
         </CardContent>
       </Card>
+
+      <CitizenViolationDetailDialog
+        violation={selectedViolation}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </div>
   );
 }

@@ -118,6 +118,11 @@ def seed_from_json(db, file_path):
         for cam_data in data.get("cameras", []):
             existing = db.query(Camera).filter(Camera.camera_id == cam_data["camera_id"]).first()
             if not existing:
+                # Hash password if exists
+                if "password" in cam_data:
+                    raw_password = cam_data.pop("password")
+                    cam_data["password_hash"] = bcrypt.hash(raw_password)
+                
                 db.add(Camera(**cam_data))
         db.commit()
 

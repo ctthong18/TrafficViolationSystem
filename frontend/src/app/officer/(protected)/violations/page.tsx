@@ -46,6 +46,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import ViolationDetailDialog from "./ViolationDetailDialog";
+import { OfficerStatusBadge } from "./OfficerStatusBadge";
 
 export default function OfficerViolationsPage() {
   const { token } = useAuth();
@@ -96,39 +97,6 @@ export default function OfficerViolationsPage() {
     fetchViolations();
   };
 
-  const getStatusBadge = (status: string) => {
-    let variant: "default" | "secondary" | "destructive" | "outline" = "secondary";
-    let colorClass = "bg-muted text-muted-foreground";
-
-    switch (status) {
-      case ViolationStatus.Approved:
-        variant = "default";
-        colorClass = "bg-success/10 text-success border-success/20";
-        break;
-      case ViolationStatus.Rejected:
-        variant = "destructive";
-        colorClass = "bg-destructive/10 text-destructive border-destructive/20";
-        break;
-      case ViolationStatus.Paid:
-        variant = "outline";
-        colorClass = "bg-info/10 text-info border-info/20";
-        break;
-      case ViolationStatus.Pending:
-      case ViolationStatus.Reviewing:
-        variant = "secondary";
-        colorClass = "bg-warning/10 text-warning border-warning/20";
-        break;
-      case ViolationStatus.Processed:
-        colorClass = "bg-primary/10 text-primary border-primary/20";
-        break;
-    }
-
-    return (
-      <Badge variant={variant} className={`rounded-full px-3 py-0.5 border font-semibold text-[10px] ${colorClass}`}>
-        {status.toUpperCase()}
-      </Badge>
-    );
-  };
 
   return (
     <div className="space-y-6 p-6">
@@ -253,7 +221,7 @@ export default function OfficerViolationsPage() {
                     <p className="font-bold text-foreground text-sm max-w-[200px] truncate">{violation.violation_type}</p>
                   </TableCell>
                   <TableCell>
-                    {getStatusBadge(violation.status || "")}
+                    <OfficerStatusBadge status={violation.status || ""} />
                   </TableCell>
                   <TableCell>
                     <div className="flex flex-col text-[10px] text-muted-foreground font-medium">

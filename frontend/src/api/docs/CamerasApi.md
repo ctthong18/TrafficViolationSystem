@@ -7,9 +7,12 @@ All URIs are relative to *http://localhost*
 |[**createCameraApiV1CamerasPost**](#createcameraapiv1cameraspost) | **POST** /api/v1/cameras/ | Create Camera|
 |[**deleteCameraApiV1CamerasCameraIdDelete**](#deletecameraapiv1camerascameraiddelete) | **DELETE** /api/v1/cameras/{camera_id} | Delete Camera|
 |[**getCameraApiV1CamerasCameraIdGet**](#getcameraapiv1camerascameraidget) | **GET** /api/v1/cameras/{camera_id} | Get Camera|
+|[**getCameraStreamApiV1CamerasCameraIdStreamGet**](#getcamerastreamapiv1camerascameraidstreamget) | **GET** /api/v1/cameras/{camera_id}/stream | Get Camera Stream|
 |[**getCameraVideosApiV1CamerasCameraIdVideosGet**](#getcameravideosapiv1camerascameraidvideosget) | **GET** /api/v1/cameras/{camera_id}/videos | Get Camera Videos|
 |[**listCamerasApiV1CamerasGet**](#listcamerasapiv1camerasget) | **GET** /api/v1/cameras/ | List Cameras|
+|[**pushCameraFrameApiV1CamerasCameraIdPushPost**](#pushcameraframeapiv1camerascameraidpushpost) | **POST** /api/v1/cameras/{camera_id}/push | Push Camera Frame|
 |[**updateCameraApiV1CamerasCameraIdPut**](#updatecameraapiv1camerascameraidput) | **PUT** /api/v1/cameras/{camera_id} | Update Camera|
+|[**videoFeedApiV1CamerasVideoFeedCameraIdGet**](#videofeedapiv1camerasvideofeedcameraidget) | **GET** /api/v1/cameras/video-feed/{camera_id} | Video Feed|
 
 # **createCameraApiV1CamerasPost**
 > CameraResponse createCameraApiV1CamerasPost(cameraCreate)
@@ -165,6 +168,58 @@ const { status, data } = await apiInstance.getCameraApiV1CamerasCameraIdGet(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **getCameraStreamApiV1CamerasCameraIdStreamGet**
+> any getCameraStreamApiV1CamerasCameraIdStreamGet()
+
+Get the live stream URL for a camera.
+
+### Example
+
+```typescript
+import {
+    CamerasApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CamerasApi(configuration);
+
+let cameraId: string; // (default to undefined)
+
+const { status, data } = await apiInstance.getCameraStreamApiV1CamerasCameraIdStreamGet(
+    cameraId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **cameraId** | [**string**] |  | defaults to undefined|
+
+
+### Return type
+
+**any**
+
+### Authorization
+
+[HTTPBearer](../README.md#HTTPBearer)
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **getCameraVideosApiV1CamerasCameraIdVideosGet**
 > VideoListResponse getCameraVideosApiV1CamerasCameraIdVideosGet()
 
@@ -292,6 +347,61 @@ const { status, data } = await apiInstance.listCamerasApiV1CamerasGet(
 
 [[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
+# **pushCameraFrameApiV1CamerasCameraIdPushPost**
+> any pushCameraFrameApiV1CamerasCameraIdPushPost(body)
+
+Endpoint for AI Agents to push processed JPEG frames via HTTP.
+
+### Example
+
+```typescript
+import {
+    CamerasApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CamerasApi(configuration);
+
+let cameraId: string; // (default to undefined)
+let body: File; //
+
+const { status, data } = await apiInstance.pushCameraFrameApiV1CamerasCameraIdPushPost(
+    cameraId,
+    body
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **body** | **File**|  | |
+| **cameraId** | [**string**] |  | defaults to undefined|
+
+
+### Return type
+
+**any**
+
+### Authorization
+
+[HTTPBearer](../README.md#HTTPBearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
 # **updateCameraApiV1CamerasCameraIdPut**
 > CameraResponse updateCameraApiV1CamerasCameraIdPut(cameraUpdate)
 
@@ -336,6 +446,58 @@ const { status, data } = await apiInstance.updateCameraApiV1CamerasCameraIdPut(
 ### HTTP request headers
 
  - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
+
+# **videoFeedApiV1CamerasVideoFeedCameraIdGet**
+> any videoFeedApiV1CamerasVideoFeedCameraIdGet()
+
+Serve the latest pushed frames as an MJPEG stream.
+
+### Example
+
+```typescript
+import {
+    CamerasApi,
+    Configuration
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new CamerasApi(configuration);
+
+let cameraId: string; // (default to undefined)
+
+const { status, data } = await apiInstance.videoFeedApiV1CamerasVideoFeedCameraIdGet(
+    cameraId
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **cameraId** | [**string**] |  | defaults to undefined|
+
+
+### Return type
+
+**any**
+
+### Authorization
+
+No authorization required
+
+### HTTP request headers
+
+ - **Content-Type**: Not defined
  - **Accept**: application/json
 
 

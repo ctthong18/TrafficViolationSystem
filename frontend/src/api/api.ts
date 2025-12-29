@@ -72,6 +72,7 @@ export interface CameraCreate {
     'confidence_threshold'?: number | null;
     'last_maintenance'?: string | null;
     'next_maintenance'?: string | null;
+    'password': string;
 }
 export interface CameraListResponse {
     'items': Array<CameraResponse>;
@@ -102,6 +103,7 @@ export interface CameraResponse {
 }
 export interface CameraUpdate {
     'name'?: string | null;
+    'password'?: string | null;
     'location_name'?: string | null;
     'latitude'?: number | null;
     'longitude'?: number | null;
@@ -342,10 +344,14 @@ export interface FineMinCar {
 export interface HTTPValidationError {
     'detail'?: Array<ValidationError>;
 }
+export interface Latitude {
+}
 export interface LoginRequest {
     'username_or_email': string;
     'password': string;
     'identification_number'?: string | null;
+}
+export interface Longitude {
 }
 
 export const NotificationChannel = {
@@ -498,7 +504,8 @@ export interface RegisterRequest {
 export const Role = {
     Admin: 'ADMIN',
     Officer: 'OFFICER',
-    Citizen: 'CITIZEN'
+    Citizen: 'CITIZEN',
+    Camera: 'CAMERA'
 } as const;
 
 export type Role = typeof Role[keyof typeof Role];
@@ -654,6 +661,21 @@ export interface VideoUploadResponse {
 }
 
 
+export interface ViolationCreate {
+    'license_plate': string;
+    'vehicle_type'?: string | null;
+    'vehicle_color'?: string | null;
+    'vehicle_brand'?: string | null;
+    'violation_type': string;
+    'location_name'?: string | null;
+    'latitude'?: Latitude | null;
+    'longitude'?: Longitude | null;
+    'camera_id'?: string | null;
+    'detected_at': string;
+    'confidence_score'?: number | null;
+    'evidence_images'?: Array<string> | null;
+    'ai_metadata'?: { [key: string]: any; } | null;
+}
 export interface ViolationListResponse {
     'violations': Array<ViolationResponse>;
     'total': number;
@@ -1924,6 +1946,44 @@ export const CamerasApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Get the live stream URL for a camera.
+         * @summary Get Camera Stream
+         * @param {string} cameraId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getCameraStreamApiV1CamerasCameraIdStreamGet: async (cameraId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cameraId' is not null or undefined
+            assertParamExists('getCameraStreamApiV1CamerasCameraIdStreamGet', 'cameraId', cameraId)
+            const localVarPath = `/api/v1/cameras/{camera_id}/stream`
+                .replace(`{${"camera_id"}}`, encodeURIComponent(String(cameraId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication HTTPBearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get all videos for a specific camera with filtering and pagination  - **camera_id**: ID of the camera - **skip**: Number of records to skip (for pagination) - **limit**: Maximum number of records to return - **has_violations**: Filter by videos with/without violations - **date_from**: Filter videos from this date (ISO format) - **date_to**: Filter videos until this date (ISO format)  Returns paginated list of videos
          * @summary Get Camera Videos
          * @param {string} cameraId 
@@ -2041,6 +2101,49 @@ export const CamerasApiAxiosParamCreator = function (configuration?: Configurati
             };
         },
         /**
+         * Endpoint for AI Agents to push processed JPEG frames via HTTP.
+         * @summary Push Camera Frame
+         * @param {string} cameraId 
+         * @param {File} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        pushCameraFrameApiV1CamerasCameraIdPushPost: async (cameraId: string, body: File, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cameraId' is not null or undefined
+            assertParamExists('pushCameraFrameApiV1CamerasCameraIdPushPost', 'cameraId', cameraId)
+            // verify required parameter 'body' is not null or undefined
+            assertParamExists('pushCameraFrameApiV1CamerasCameraIdPushPost', 'body', body)
+            const localVarPath = `/api/v1/cameras/{camera_id}/push`
+                .replace(`{${"camera_id"}}`, encodeURIComponent(String(cameraId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication HTTPBearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(body, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * 
          * @summary Update Camera
          * @param {string} cameraId 
@@ -2077,6 +2180,40 @@ export const CamerasApiAxiosParamCreator = function (configuration?: Configurati
             let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
             localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
             localVarRequestOptions.data = serializeDataIfNeeded(cameraUpdate, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Serve the latest pushed frames as an MJPEG stream.
+         * @summary Video Feed
+         * @param {string} cameraId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        videoFeedApiV1CamerasVideoFeedCameraIdGet: async (cameraId: string, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'cameraId' is not null or undefined
+            assertParamExists('videoFeedApiV1CamerasVideoFeedCameraIdGet', 'cameraId', cameraId)
+            const localVarPath = `/api/v1/cameras/video-feed/{camera_id}`
+                .replace(`{${"camera_id"}}`, encodeURIComponent(String(cameraId)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
 
             return {
                 url: toPathString(localVarUrlObj),
@@ -2132,6 +2269,19 @@ export const CamerasApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Get the live stream URL for a camera.
+         * @summary Get Camera Stream
+         * @param {string} cameraId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async getCameraStreamApiV1CamerasCameraIdStreamGet(cameraId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.getCameraStreamApiV1CamerasCameraIdStreamGet(cameraId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CamerasApi.getCameraStreamApiV1CamerasCameraIdStreamGet']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get all videos for a specific camera with filtering and pagination  - **camera_id**: ID of the camera - **skip**: Number of records to skip (for pagination) - **limit**: Maximum number of records to return - **has_violations**: Filter by videos with/without violations - **date_from**: Filter videos from this date (ISO format) - **date_to**: Filter videos until this date (ISO format)  Returns paginated list of videos
          * @summary Get Camera Videos
          * @param {string} cameraId 
@@ -2166,6 +2316,20 @@ export const CamerasApiFp = function(configuration?: Configuration) {
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
         /**
+         * Endpoint for AI Agents to push processed JPEG frames via HTTP.
+         * @summary Push Camera Frame
+         * @param {string} cameraId 
+         * @param {File} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async pushCameraFrameApiV1CamerasCameraIdPushPost(cameraId: string, body: File, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.pushCameraFrameApiV1CamerasCameraIdPushPost(cameraId, body, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CamerasApi.pushCameraFrameApiV1CamerasCameraIdPushPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * 
          * @summary Update Camera
          * @param {string} cameraId 
@@ -2177,6 +2341,19 @@ export const CamerasApiFp = function(configuration?: Configuration) {
             const localVarAxiosArgs = await localVarAxiosParamCreator.updateCameraApiV1CamerasCameraIdPut(cameraId, cameraUpdate, options);
             const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
             const localVarOperationServerBasePath = operationServerMap['CamerasApi.updateCameraApiV1CamerasCameraIdPut']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
+         * Serve the latest pushed frames as an MJPEG stream.
+         * @summary Video Feed
+         * @param {string} cameraId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async videoFeedApiV1CamerasVideoFeedCameraIdGet(cameraId: string, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<any>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.videoFeedApiV1CamerasVideoFeedCameraIdGet(cameraId, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['CamerasApi.videoFeedApiV1CamerasVideoFeedCameraIdGet']?.[localVarOperationServerIndex]?.url;
             return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
         },
     }
@@ -2219,6 +2396,16 @@ export const CamerasApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.getCameraApiV1CamerasCameraIdGet(cameraId, options).then((request) => request(axios, basePath));
         },
         /**
+         * Get the live stream URL for a camera.
+         * @summary Get Camera Stream
+         * @param {string} cameraId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        getCameraStreamApiV1CamerasCameraIdStreamGet(cameraId: string, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.getCameraStreamApiV1CamerasCameraIdStreamGet(cameraId, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get all videos for a specific camera with filtering and pagination  - **camera_id**: ID of the camera - **skip**: Number of records to skip (for pagination) - **limit**: Maximum number of records to return - **has_violations**: Filter by videos with/without violations - **date_from**: Filter videos from this date (ISO format) - **date_to**: Filter videos until this date (ISO format)  Returns paginated list of videos
          * @summary Get Camera Videos
          * @param {string} cameraId 
@@ -2247,6 +2434,17 @@ export const CamerasApiFactory = function (configuration?: Configuration, basePa
             return localVarFp.listCamerasApiV1CamerasGet(skip, limit, status, search, options).then((request) => request(axios, basePath));
         },
         /**
+         * Endpoint for AI Agents to push processed JPEG frames via HTTP.
+         * @summary Push Camera Frame
+         * @param {string} cameraId 
+         * @param {File} body 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        pushCameraFrameApiV1CamerasCameraIdPushPost(cameraId: string, body: File, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.pushCameraFrameApiV1CamerasCameraIdPushPost(cameraId, body, options).then((request) => request(axios, basePath));
+        },
+        /**
          * 
          * @summary Update Camera
          * @param {string} cameraId 
@@ -2256,6 +2454,16 @@ export const CamerasApiFactory = function (configuration?: Configuration, basePa
          */
         updateCameraApiV1CamerasCameraIdPut(cameraId: string, cameraUpdate: CameraUpdate, options?: RawAxiosRequestConfig): AxiosPromise<CameraResponse> {
             return localVarFp.updateCameraApiV1CamerasCameraIdPut(cameraId, cameraUpdate, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Serve the latest pushed frames as an MJPEG stream.
+         * @summary Video Feed
+         * @param {string} cameraId 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        videoFeedApiV1CamerasVideoFeedCameraIdGet(cameraId: string, options?: RawAxiosRequestConfig): AxiosPromise<any> {
+            return localVarFp.videoFeedApiV1CamerasVideoFeedCameraIdGet(cameraId, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -2298,6 +2506,17 @@ export class CamerasApi extends BaseAPI {
     }
 
     /**
+     * Get the live stream URL for a camera.
+     * @summary Get Camera Stream
+     * @param {string} cameraId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public getCameraStreamApiV1CamerasCameraIdStreamGet(cameraId: string, options?: RawAxiosRequestConfig) {
+        return CamerasApiFp(this.configuration).getCameraStreamApiV1CamerasCameraIdStreamGet(cameraId, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Get all videos for a specific camera with filtering and pagination  - **camera_id**: ID of the camera - **skip**: Number of records to skip (for pagination) - **limit**: Maximum number of records to return - **has_violations**: Filter by videos with/without violations - **date_from**: Filter videos from this date (ISO format) - **date_to**: Filter videos until this date (ISO format)  Returns paginated list of videos
      * @summary Get Camera Videos
      * @param {string} cameraId 
@@ -2328,6 +2547,18 @@ export class CamerasApi extends BaseAPI {
     }
 
     /**
+     * Endpoint for AI Agents to push processed JPEG frames via HTTP.
+     * @summary Push Camera Frame
+     * @param {string} cameraId 
+     * @param {File} body 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public pushCameraFrameApiV1CamerasCameraIdPushPost(cameraId: string, body: File, options?: RawAxiosRequestConfig) {
+        return CamerasApiFp(this.configuration).pushCameraFrameApiV1CamerasCameraIdPushPost(cameraId, body, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * 
      * @summary Update Camera
      * @param {string} cameraId 
@@ -2337,6 +2568,17 @@ export class CamerasApi extends BaseAPI {
      */
     public updateCameraApiV1CamerasCameraIdPut(cameraId: string, cameraUpdate: CameraUpdate, options?: RawAxiosRequestConfig) {
         return CamerasApiFp(this.configuration).updateCameraApiV1CamerasCameraIdPut(cameraId, cameraUpdate, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Serve the latest pushed frames as an MJPEG stream.
+     * @summary Video Feed
+     * @param {string} cameraId 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public videoFeedApiV1CamerasVideoFeedCameraIdGet(cameraId: string, options?: RawAxiosRequestConfig) {
+        return CamerasApiFp(this.configuration).videoFeedApiV1CamerasVideoFeedCameraIdGet(cameraId, options).then((request) => request(this.axios, this.basePath));
     }
 }
 
@@ -8247,6 +8489,45 @@ export class ViolationRulesApi extends BaseAPI {
 export const ViolationsApiAxiosParamCreator = function (configuration?: Configuration) {
     return {
         /**
+         * Create a new violation. Accessible by ADMIN, CAMERA, and OFFICER.
+         * @summary Create Violation
+         * @param {ViolationCreate} violationCreate 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createViolationApiV1ViolationsPost: async (violationCreate: ViolationCreate, options: RawAxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'violationCreate' is not null or undefined
+            assertParamExists('createViolationApiV1ViolationsPost', 'violationCreate', violationCreate)
+            const localVarPath = `/api/v1/violations/`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            // authentication HTTPBearer required
+            // http bearer authentication required
+            await setBearerAuthToObject(localVarHeaderParameter, configuration)
+
+            localVarHeaderParameter['Content-Type'] = 'application/json';
+            localVarHeaderParameter['Accept'] = 'application/json';
+
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+            localVarRequestOptions.data = serializeDataIfNeeded(violationCreate, localVarRequestOptions, configuration)
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Get list of processed violations
          * @summary Get Processed Violations
          * @param {number} [skip] 
@@ -8426,6 +8707,19 @@ export const ViolationsApiFp = function(configuration?: Configuration) {
     const localVarAxiosParamCreator = ViolationsApiAxiosParamCreator(configuration)
     return {
         /**
+         * Create a new violation. Accessible by ADMIN, CAMERA, and OFFICER.
+         * @summary Create Violation
+         * @param {ViolationCreate} violationCreate 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async createViolationApiV1ViolationsPost(violationCreate: ViolationCreate, options?: RawAxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ViolationResponse>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.createViolationApiV1ViolationsPost(violationCreate, options);
+            const localVarOperationServerIndex = configuration?.serverIndex ?? 0;
+            const localVarOperationServerBasePath = operationServerMap['ViolationsApi.createViolationApiV1ViolationsPost']?.[localVarOperationServerIndex]?.url;
+            return (axios, basePath) => createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration)(axios, localVarOperationServerBasePath || basePath);
+        },
+        /**
          * Get list of processed violations
          * @summary Get Processed Violations
          * @param {number} [skip] 
@@ -8490,6 +8784,16 @@ export const ViolationsApiFactory = function (configuration?: Configuration, bas
     const localVarFp = ViolationsApiFp(configuration)
     return {
         /**
+         * Create a new violation. Accessible by ADMIN, CAMERA, and OFFICER.
+         * @summary Create Violation
+         * @param {ViolationCreate} violationCreate 
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        createViolationApiV1ViolationsPost(violationCreate: ViolationCreate, options?: RawAxiosRequestConfig): AxiosPromise<ViolationResponse> {
+            return localVarFp.createViolationApiV1ViolationsPost(violationCreate, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Get list of processed violations
          * @summary Get Processed Violations
          * @param {number} [skip] 
@@ -8539,6 +8843,17 @@ export const ViolationsApiFactory = function (configuration?: Configuration, bas
  * ViolationsApi - object-oriented interface
  */
 export class ViolationsApi extends BaseAPI {
+    /**
+     * Create a new violation. Accessible by ADMIN, CAMERA, and OFFICER.
+     * @summary Create Violation
+     * @param {ViolationCreate} violationCreate 
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     */
+    public createViolationApiV1ViolationsPost(violationCreate: ViolationCreate, options?: RawAxiosRequestConfig) {
+        return ViolationsApiFp(this.configuration).createViolationApiV1ViolationsPost(violationCreate, options).then((request) => request(this.axios, this.basePath));
+    }
+
     /**
      * Get list of processed violations
      * @summary Get Processed Violations

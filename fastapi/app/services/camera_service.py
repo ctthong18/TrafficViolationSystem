@@ -83,7 +83,14 @@ class CameraService:
         exists = self.db.query(Camera).filter(Camera.camera_id == data.camera_id).first()
         if exists:
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Camera ID already exists")
-        camera = Camera(**data.dict())
+        
+        from passlib.hash import bcrypt
+        cam_data = data.dict()
+        if "password" in cam_data:
+            password = cam_data.pop("password")
+            cam_data["password_hash"] = bcrypt.hash(password)
+            
+        camera = Camera(**cam_data)
         self.db.add(camera)
         self.db.commit()
         self.db.refresh(camera)
@@ -93,7 +100,15 @@ class CameraService:
         camera = self.db.query(Camera).filter(Camera.camera_id == camera_id).first()
         if not camera:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Camera not found")
-        for field, value in data.dict(exclude_unset=True).items():
+        
+        from passlib.hash import bcrypt
+        update_data = data.dict(exclude_unset=True)
+        if "password" in update_data:
+            password = update_data.pop("password")
+            if password: # Only update if password is not empty string
+                update_data["password_hash"] = bcrypt.hash(password)
+        
+        for field, value in update_data.items():
             setattr(camera, field, value)
         camera.updated_at = datetime.utcnow()
         self.db.commit()

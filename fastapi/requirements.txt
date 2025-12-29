@@ -1,6 +1,7 @@
 fastapi
 uvicorn
 alembic
+opencv-python
 annotated-types==0.7.0
 bcrypt==4.0.1
 certifi==2025.10.5

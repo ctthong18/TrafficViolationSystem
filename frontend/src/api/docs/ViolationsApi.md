@@ -4,10 +4,64 @@ All URIs are relative to *http://localhost*
 
 |Method | HTTP request | Description|
 |------------- | ------------- | -------------|
+|[**createViolationApiV1ViolationsPost**](#createviolationapiv1violationspost) | **POST** /api/v1/violations/ | Create Violation|
 |[**getProcessedViolationsApiV1ViolationsProcessedListGet**](#getprocessedviolationsapiv1violationsprocessedlistget) | **GET** /api/v1/violations/processed/list | Get Processed Violations|
 |[**getRecentViolationsApiV1ViolationsRecentGet**](#getrecentviolationsapiv1violationsrecentget) | **GET** /api/v1/violations/recent | Get Recent Violations|
 |[**getViolationDetailApiV1ViolationsViolationIdGet**](#getviolationdetailapiv1violationsviolationidget) | **GET** /api/v1/violations/{violation_id} | Get Violation Detail|
 |[**getViolationsApiV1ViolationsGet**](#getviolationsapiv1violationsget) | **GET** /api/v1/violations/ | Get Violations|
+
+# **createViolationApiV1ViolationsPost**
+> ViolationResponse createViolationApiV1ViolationsPost(violationCreate)
+
+Create a new violation. Accessible by ADMIN, CAMERA, and OFFICER.
+
+### Example
+
+```typescript
+import {
+    ViolationsApi,
+    Configuration,
+    ViolationCreate
+} from './api';
+
+const configuration = new Configuration();
+const apiInstance = new ViolationsApi(configuration);
+
+let violationCreate: ViolationCreate; //
+
+const { status, data } = await apiInstance.createViolationApiV1ViolationsPost(
+    violationCreate
+);
+```
+
+### Parameters
+
+|Name | Type | Description  | Notes|
+|------------- | ------------- | ------------- | -------------|
+| **violationCreate** | **ViolationCreate**|  | |
+
+
+### Return type
+
+**ViolationResponse**
+
+### Authorization
+
+[HTTPBearer](../README.md#HTTPBearer)
+
+### HTTP request headers
+
+ - **Content-Type**: application/json
+ - **Accept**: application/json
+
+
+### HTTP response details
+| Status code | Description | Response headers |
+|-------------|-------------|------------------|
+|**200** | Successful Response |  -  |
+|**422** | Validation Error |  -  |
+
+[[Back to top]](#) [[Back to API list]](../README.md#documentation-for-api-endpoints) [[Back to Model list]](../README.md#documentation-for-models) [[Back to README]](../README.md)
 
 # **getProcessedViolationsApiV1ViolationsProcessedListGet**
 > ViolationListResponse getProcessedViolationsApiV1ViolationsProcessedListGet()
